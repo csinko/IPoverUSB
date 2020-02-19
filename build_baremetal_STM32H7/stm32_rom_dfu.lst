@@ -1,0 +1,269 @@
+ARM GAS  /tmp/ccMj44GB.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"stm32_rom_dfu.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.bootto_dfu_isr,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv4-sp-d16
+  26              	bootto_dfu_isr:
+  27              	.LFB145:
+  28              		.file 1 "Core/stm32_rom_dfu.c"
+   1:Core/stm32_rom_dfu.c **** /**
+   2:Core/stm32_rom_dfu.c ****   ******************************************************************************
+   3:Core/stm32_rom_dfu.c ****   * @file    stm32_rom_dfu.c
+   4:Core/stm32_rom_dfu.c ****   * @author  Benedek Kupper
+   5:Core/stm32_rom_dfu.c ****   * @version 0.1
+   6:Core/stm32_rom_dfu.c ****   * @date    2018-12-16
+   7:Core/stm32_rom_dfu.c ****   * @brief   STM32 ROM DFU interface
+   8:Core/stm32_rom_dfu.c ****   *
+   9:Core/stm32_rom_dfu.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:Core/stm32_rom_dfu.c ****   *
+  11:Core/stm32_rom_dfu.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:Core/stm32_rom_dfu.c ****   * you may not use this file except in compliance with the License.
+  13:Core/stm32_rom_dfu.c ****   * You may obtain a copy of the License at
+  14:Core/stm32_rom_dfu.c ****   *
+  15:Core/stm32_rom_dfu.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:Core/stm32_rom_dfu.c ****   *
+  17:Core/stm32_rom_dfu.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:Core/stm32_rom_dfu.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:Core/stm32_rom_dfu.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:Core/stm32_rom_dfu.c ****   * See the License for the specific language governing permissions and
+  21:Core/stm32_rom_dfu.c ****   * limitations under the License.
+  22:Core/stm32_rom_dfu.c ****   */
+  23:Core/stm32_rom_dfu.c **** #include <stm32_rom_dfu.h>
+  24:Core/stm32_rom_dfu.c **** #include <xpd_utils.h>
+  25:Core/stm32_rom_dfu.c **** 
+  26:Core/stm32_rom_dfu.c **** static const char* stm32_dfu_if_name = "STM32 BOOTLOADER";
+  27:Core/stm32_rom_dfu.c **** static volatile bool dfuRequested = false;
+  28:Core/stm32_rom_dfu.c **** 
+  29:Core/stm32_rom_dfu.c **** static USBD_DFU_IfHandleType _dfu_if;
+  30:Core/stm32_rom_dfu.c **** USBD_DFU_IfHandleType *const stm32_rom_dfu_if = &_dfu_if;
+ARM GAS  /tmp/ccMj44GB.s 			page 2
+
+
+  31:Core/stm32_rom_dfu.c **** 
+  32:Core/stm32_rom_dfu.c **** static void bootto_dfu_isr(void)
+  33:Core/stm32_rom_dfu.c **** {
+  29              		.loc 1 33 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  34:Core/stm32_rom_dfu.c ****     dfuRequested = true;
+  34              		.loc 1 34 5 view .LVU1
+  35              		.loc 1 34 18 is_stmt 0 view .LVU2
+  36 0000 014B     		ldr	r3, .L3
+  37 0002 0122     		movs	r2, #1
+  38 0004 1A70     		strb	r2, [r3]
+  35:Core/stm32_rom_dfu.c **** }
+  39              		.loc 1 35 1 view .LVU3
+  40 0006 7047     		bx	lr
+  41              	.L4:
+  42              		.align	2
+  43              	.L3:
+  44 0008 00000000 		.word	.LANCHOR0
+  45              		.cfi_endproc
+  46              	.LFE145:
+  48              		.section	.text.STM32_ROM_DFU_Init,"ax",%progbits
+  49              		.align	1
+  50              		.p2align 2,,3
+  51              		.global	STM32_ROM_DFU_Init
+  52              		.syntax unified
+  53              		.thumb
+  54              		.thumb_func
+  55              		.fpu fpv4-sp-d16
+  57              	STM32_ROM_DFU_Init:
+  58              	.LFB146:
+  36:Core/stm32_rom_dfu.c **** 
+  37:Core/stm32_rom_dfu.c **** /**
+  38:Core/stm32_rom_dfu.c ****  * @brief Initializes the STM32 ROM DFU interface.
+  39:Core/stm32_rom_dfu.c ****  */
+  40:Core/stm32_rom_dfu.c **** void STM32_ROM_DFU_Init(void)
+  41:Core/stm32_rom_dfu.c **** {
+  59              		.loc 1 41 1 is_stmt 1 view -0
+  60              		.cfi_startproc
+  61              		@ args = 0, pretend = 0, frame = 0
+  62              		@ frame_needed = 0, uses_anonymous_args = 0
+  63              		@ link register save eliminated.
+  42:Core/stm32_rom_dfu.c ****     /* Instead of the App struct, only the string pointer is passed
+  43:Core/stm32_rom_dfu.c ****      * the rest of the App fields aren't used by Reboot-only DFU */
+  44:Core/stm32_rom_dfu.c ****     stm32_rom_dfu_if->App = (void*)&stm32_dfu_if_name;
+  64              		.loc 1 44 5 view .LVU5
+  65              		.loc 1 44 27 is_stmt 0 view .LVU6
+  66 0000 034B     		ldr	r3, .L6
+  45:Core/stm32_rom_dfu.c **** 
+  46:Core/stm32_rom_dfu.c ****     stm32_rom_dfu_if->Config.Reboot = bootto_dfu_isr;
+  47:Core/stm32_rom_dfu.c ****     stm32_rom_dfu_if->Config.DetachTimeout_ms = 100;
+  67              		.loc 1 47 47 view .LVU7
+  68 0002 6422     		movs	r2, #100
+  44:Core/stm32_rom_dfu.c **** 
+  69              		.loc 1 44 27 view .LVU8
+ARM GAS  /tmp/ccMj44GB.s 			page 3
+
+
+  70 0004 0348     		ldr	r0, .L6+4
+  46:Core/stm32_rom_dfu.c ****     stm32_rom_dfu_if->Config.DetachTimeout_ms = 100;
+  71              		.loc 1 46 37 view .LVU9
+  72 0006 0449     		ldr	r1, .L6+8
+  73              		.loc 1 47 47 view .LVU10
+  74 0008 9A82     		strh	r2, [r3, #20]	@ movhi
+  46:Core/stm32_rom_dfu.c ****     stm32_rom_dfu_if->Config.DetachTimeout_ms = 100;
+  75              		.loc 1 46 37 view .LVU11
+  76 000a C3E90301 		strd	r0, r1, [r3, #12]
+  77              		.loc 1 47 5 is_stmt 1 view .LVU12
+  48:Core/stm32_rom_dfu.c **** }
+  78              		.loc 1 48 1 is_stmt 0 view .LVU13
+  79 000e 7047     		bx	lr
+  80              	.L7:
+  81              		.align	2
+  82              	.L6:
+  83 0010 00000000 		.word	.LANCHOR1
+  84 0014 00000000 		.word	.LANCHOR2
+  85 0018 00000000 		.word	bootto_dfu_isr
+  86              		.cfi_endproc
+  87              	.LFE146:
+  89              		.section	.text.STM32_ROM_DFU_Main,"ax",%progbits
+  90              		.align	1
+  91              		.p2align 2,,3
+  92              		.global	STM32_ROM_DFU_Main
+  93              		.syntax unified
+  94              		.thumb
+  95              		.thumb_func
+  96              		.fpu fpv4-sp-d16
+  98              	STM32_ROM_DFU_Main:
+  99              	.LFB147:
+  49:Core/stm32_rom_dfu.c **** 
+  50:Core/stm32_rom_dfu.c **** /**
+  51:Core/stm32_rom_dfu.c ****  * @brief When a DFU detach is requested, the device must start running
+  52:Core/stm32_rom_dfu.c ****  *        the STM32 embedded ROM bootloader. The entry must be done in thread mode.
+  53:Core/stm32_rom_dfu.c ****  */
+  54:Core/stm32_rom_dfu.c **** void STM32_ROM_DFU_Main(void)
+  55:Core/stm32_rom_dfu.c **** {
+ 100              		.loc 1 55 1 is_stmt 1 view -0
+ 101              		.cfi_startproc
+ 102              		@ args = 0, pretend = 0, frame = 0
+ 103              		@ frame_needed = 0, uses_anonymous_args = 0
+ 104              		@ link register save eliminated.
+  56:Core/stm32_rom_dfu.c ****     if (dfuRequested)
+ 105              		.loc 1 56 5 view .LVU15
+ 106              		.loc 1 56 9 is_stmt 0 view .LVU16
+ 107 0000 034B     		ldr	r3, .L11
+ 108 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 109              		.loc 1 56 8 view .LVU17
+ 110 0004 03B9     		cbnz	r3, .L10
+  57:Core/stm32_rom_dfu.c ****     {
+  58:Core/stm32_rom_dfu.c ****         XPD_vBootTo(SYSTEM_MEMORY_ADDR);
+  59:Core/stm32_rom_dfu.c ****     }
+  60:Core/stm32_rom_dfu.c **** }
+ 111              		.loc 1 60 1 view .LVU18
+ 112 0006 7047     		bx	lr
+ 113              	.L10:
+ARM GAS  /tmp/ccMj44GB.s 			page 4
+
+
+  58:Core/stm32_rom_dfu.c ****     }
+ 114              		.loc 1 58 9 is_stmt 1 view .LVU19
+ 115 0008 0248     		ldr	r0, .L11+4
+ 116 000a FFF7FEBF 		b	XPD_vBootTo
+ 117              	.LVL0:
+ 118              	.L12:
+ 119 000e 00BF     		.align	2
+ 120              	.L11:
+ 121 0010 00000000 		.word	.LANCHOR0
+ 122 0014 0098F01F 		.word	535861248
+ 123              		.cfi_endproc
+ 124              	.LFE147:
+ 126              		.global	stm32_rom_dfu_if
+ 127              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 128              		.align	2
+ 129              	.LC0:
+ 130 0000 53544D33 		.ascii	"STM32 BOOTLOADER\000"
+ 130      3220424F 
+ 130      4F544C4F 
+ 130      41444552 
+ 130      00
+ 131              		.section	.bss._dfu_if,"aw",%nobits
+ 132              		.align	2
+ 133              		.set	.LANCHOR1,. + 0
+ 136              	_dfu_if:
+ 137 0000 00000000 		.space	52
+ 137      00000000 
+ 137      00000000 
+ 137      00000000 
+ 137      00000000 
+ 138              		.section	.bss.dfuRequested,"aw",%nobits
+ 139              		.set	.LANCHOR0,. + 0
+ 142              	dfuRequested:
+ 143 0000 00       		.space	1
+ 144              		.section	.data.stm32_dfu_if_name,"aw"
+ 145              		.align	2
+ 146              		.set	.LANCHOR2,. + 0
+ 149              	stm32_dfu_if_name:
+ 150 0000 00000000 		.word	.LC0
+ 151              		.section	.rodata.stm32_rom_dfu_if,"a"
+ 152              		.align	2
+ 155              	stm32_rom_dfu_if:
+ 156 0000 00000000 		.word	_dfu_if
+ 157              		.text
+ 158              	.Letext0:
+ 159              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 160              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 161              		.file 4 "USBDevice/Include/usb_types.h"
+ 162              		.file 5 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 163              		.file 6 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 164              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 165              		.file 8 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 166              		.file 9 "USBDevice/PDs/STM32_XPD/usbd_pd_def.h"
+ 167              		.file 10 "USBDevice/Include/usbd_types.h"
+ 168              		.file 11 "USBDevice/Include/usbd_dfu.h"
+ 169              		.file 12 "Core/stm32_rom_dfu.h"
+ 170              		.file 13 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+ARM GAS  /tmp/ccMj44GB.s 			page 5
+
+
+ARM GAS  /tmp/ccMj44GB.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 stm32_rom_dfu.c
+     /tmp/ccMj44GB.s:18     .text.bootto_dfu_isr:0000000000000000 $t
+     /tmp/ccMj44GB.s:26     .text.bootto_dfu_isr:0000000000000000 bootto_dfu_isr
+     /tmp/ccMj44GB.s:44     .text.bootto_dfu_isr:0000000000000008 $d
+     /tmp/ccMj44GB.s:49     .text.STM32_ROM_DFU_Init:0000000000000000 $t
+     /tmp/ccMj44GB.s:57     .text.STM32_ROM_DFU_Init:0000000000000000 STM32_ROM_DFU_Init
+     /tmp/ccMj44GB.s:83     .text.STM32_ROM_DFU_Init:0000000000000010 $d
+     /tmp/ccMj44GB.s:90     .text.STM32_ROM_DFU_Main:0000000000000000 $t
+     /tmp/ccMj44GB.s:98     .text.STM32_ROM_DFU_Main:0000000000000000 STM32_ROM_DFU_Main
+     /tmp/ccMj44GB.s:121    .text.STM32_ROM_DFU_Main:0000000000000010 $d
+     /tmp/ccMj44GB.s:155    .rodata.stm32_rom_dfu_if:0000000000000000 stm32_rom_dfu_if
+     /tmp/ccMj44GB.s:128    .rodata.str1.4:0000000000000000 $d
+     /tmp/ccMj44GB.s:132    .bss._dfu_if:0000000000000000 $d
+     /tmp/ccMj44GB.s:136    .bss._dfu_if:0000000000000000 _dfu_if
+     /tmp/ccMj44GB.s:142    .bss.dfuRequested:0000000000000000 dfuRequested
+     /tmp/ccMj44GB.s:143    .bss.dfuRequested:0000000000000000 $d
+     /tmp/ccMj44GB.s:145    .data.stm32_dfu_if_name:0000000000000000 $d
+     /tmp/ccMj44GB.s:149    .data.stm32_dfu_if_name:0000000000000000 stm32_dfu_if_name
+     /tmp/ccMj44GB.s:152    .rodata.stm32_rom_dfu_if:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+XPD_vBootTo

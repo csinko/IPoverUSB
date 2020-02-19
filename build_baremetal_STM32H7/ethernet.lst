@@ -1,0 +1,1775 @@
+ARM GAS  /tmp/ccY886Pn.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"ethernet.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.ethernet_input,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	ethernet_input
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	ethernet_input:
+  28              	.LVL0:
+  29              	.LFB105:
+  30              		.file 1 "lwIP/src/netif/ethernet.c"
+   1:lwIP/src/netif/ethernet.c **** /**
+   2:lwIP/src/netif/ethernet.c ****  * @file
+   3:lwIP/src/netif/ethernet.c ****  * Ethernet common functions
+   4:lwIP/src/netif/ethernet.c ****  *
+   5:lwIP/src/netif/ethernet.c ****  * @defgroup ethernet Ethernet
+   6:lwIP/src/netif/ethernet.c ****  * @ingroup callbackstyle_api
+   7:lwIP/src/netif/ethernet.c ****  */
+   8:lwIP/src/netif/ethernet.c **** 
+   9:lwIP/src/netif/ethernet.c **** /*
+  10:lwIP/src/netif/ethernet.c ****  * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
+  11:lwIP/src/netif/ethernet.c ****  * Copyright (c) 2003-2004 Leon Woestenberg <leon.woestenberg@axon.tv>
+  12:lwIP/src/netif/ethernet.c ****  * Copyright (c) 2003-2004 Axon Digital Design B.V., The Netherlands.
+  13:lwIP/src/netif/ethernet.c ****  * All rights reserved.
+  14:lwIP/src/netif/ethernet.c ****  *
+  15:lwIP/src/netif/ethernet.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  16:lwIP/src/netif/ethernet.c ****  * are permitted provided that the following conditions are met:
+  17:lwIP/src/netif/ethernet.c ****  *
+  18:lwIP/src/netif/ethernet.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  19:lwIP/src/netif/ethernet.c ****  *    this list of conditions and the following disclaimer.
+  20:lwIP/src/netif/ethernet.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  21:lwIP/src/netif/ethernet.c ****  *    this list of conditions and the following disclaimer in the documentation
+  22:lwIP/src/netif/ethernet.c ****  *    and/or other materials provided with the distribution.
+  23:lwIP/src/netif/ethernet.c ****  * 3. The name of the author may not be used to endorse or promote products
+  24:lwIP/src/netif/ethernet.c ****  *    derived from this software without specific prior written permission.
+  25:lwIP/src/netif/ethernet.c ****  *
+  26:lwIP/src/netif/ethernet.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  27:lwIP/src/netif/ethernet.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  28:lwIP/src/netif/ethernet.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ARM GAS  /tmp/ccY886Pn.s 			page 2
+
+
+  29:lwIP/src/netif/ethernet.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  30:lwIP/src/netif/ethernet.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  31:lwIP/src/netif/ethernet.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  32:lwIP/src/netif/ethernet.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  33:lwIP/src/netif/ethernet.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  34:lwIP/src/netif/ethernet.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  35:lwIP/src/netif/ethernet.c ****  * OF SUCH DAMAGE.
+  36:lwIP/src/netif/ethernet.c ****  *
+  37:lwIP/src/netif/ethernet.c ****  * This file is part of the lwIP TCP/IP stack.
+  38:lwIP/src/netif/ethernet.c ****  *
+  39:lwIP/src/netif/ethernet.c ****  */
+  40:lwIP/src/netif/ethernet.c **** 
+  41:lwIP/src/netif/ethernet.c **** #include "lwip/opt.h"
+  42:lwIP/src/netif/ethernet.c **** 
+  43:lwIP/src/netif/ethernet.c **** #if LWIP_ARP || LWIP_ETHERNET
+  44:lwIP/src/netif/ethernet.c **** 
+  45:lwIP/src/netif/ethernet.c **** #include "netif/ethernet.h"
+  46:lwIP/src/netif/ethernet.c **** #include "lwip/def.h"
+  47:lwIP/src/netif/ethernet.c **** #include "lwip/stats.h"
+  48:lwIP/src/netif/ethernet.c **** #include "lwip/etharp.h"
+  49:lwIP/src/netif/ethernet.c **** #include "lwip/ip.h"
+  50:lwIP/src/netif/ethernet.c **** #include "lwip/snmp.h"
+  51:lwIP/src/netif/ethernet.c **** 
+  52:lwIP/src/netif/ethernet.c **** #include <string.h>
+  53:lwIP/src/netif/ethernet.c **** 
+  54:lwIP/src/netif/ethernet.c **** #include "netif/ppp/ppp_opts.h"
+  55:lwIP/src/netif/ethernet.c **** #if PPPOE_SUPPORT
+  56:lwIP/src/netif/ethernet.c **** #include "netif/ppp/pppoe.h"
+  57:lwIP/src/netif/ethernet.c **** #endif /* PPPOE_SUPPORT */
+  58:lwIP/src/netif/ethernet.c **** 
+  59:lwIP/src/netif/ethernet.c **** #ifdef LWIP_HOOK_FILENAME
+  60:lwIP/src/netif/ethernet.c **** #include LWIP_HOOK_FILENAME
+  61:lwIP/src/netif/ethernet.c **** #endif
+  62:lwIP/src/netif/ethernet.c **** 
+  63:lwIP/src/netif/ethernet.c **** const struct eth_addr ethbroadcast = {{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}};
+  64:lwIP/src/netif/ethernet.c **** const struct eth_addr ethzero = {{0, 0, 0, 0, 0, 0}};
+  65:lwIP/src/netif/ethernet.c **** 
+  66:lwIP/src/netif/ethernet.c **** /**
+  67:lwIP/src/netif/ethernet.c ****  * @ingroup lwip_nosys
+  68:lwIP/src/netif/ethernet.c ****  * Process received ethernet frames. Using this function instead of directly
+  69:lwIP/src/netif/ethernet.c ****  * calling ip_input and passing ARP frames through etharp in ethernetif_input,
+  70:lwIP/src/netif/ethernet.c ****  * the ARP cache is protected from concurrent access.\n
+  71:lwIP/src/netif/ethernet.c ****  * Don't call directly, pass to netif_add() and call netif->input().
+  72:lwIP/src/netif/ethernet.c ****  *
+  73:lwIP/src/netif/ethernet.c ****  * @param p the received packet, p->payload pointing to the ethernet header
+  74:lwIP/src/netif/ethernet.c ****  * @param netif the network interface on which the packet was received
+  75:lwIP/src/netif/ethernet.c ****  *
+  76:lwIP/src/netif/ethernet.c ****  * @see LWIP_HOOK_UNKNOWN_ETH_PROTOCOL
+  77:lwIP/src/netif/ethernet.c ****  * @see ETHARP_SUPPORT_VLAN
+  78:lwIP/src/netif/ethernet.c ****  * @see LWIP_HOOK_VLAN_CHECK
+  79:lwIP/src/netif/ethernet.c ****  */
+  80:lwIP/src/netif/ethernet.c **** err_t
+  81:lwIP/src/netif/ethernet.c **** ethernet_input(struct pbuf *p, struct netif *netif)
+  82:lwIP/src/netif/ethernet.c **** {
+  31              		.loc 1 82 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  /tmp/ccY886Pn.s 			page 3
+
+
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  83:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+  35              		.loc 1 83 3 view .LVU1
+  84:lwIP/src/netif/ethernet.c ****   u16_t type;
+  36              		.loc 1 84 3 view .LVU2
+  85:lwIP/src/netif/ethernet.c **** #if LWIP_ARP || ETHARP_SUPPORT_VLAN || LWIP_IPV6
+  86:lwIP/src/netif/ethernet.c ****   u16_t next_hdr_offset = SIZEOF_ETH_HDR;
+  37              		.loc 1 86 3 view .LVU3
+  87:lwIP/src/netif/ethernet.c **** #endif /* LWIP_ARP || ETHARP_SUPPORT_VLAN */
+  88:lwIP/src/netif/ethernet.c **** 
+  89:lwIP/src/netif/ethernet.c ****   LWIP_ASSERT_CORE_LOCKED();
+  38              		.loc 1 89 28 view .LVU4
+  90:lwIP/src/netif/ethernet.c **** 
+  91:lwIP/src/netif/ethernet.c ****   if (p->len <= SIZEOF_ETH_HDR) {
+  39              		.loc 1 91 3 view .LVU5
+  40              		.loc 1 91 6 is_stmt 0 view .LVU6
+  41 0000 4389     		ldrh	r3, [r0, #10]
+  42 0002 0E2B     		cmp	r3, #14
+  82:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+  43              		.loc 1 82 1 view .LVU7
+  44 0004 70B5     		push	{r4, r5, r6, lr}
+  45              	.LCFI0:
+  46              		.cfi_def_cfa_offset 16
+  47              		.cfi_offset 4, -16
+  48              		.cfi_offset 5, -12
+  49              		.cfi_offset 6, -8
+  50              		.cfi_offset 14, -4
+  82:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+  51              		.loc 1 82 1 view .LVU8
+  52 0006 0446     		mov	r4, r0
+  53              		.loc 1 91 6 view .LVU9
+  54 0008 1BD9     		bls	.L8
+  92:lwIP/src/netif/ethernet.c ****     /* a packet with only an ethernet header (or less) is not valid for us */
+  93:lwIP/src/netif/ethernet.c ****     ETHARP_STATS_INC(etharp.proterr);
+  94:lwIP/src/netif/ethernet.c ****     ETHARP_STATS_INC(etharp.drop);
+  95:lwIP/src/netif/ethernet.c ****     MIB2_STATS_NETIF_INC(netif, ifinerrors);
+  96:lwIP/src/netif/ethernet.c ****     goto free_and_return;
+  97:lwIP/src/netif/ethernet.c ****   }
+  98:lwIP/src/netif/ethernet.c **** 
+  99:lwIP/src/netif/ethernet.c ****   if (p->if_idx == NETIF_NO_INDEX) {
+  55              		.loc 1 99 3 is_stmt 1 view .LVU10
+  56              		.loc 1 99 6 is_stmt 0 view .LVU11
+  57 000a C37B     		ldrb	r3, [r0, #15]	@ zero_extendqisi2
+  58 000c 0D46     		mov	r5, r1
+  59 000e 1BB9     		cbnz	r3, .L3
+ 100:lwIP/src/netif/ethernet.c ****     p->if_idx = netif_get_index(netif);
+  60              		.loc 1 100 5 is_stmt 1 view .LVU12
+  61              		.loc 1 100 17 is_stmt 0 view .LVU13
+  62 0010 91F82830 		ldrb	r3, [r1, #40]	@ zero_extendqisi2
+  63 0014 0133     		adds	r3, r3, #1
+  64              		.loc 1 100 15 view .LVU14
+  65 0016 C373     		strb	r3, [r0, #15]
+  66              	.L3:
+ 101:lwIP/src/netif/ethernet.c ****   }
+ 102:lwIP/src/netif/ethernet.c **** 
+ 103:lwIP/src/netif/ethernet.c ****   /* points to packet payload, which starts with an Ethernet header */
+ 104:lwIP/src/netif/ethernet.c ****   ethhdr = (struct eth_hdr *)p->payload;
+ARM GAS  /tmp/ccY886Pn.s 			page 4
+
+
+  67              		.loc 1 104 3 is_stmt 1 view .LVU15
+  68              		.loc 1 104 10 is_stmt 0 view .LVU16
+  69 0018 6068     		ldr	r0, [r4, #4]
+  70              	.LVL1:
+ 105:lwIP/src/netif/ethernet.c ****   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
+ 106:lwIP/src/netif/ethernet.c ****               ("ethernet_input: dest:%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F":%"X8_F", src:%"X8_F":%
+ 107:lwIP/src/netif/ethernet.c ****                (unsigned char)ethhdr->dest.addr[0], (unsigned char)ethhdr->dest.addr[1], (unsigned 
+ 108:lwIP/src/netif/ethernet.c ****                (unsigned char)ethhdr->dest.addr[3], (unsigned char)ethhdr->dest.addr[4], (unsigned 
+ 109:lwIP/src/netif/ethernet.c ****                (unsigned char)ethhdr->src.addr[0],  (unsigned char)ethhdr->src.addr[1],  (unsigned 
+ 110:lwIP/src/netif/ethernet.c ****                (unsigned char)ethhdr->src.addr[3],  (unsigned char)ethhdr->src.addr[4],  (unsigned 
+ 111:lwIP/src/netif/ethernet.c ****                lwip_htons(ethhdr->type)));
+  71              		.loc 1 111 42 is_stmt 1 view .LVU17
+ 112:lwIP/src/netif/ethernet.c **** 
+ 113:lwIP/src/netif/ethernet.c ****   type = ethhdr->type;
+  72              		.loc 1 113 3 view .LVU18
+ 114:lwIP/src/netif/ethernet.c **** #if ETHARP_SUPPORT_VLAN
+ 115:lwIP/src/netif/ethernet.c ****   if (type == PP_HTONS(ETHTYPE_VLAN)) {
+ 116:lwIP/src/netif/ethernet.c ****     struct eth_vlan_hdr *vlan = (struct eth_vlan_hdr *)(((char *)ethhdr) + SIZEOF_ETH_HDR);
+ 117:lwIP/src/netif/ethernet.c ****     next_hdr_offset = SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR;
+ 118:lwIP/src/netif/ethernet.c ****     if (p->len <= SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR) {
+ 119:lwIP/src/netif/ethernet.c ****       /* a packet with only an ethernet/vlan header (or less) is not valid for us */
+ 120:lwIP/src/netif/ethernet.c ****       ETHARP_STATS_INC(etharp.proterr);
+ 121:lwIP/src/netif/ethernet.c ****       ETHARP_STATS_INC(etharp.drop);
+ 122:lwIP/src/netif/ethernet.c ****       MIB2_STATS_NETIF_INC(netif, ifinerrors);
+ 123:lwIP/src/netif/ethernet.c ****       goto free_and_return;
+ 124:lwIP/src/netif/ethernet.c ****     }
+ 125:lwIP/src/netif/ethernet.c **** #if defined(LWIP_HOOK_VLAN_CHECK) || defined(ETHARP_VLAN_CHECK) || defined(ETHARP_VLAN_CHECK_FN) /*
+ 126:lwIP/src/netif/ethernet.c **** #ifdef LWIP_HOOK_VLAN_CHECK
+ 127:lwIP/src/netif/ethernet.c ****     if (!LWIP_HOOK_VLAN_CHECK(netif, ethhdr, vlan)) {
+ 128:lwIP/src/netif/ethernet.c **** #elif defined(ETHARP_VLAN_CHECK_FN)
+ 129:lwIP/src/netif/ethernet.c ****     if (!ETHARP_VLAN_CHECK_FN(ethhdr, vlan)) {
+ 130:lwIP/src/netif/ethernet.c **** #elif defined(ETHARP_VLAN_CHECK)
+ 131:lwIP/src/netif/ethernet.c ****     if (VLAN_ID(vlan) != ETHARP_VLAN_CHECK) {
+ 132:lwIP/src/netif/ethernet.c **** #endif
+ 133:lwIP/src/netif/ethernet.c ****       /* silently ignore this packet: not for our VLAN */
+ 134:lwIP/src/netif/ethernet.c ****       pbuf_free(p);
+ 135:lwIP/src/netif/ethernet.c ****       return ERR_OK;
+ 136:lwIP/src/netif/ethernet.c ****     }
+ 137:lwIP/src/netif/ethernet.c **** #endif /* defined(LWIP_HOOK_VLAN_CHECK) || defined(ETHARP_VLAN_CHECK) || defined(ETHARP_VLAN_CHECK_
+ 138:lwIP/src/netif/ethernet.c ****     type = vlan->tpid;
+ 139:lwIP/src/netif/ethernet.c ****   }
+ 140:lwIP/src/netif/ethernet.c **** #endif /* ETHARP_SUPPORT_VLAN */
+ 141:lwIP/src/netif/ethernet.c **** 
+ 142:lwIP/src/netif/ethernet.c **** #if LWIP_ARP_FILTER_NETIF
+ 143:lwIP/src/netif/ethernet.c ****   netif = LWIP_ARP_FILTER_NETIF_FN(p, netif, lwip_htons(type));
+ 144:lwIP/src/netif/ethernet.c **** #endif /* LWIP_ARP_FILTER_NETIF*/
+ 145:lwIP/src/netif/ethernet.c **** 
+ 146:lwIP/src/netif/ethernet.c ****   if (ethhdr->dest.addr[0] & 1) {
+  73              		.loc 1 146 24 is_stmt 0 view .LVU19
+  74 001a 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 113:lwIP/src/netif/ethernet.c **** #if ETHARP_SUPPORT_VLAN
+  75              		.loc 1 113 8 view .LVU20
+  76 001c 8689     		ldrh	r6, [r0, #12]	@ unaligned
+  77              	.LVL2:
+  78              		.loc 1 146 3 is_stmt 1 view .LVU21
+  79              		.loc 1 146 6 is_stmt 0 view .LVU22
+  80 001e D907     		lsls	r1, r3, #31
+ARM GAS  /tmp/ccY886Pn.s 			page 5
+
+
+  81              	.LVL3:
+  82              		.loc 1 146 6 view .LVU23
+  83 0020 0AD5     		bpl	.L4
+ 147:lwIP/src/netif/ethernet.c ****     /* this might be a multicast or broadcast packet */
+ 148:lwIP/src/netif/ethernet.c ****     if (ethhdr->dest.addr[0] == LL_IP4_MULTICAST_ADDR_0) {
+  84              		.loc 1 148 5 is_stmt 1 view .LVU24
+  85              		.loc 1 148 8 is_stmt 0 view .LVU25
+  86 0022 012B     		cmp	r3, #1
+  87 0024 30D0     		beq	.L21
+ 149:lwIP/src/netif/ethernet.c **** #if LWIP_IPV4
+ 150:lwIP/src/netif/ethernet.c ****       if ((ethhdr->dest.addr[1] == LL_IP4_MULTICAST_ADDR_1) &&
+ 151:lwIP/src/netif/ethernet.c ****           (ethhdr->dest.addr[2] == LL_IP4_MULTICAST_ADDR_2)) {
+ 152:lwIP/src/netif/ethernet.c ****         /* mark the pbuf as link-layer multicast */
+ 153:lwIP/src/netif/ethernet.c ****         p->flags |= PBUF_FLAG_LLMCAST;
+ 154:lwIP/src/netif/ethernet.c ****       }
+ 155:lwIP/src/netif/ethernet.c **** #endif /* LWIP_IPV4 */
+ 156:lwIP/src/netif/ethernet.c ****     }
+ 157:lwIP/src/netif/ethernet.c **** #if LWIP_IPV6
+ 158:lwIP/src/netif/ethernet.c ****     else if ((ethhdr->dest.addr[0] == LL_IP6_MULTICAST_ADDR_0) &&
+ 159:lwIP/src/netif/ethernet.c ****              (ethhdr->dest.addr[1] == LL_IP6_MULTICAST_ADDR_1)) {
+ 160:lwIP/src/netif/ethernet.c ****       /* mark the pbuf as link-layer multicast */
+ 161:lwIP/src/netif/ethernet.c ****       p->flags |= PBUF_FLAG_LLMCAST;
+ 162:lwIP/src/netif/ethernet.c ****     }
+ 163:lwIP/src/netif/ethernet.c **** #endif /* LWIP_IPV6 */
+ 164:lwIP/src/netif/ethernet.c ****     else if (eth_addr_cmp(&ethhdr->dest, &ethbroadcast)) {
+  88              		.loc 1 164 10 is_stmt 1 view .LVU26
+  89              		.loc 1 164 14 is_stmt 0 view .LVU27
+  90 0026 0622     		movs	r2, #6
+  91 0028 1D49     		ldr	r1, .L22
+  92 002a FFF7FEFF 		bl	memcmp
+  93              	.LVL4:
+  94              		.loc 1 164 13 view .LVU28
+  95 002e 18B9     		cbnz	r0, .L4
+ 165:lwIP/src/netif/ethernet.c ****       /* mark the pbuf as link-layer broadcast */
+ 166:lwIP/src/netif/ethernet.c ****       p->flags |= PBUF_FLAG_LLBCAST;
+  96              		.loc 1 166 7 is_stmt 1 view .LVU29
+  97              		.loc 1 166 16 is_stmt 0 view .LVU30
+  98 0030 637B     		ldrb	r3, [r4, #13]	@ zero_extendqisi2
+  99 0032 43F00803 		orr	r3, r3, #8
+ 100 0036 6373     		strb	r3, [r4, #13]
+ 101              	.L4:
+ 167:lwIP/src/netif/ethernet.c ****     }
+ 168:lwIP/src/netif/ethernet.c ****   }
+ 169:lwIP/src/netif/ethernet.c **** 
+ 170:lwIP/src/netif/ethernet.c ****   switch (type) {
+ 102              		.loc 1 170 3 is_stmt 1 view .LVU31
+ 103 0038 082E     		cmp	r6, #8
+ 104 003a 16D0     		beq	.L6
+ 105 003c B6F5C16F 		cmp	r6, #1544
+ 106 0040 04D0     		beq	.L7
+ 107              	.LVL5:
+ 108              	.L8:
+ 171:lwIP/src/netif/ethernet.c **** #if LWIP_IPV4 && LWIP_ARP
+ 172:lwIP/src/netif/ethernet.c ****     /* IP packet? */
+ 173:lwIP/src/netif/ethernet.c ****     case PP_HTONS(ETHTYPE_IP):
+ 174:lwIP/src/netif/ethernet.c ****       if (!(netif->flags & NETIF_FLAG_ETHARP)) {
+ 175:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ARM GAS  /tmp/ccY886Pn.s 			page 6
+
+
+ 176:lwIP/src/netif/ethernet.c ****       }
+ 177:lwIP/src/netif/ethernet.c ****       /* skip Ethernet header (min. size checked above) */
+ 178:lwIP/src/netif/ethernet.c ****       if (pbuf_remove_header(p, next_hdr_offset)) {
+ 179:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 180:lwIP/src/netif/ethernet.c ****                     ("ethernet_input: IPv4 packet dropped, too short (%"U16_F"/%"U16_F")\n",
+ 181:lwIP/src/netif/ethernet.c ****                      p->tot_len, next_hdr_offset));
+ 182:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("Can't move over header in packet"));
+ 183:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 184:lwIP/src/netif/ethernet.c ****       } else {
+ 185:lwIP/src/netif/ethernet.c ****         /* pass to IP layer */
+ 186:lwIP/src/netif/ethernet.c ****         ip4_input(p, netif);
+ 187:lwIP/src/netif/ethernet.c ****       }
+ 188:lwIP/src/netif/ethernet.c ****       break;
+ 189:lwIP/src/netif/ethernet.c **** 
+ 190:lwIP/src/netif/ethernet.c ****     case PP_HTONS(ETHTYPE_ARP):
+ 191:lwIP/src/netif/ethernet.c ****       if (!(netif->flags & NETIF_FLAG_ETHARP)) {
+ 192:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 193:lwIP/src/netif/ethernet.c ****       }
+ 194:lwIP/src/netif/ethernet.c ****       /* skip Ethernet header (min. size checked above) */
+ 195:lwIP/src/netif/ethernet.c ****       if (pbuf_remove_header(p, next_hdr_offset)) {
+ 196:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 197:lwIP/src/netif/ethernet.c ****                     ("ethernet_input: ARP response packet dropped, too short (%"U16_F"/%"U16_F")\n"
+ 198:lwIP/src/netif/ethernet.c ****                      p->tot_len, next_hdr_offset));
+ 199:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE, ("Can't move over header in packet"));
+ 200:lwIP/src/netif/ethernet.c ****         ETHARP_STATS_INC(etharp.lenerr);
+ 201:lwIP/src/netif/ethernet.c ****         ETHARP_STATS_INC(etharp.drop);
+ 202:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 203:lwIP/src/netif/ethernet.c ****       } else {
+ 204:lwIP/src/netif/ethernet.c ****         /* pass p to ARP module */
+ 205:lwIP/src/netif/ethernet.c ****         etharp_input(p, netif);
+ 206:lwIP/src/netif/ethernet.c ****       }
+ 207:lwIP/src/netif/ethernet.c ****       break;
+ 208:lwIP/src/netif/ethernet.c **** #endif /* LWIP_IPV4 && LWIP_ARP */
+ 209:lwIP/src/netif/ethernet.c **** #if PPPOE_SUPPORT
+ 210:lwIP/src/netif/ethernet.c ****     case PP_HTONS(ETHTYPE_PPPOEDISC): /* PPP Over Ethernet Discovery Stage */
+ 211:lwIP/src/netif/ethernet.c ****       pppoe_disc_input(netif, p);
+ 212:lwIP/src/netif/ethernet.c ****       break;
+ 213:lwIP/src/netif/ethernet.c **** 
+ 214:lwIP/src/netif/ethernet.c ****     case PP_HTONS(ETHTYPE_PPPOE): /* PPP Over Ethernet Session Stage */
+ 215:lwIP/src/netif/ethernet.c ****       pppoe_data_input(netif, p);
+ 216:lwIP/src/netif/ethernet.c ****       break;
+ 217:lwIP/src/netif/ethernet.c **** #endif /* PPPOE_SUPPORT */
+ 218:lwIP/src/netif/ethernet.c **** 
+ 219:lwIP/src/netif/ethernet.c **** #if LWIP_IPV6
+ 220:lwIP/src/netif/ethernet.c ****     case PP_HTONS(ETHTYPE_IPV6): /* IPv6 */
+ 221:lwIP/src/netif/ethernet.c ****       /* skip Ethernet header */
+ 222:lwIP/src/netif/ethernet.c ****       if ((p->len < next_hdr_offset) || pbuf_remove_header(p, next_hdr_offset)) {
+ 223:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 224:lwIP/src/netif/ethernet.c ****                     ("ethernet_input: IPv6 packet dropped, too short (%"U16_F"/%"U16_F")\n",
+ 225:lwIP/src/netif/ethernet.c ****                      p->tot_len, next_hdr_offset));
+ 226:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 227:lwIP/src/netif/ethernet.c ****       } else {
+ 228:lwIP/src/netif/ethernet.c ****         /* pass to IPv6 layer */
+ 229:lwIP/src/netif/ethernet.c ****         ip6_input(p, netif);
+ 230:lwIP/src/netif/ethernet.c ****       }
+ 231:lwIP/src/netif/ethernet.c ****       break;
+ 232:lwIP/src/netif/ethernet.c **** #endif /* LWIP_IPV6 */
+ARM GAS  /tmp/ccY886Pn.s 			page 7
+
+
+ 233:lwIP/src/netif/ethernet.c **** 
+ 234:lwIP/src/netif/ethernet.c ****     default:
+ 235:lwIP/src/netif/ethernet.c **** #ifdef LWIP_HOOK_UNKNOWN_ETH_PROTOCOL
+ 236:lwIP/src/netif/ethernet.c ****       if (LWIP_HOOK_UNKNOWN_ETH_PROTOCOL(p, netif) == ERR_OK) {
+ 237:lwIP/src/netif/ethernet.c ****         break;
+ 238:lwIP/src/netif/ethernet.c ****       }
+ 239:lwIP/src/netif/ethernet.c **** #endif
+ 240:lwIP/src/netif/ethernet.c ****       ETHARP_STATS_INC(etharp.proterr);
+ 241:lwIP/src/netif/ethernet.c ****       ETHARP_STATS_INC(etharp.drop);
+ 242:lwIP/src/netif/ethernet.c ****       MIB2_STATS_NETIF_INC(netif, ifinunknownprotos);
+ 243:lwIP/src/netif/ethernet.c ****       goto free_and_return;
+ 244:lwIP/src/netif/ethernet.c ****   }
+ 245:lwIP/src/netif/ethernet.c **** 
+ 246:lwIP/src/netif/ethernet.c ****   /* This means the pbuf is freed or consumed,
+ 247:lwIP/src/netif/ethernet.c ****      so the caller doesn't have to free it again */
+ 248:lwIP/src/netif/ethernet.c ****   return ERR_OK;
+ 249:lwIP/src/netif/ethernet.c **** 
+ 250:lwIP/src/netif/ethernet.c **** free_and_return:
+ 251:lwIP/src/netif/ethernet.c ****   pbuf_free(p);
+ 109              		.loc 1 251 3 view .LVU32
+ 110 0042 2046     		mov	r0, r4
+ 111 0044 FFF7FEFF 		bl	pbuf_free
+ 112              	.LVL6:
+ 252:lwIP/src/netif/ethernet.c ****   return ERR_OK;
+ 113              		.loc 1 252 3 view .LVU33
+ 114              	.L9:
+ 253:lwIP/src/netif/ethernet.c **** }
+ 115              		.loc 1 253 1 is_stmt 0 view .LVU34
+ 116 0048 0020     		movs	r0, #0
+ 117 004a 70BD     		pop	{r4, r5, r6, pc}
+ 118              	.LVL7:
+ 119              	.L7:
+ 191:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 120              		.loc 1 191 7 is_stmt 1 view .LVU35
+ 191:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 121              		.loc 1 191 10 is_stmt 0 view .LVU36
+ 122 004c 95F82530 		ldrb	r3, [r5, #37]	@ zero_extendqisi2
+ 123 0050 1B07     		lsls	r3, r3, #28
+ 124 0052 F6D5     		bpl	.L8
+ 195:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 125              		.loc 1 195 7 is_stmt 1 view .LVU37
+ 195:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 126              		.loc 1 195 11 is_stmt 0 view .LVU38
+ 127 0054 0E21     		movs	r1, #14
+ 128 0056 2046     		mov	r0, r4
+ 129 0058 FFF7FEFF 		bl	pbuf_remove_header
+ 130              	.LVL8:
+ 195:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 131              		.loc 1 195 10 view .LVU39
+ 132 005c 0028     		cmp	r0, #0
+ 133 005e F0D1     		bne	.L8
+ 205:lwIP/src/netif/ethernet.c ****       }
+ 134              		.loc 1 205 9 is_stmt 1 view .LVU40
+ 135 0060 2946     		mov	r1, r5
+ 136 0062 2046     		mov	r0, r4
+ 137 0064 FFF7FEFF 		bl	etharp_input
+ 138              	.LVL9:
+ARM GAS  /tmp/ccY886Pn.s 			page 8
+
+
+ 207:lwIP/src/netif/ethernet.c **** #endif /* LWIP_IPV4 && LWIP_ARP */
+ 139              		.loc 1 207 7 view .LVU41
+ 140 0068 EEE7     		b	.L9
+ 141              	.L6:
+ 174:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 142              		.loc 1 174 7 view .LVU42
+ 174:lwIP/src/netif/ethernet.c ****         goto free_and_return;
+ 143              		.loc 1 174 10 is_stmt 0 view .LVU43
+ 144 006a 95F82530 		ldrb	r3, [r5, #37]	@ zero_extendqisi2
+ 145 006e 1A07     		lsls	r2, r3, #28
+ 146 0070 E7D5     		bpl	.L8
+ 178:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 147              		.loc 1 178 7 is_stmt 1 view .LVU44
+ 178:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 148              		.loc 1 178 11 is_stmt 0 view .LVU45
+ 149 0072 0E21     		movs	r1, #14
+ 150 0074 2046     		mov	r0, r4
+ 151 0076 FFF7FEFF 		bl	pbuf_remove_header
+ 152              	.LVL10:
+ 178:lwIP/src/netif/ethernet.c ****         LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_WARNING,
+ 153              		.loc 1 178 10 view .LVU46
+ 154 007a 0028     		cmp	r0, #0
+ 155 007c E1D1     		bne	.L8
+ 186:lwIP/src/netif/ethernet.c ****       }
+ 156              		.loc 1 186 9 is_stmt 1 view .LVU47
+ 157 007e 2946     		mov	r1, r5
+ 158 0080 2046     		mov	r0, r4
+ 159 0082 FFF7FEFF 		bl	ip4_input
+ 160              	.LVL11:
+ 188:lwIP/src/netif/ethernet.c **** 
+ 161              		.loc 1 188 7 view .LVU48
+ 162 0086 DFE7     		b	.L9
+ 163              	.LVL12:
+ 164              	.L21:
+ 150:lwIP/src/netif/ethernet.c ****           (ethhdr->dest.addr[2] == LL_IP4_MULTICAST_ADDR_2)) {
+ 165              		.loc 1 150 7 view .LVU49
+ 150:lwIP/src/netif/ethernet.c ****           (ethhdr->dest.addr[2] == LL_IP4_MULTICAST_ADDR_2)) {
+ 166              		.loc 1 150 10 is_stmt 0 view .LVU50
+ 167 0088 4378     		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+ 168 008a 002B     		cmp	r3, #0
+ 169 008c D4D1     		bne	.L4
+ 150:lwIP/src/netif/ethernet.c ****           (ethhdr->dest.addr[2] == LL_IP4_MULTICAST_ADDR_2)) {
+ 170              		.loc 1 150 61 discriminator 1 view .LVU51
+ 171 008e 8378     		ldrb	r3, [r0, #2]	@ zero_extendqisi2
+ 172 0090 5E2B     		cmp	r3, #94
+ 173 0092 D1D1     		bne	.L4
+ 153:lwIP/src/netif/ethernet.c ****       }
+ 174              		.loc 1 153 9 is_stmt 1 view .LVU52
+ 153:lwIP/src/netif/ethernet.c ****       }
+ 175              		.loc 1 153 18 is_stmt 0 view .LVU53
+ 176 0094 637B     		ldrb	r3, [r4, #13]	@ zero_extendqisi2
+ 177 0096 43F01003 		orr	r3, r3, #16
+ 178 009a 6373     		strb	r3, [r4, #13]
+ 179              	.LVL13:
+ 153:lwIP/src/netif/ethernet.c ****       }
+ 180              		.loc 1 153 18 view .LVU54
+ 181 009c CCE7     		b	.L4
+ARM GAS  /tmp/ccY886Pn.s 			page 9
+
+
+ 182              	.L23:
+ 183 009e 00BF     		.align	2
+ 184              	.L22:
+ 185 00a0 00000000 		.word	.LANCHOR0
+ 186              		.cfi_endproc
+ 187              	.LFE105:
+ 189              		.section	.rodata.ethernet_output.str1.4,"aMS",%progbits,1
+ 190              		.align	2
+ 191              	.LC0:
+ 192 0000 6E657469 		.ascii	"netif->hwaddr_len must be 6 for ethernet_output!\000"
+ 192      662D3E68 
+ 192      77616464 
+ 192      725F6C65 
+ 192      6E206D75 
+ 193              		.section	.text.ethernet_output,"ax",%progbits
+ 194              		.align	1
+ 195              		.p2align 2,,3
+ 196              		.global	ethernet_output
+ 197              		.syntax unified
+ 198              		.thumb
+ 199              		.thumb_func
+ 200              		.fpu fpv4-sp-d16
+ 202              	ethernet_output:
+ 203              	.LVL14:
+ 204              	.LFB106:
+ 254:lwIP/src/netif/ethernet.c **** 
+ 255:lwIP/src/netif/ethernet.c **** /**
+ 256:lwIP/src/netif/ethernet.c ****  * @ingroup ethernet
+ 257:lwIP/src/netif/ethernet.c ****  * Send an ethernet packet on the network using netif->linkoutput().
+ 258:lwIP/src/netif/ethernet.c ****  * The ethernet header is filled in before sending.
+ 259:lwIP/src/netif/ethernet.c ****  *
+ 260:lwIP/src/netif/ethernet.c ****  * @see LWIP_HOOK_VLAN_SET
+ 261:lwIP/src/netif/ethernet.c ****  *
+ 262:lwIP/src/netif/ethernet.c ****  * @param netif the lwIP network interface on which to send the packet
+ 263:lwIP/src/netif/ethernet.c ****  * @param p the packet to send. pbuf layer must be @ref PBUF_LINK.
+ 264:lwIP/src/netif/ethernet.c ****  * @param src the source MAC address to be copied into the ethernet header
+ 265:lwIP/src/netif/ethernet.c ****  * @param dst the destination MAC address to be copied into the ethernet header
+ 266:lwIP/src/netif/ethernet.c ****  * @param eth_type ethernet type (@ref lwip_ieee_eth_type)
+ 267:lwIP/src/netif/ethernet.c ****  * @return ERR_OK if the packet was sent, any other err_t on failure
+ 268:lwIP/src/netif/ethernet.c ****  */
+ 269:lwIP/src/netif/ethernet.c **** err_t
+ 270:lwIP/src/netif/ethernet.c **** ethernet_output(struct netif * netif, struct pbuf * p,
+ 271:lwIP/src/netif/ethernet.c ****                 const struct eth_addr * src, const struct eth_addr * dst,
+ 272:lwIP/src/netif/ethernet.c ****                 u16_t eth_type) {
+ 205              		.loc 1 272 33 is_stmt 1 view -0
+ 206              		.cfi_startproc
+ 207              		@ args = 4, pretend = 0, frame = 0
+ 208              		@ frame_needed = 0, uses_anonymous_args = 0
+ 273:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+ 209              		.loc 1 273 3 view .LVU56
+ 274:lwIP/src/netif/ethernet.c ****   u16_t eth_type_be = lwip_htons(eth_type);
+ 210              		.loc 1 274 3 view .LVU57
+ 272:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+ 211              		.loc 1 272 33 is_stmt 0 view .LVU58
+ 212 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 213              	.LCFI1:
+ 214              		.cfi_def_cfa_offset 24
+ARM GAS  /tmp/ccY886Pn.s 			page 10
+
+
+ 215              		.cfi_offset 4, -24
+ 216              		.cfi_offset 5, -20
+ 217              		.cfi_offset 6, -16
+ 218              		.cfi_offset 7, -12
+ 219              		.cfi_offset 8, -8
+ 220              		.cfi_offset 14, -4
+ 272:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+ 221              		.loc 1 272 33 view .LVU59
+ 222 0004 0D46     		mov	r5, r1
+ 223 0006 0446     		mov	r4, r0
+ 275:lwIP/src/netif/ethernet.c **** 
+ 276:lwIP/src/netif/ethernet.c **** #if ETHARP_SUPPORT_VLAN && defined(LWIP_HOOK_VLAN_SET)
+ 277:lwIP/src/netif/ethernet.c ****   s32_t vlan_prio_vid = LWIP_HOOK_VLAN_SET(netif, p, src, dst, eth_type);
+ 278:lwIP/src/netif/ethernet.c ****   if (vlan_prio_vid >= 0) {
+ 279:lwIP/src/netif/ethernet.c ****     struct eth_vlan_hdr *vlanhdr;
+ 280:lwIP/src/netif/ethernet.c **** 
+ 281:lwIP/src/netif/ethernet.c ****     LWIP_ASSERT("prio_vid must be <= 0xFFFF", vlan_prio_vid <= 0xFFFF);
+ 282:lwIP/src/netif/ethernet.c **** 
+ 283:lwIP/src/netif/ethernet.c ****     if (pbuf_add_header(p, SIZEOF_ETH_HDR + SIZEOF_VLAN_HDR) != 0) {
+ 284:lwIP/src/netif/ethernet.c ****       goto pbuf_header_failed;
+ 285:lwIP/src/netif/ethernet.c ****     }
+ 286:lwIP/src/netif/ethernet.c ****     vlanhdr = (struct eth_vlan_hdr *)(((u8_t *)p->payload) + SIZEOF_ETH_HDR);
+ 287:lwIP/src/netif/ethernet.c ****     vlanhdr->tpid     = eth_type_be;
+ 288:lwIP/src/netif/ethernet.c ****     vlanhdr->prio_vid = lwip_htons((u16_t)vlan_prio_vid);
+ 289:lwIP/src/netif/ethernet.c **** 
+ 290:lwIP/src/netif/ethernet.c ****     eth_type_be = PP_HTONS(ETHTYPE_VLAN);
+ 291:lwIP/src/netif/ethernet.c ****   } else
+ 292:lwIP/src/netif/ethernet.c **** #endif /* ETHARP_SUPPORT_VLAN && defined(LWIP_HOOK_VLAN_SET) */
+ 293:lwIP/src/netif/ethernet.c ****   {
+ 294:lwIP/src/netif/ethernet.c ****     if (pbuf_add_header(p, SIZEOF_ETH_HDR) != 0) {
+ 224              		.loc 1 294 9 view .LVU60
+ 225 0008 0E21     		movs	r1, #14
+ 226              	.LVL15:
+ 272:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+ 227              		.loc 1 272 33 view .LVU61
+ 228 000a BDF81880 		ldrh	r8, [sp, #24]
+ 229              	.LVL16:
+ 230              	.LBB4:
+ 231              	.LBI4:
+ 232              		.file 2 "STM32_XPD/CMSIS/Include/cmsis_gcc.h"
+   1:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*
+   8:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  10:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  12:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  16:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+ARM GAS  /tmp/ccY886Pn.s 			page 11
+
+
+  18:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+  24:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  25:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  28:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  34:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  39:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+ARM GAS  /tmp/ccY886Pn.s 			page 12
+
+
+  75:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 117:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 118:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 124:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 131:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ARM GAS  /tmp/ccY886Pn.s 			page 13
+
+
+ 132:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 133:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 134:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 135:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 141:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 142:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 143:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 144:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 145:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 146:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 147:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
+ 148:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
+ 149:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Control Register value
+ 150:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 151:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_CONTROL(void)
+ 152:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 153:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 154:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 155:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 156:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 157:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 158:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 159:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 160:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 161:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 162:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
+ 163:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
+ 164:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               non-secure Control Register value
+ 165:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 166:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_CONTROL_NS(void)
+ 167:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 168:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 169:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 170:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control_ns" : "=r" (result) );
+ 171:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 172:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 173:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 174:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 175:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 176:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 177:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register
+ 178:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the Control Register.
+ 179:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 180:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 181:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
+ 182:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 183:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
+ 184:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 185:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 186:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 187:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 188:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ARM GAS  /tmp/ccY886Pn.s 			page 14
+
+
+ 189:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register (non-secure)
+ 190:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the non-secure Control Register when in secure state.
+ 191:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 192:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 193:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_CONTROL_NS(uint32_t control)
+ 194:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 195:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control_ns, %0" : : "r" (control) : "memory");
+ 196:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 197:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 198:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 199:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 200:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 201:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get IPSR Register
+ 202:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
+ 203:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
+ 204:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 205:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
+ 206:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 207:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 208:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 209:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 210:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 211:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 212:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 213:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 214:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 215:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get APSR Register
+ 216:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the APSR Register.
+ 217:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
+ 218:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 219:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
+ 220:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 221:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 222:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 223:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 224:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 225:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 226:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 227:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 228:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 229:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get xPSR Register
+ 230:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the xPSR Register.
+ 231:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               xPSR Register value
+ 232:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 233:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_xPSR(void)
+ 234:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 235:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 236:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 237:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 238:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 239:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 240:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 241:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 242:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 243:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer
+ 244:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer (PSP).
+ 245:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ARM GAS  /tmp/ccY886Pn.s 			page 15
+
+
+ 246:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 247:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSP(void)
+ 248:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 249:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 250:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 251:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+ 252:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 253:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 254:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 255:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 256:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 257:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 258:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer (non-secure)
+ 259:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
+ 260:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 261:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 262:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
+ 263:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 264:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 265:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 266:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp_ns"  : "=r" (result) );
+ 267:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 268:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 269:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 270:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 271:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 272:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 273:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer
+ 274:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
+ 275:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 276:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 277:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
+ 278:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 279:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
+ 280:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 281:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 282:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 283:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 284:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 285:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 286:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer (PSP) when in secure sta
+ 287:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 288:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 289:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSP_NS(uint32_t topOfProcStack)
+ 290:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 291:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp_ns, %0" : : "r" (topOfProcStack) : );
+ 292:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 293:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 294:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 295:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 296:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 297:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer
+ 298:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer (MSP).
+ 299:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 300:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 301:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSP(void)
+ 302:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ARM GAS  /tmp/ccY886Pn.s 			page 16
+
+
+ 303:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 304:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 305:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp" : "=r" (result) );
+ 306:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 307:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 308:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 309:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 310:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 311:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 312:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer (non-secure)
+ 313:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer (MSP) when in secure stat
+ 314:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 315:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 316:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
+ 317:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 318:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 319:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 320:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
+ 321:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 322:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 323:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 324:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 325:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 326:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 327:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer
+ 328:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer (MSP).
+ 329:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 330:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 331:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
+ 332:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 333:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
+ 334:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 335:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 336:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 337:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 338:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 339:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer (non-secure)
+ 340:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer (MSP) when in secure state.
+ 341:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 342:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 343:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSP_NS(uint32_t topOfMainStack)
+ 344:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 345:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
+ 346:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 347:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 348:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 349:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 350:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 351:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 352:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Stack Pointer (non-secure)
+ 353:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Stack Pointer (SP) when in secure state.
+ 354:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               SP Register value
+ 355:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 356:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_SP_NS(void)
+ 357:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 358:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 359:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccY886Pn.s 			page 17
+
+
+ 360:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, sp_ns" : "=r" (result) );
+ 361:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 362:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 363:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 364:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 365:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 366:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Stack Pointer (non-secure)
+ 367:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Stack Pointer (SP) when in secure state.
+ 368:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfStack  Stack Pointer value to set
+ 369:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 370:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_SP_NS(uint32_t topOfStack)
+ 371:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 372:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR sp_ns, %0" : : "r" (topOfStack) : );
+ 373:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 374:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 375:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 376:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 377:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 378:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask
+ 379:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the priority mask bit from the Priority Mask Register.
+ 380:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 381:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 382:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PRIMASK(void)
+ 383:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 384:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 385:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 386:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask" : "=r" (result) :: "memory");
+ 387:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 388:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 389:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 390:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 391:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 392:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 393:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask (non-secure)
+ 394:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the non-secure priority mask bit from the Priority Mask Reg
+ 395:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 396:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 397:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PRIMASK_NS(void)
+ 398:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 399:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 400:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 401:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask_ns" : "=r" (result) :: "memory");
+ 402:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 403:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 404:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 405:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 406:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 407:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 408:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask
+ 409:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Priority Mask Register.
+ 410:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 411:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 412:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PRIMASK(uint32_t priMask)
+ 413:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 414:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+ 415:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 416:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccY886Pn.s 			page 18
+
+
+ 417:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 418:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 419:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 420:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask (non-secure)
+ 421:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Priority Mask Register when in secure state.
+ 422:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 423:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 424:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PRIMASK_NS(uint32_t priMask)
+ 425:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 426:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
+ 427:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 428:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 429:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 430:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 431:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 432:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 433:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    )
+ 434:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 435:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable FIQ
+ 436:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 437:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 438:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 439:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_fault_irq(void)
+ 440:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 441:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie f" : : : "memory");
+ 442:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 443:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 444:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 445:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 446:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable FIQ
+ 447:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables FIQ interrupts by setting the F-bit in the CPSR.
+ 448:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 449:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 450:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_fault_irq(void)
+ 451:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 452:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid f" : : : "memory");
+ 453:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 454:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 455:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 456:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 457:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority
+ 458:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Base Priority register.
+ 459:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 460:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 461:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_BASEPRI(void)
+ 462:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 463:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 464:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 465:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri" : "=r" (result) );
+ 466:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 467:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 468:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 469:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 470:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 471:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 472:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority (non-secure)
+ 473:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Base Priority register when in secure state.
+ARM GAS  /tmp/ccY886Pn.s 			page 19
+
+
+ 474:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 475:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 476:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_BASEPRI_NS(void)
+ 477:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 478:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 479:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 480:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri_ns" : "=r" (result) );
+ 481:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 482:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 483:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 484:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 485:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 486:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 487:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority
+ 488:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register.
+ 489:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 490:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 491:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI(uint32_t basePri)
+ 492:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 493:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri, %0" : : "r" (basePri) : "memory");
+ 494:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 495:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 496:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 497:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 498:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 499:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority (non-secure)
+ 500:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Base Priority register when in secure state.
+ 501:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 502:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 503:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_BASEPRI_NS(uint32_t basePri)
+ 504:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 505:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_ns, %0" : : "r" (basePri) : "memory");
+ 506:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 507:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 508:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 509:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 510:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 511:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority with condition
+ 512:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register only if BASEPRI masking is disable
+ 513:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            or the new value increases the BASEPRI priority level.
+ 514:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 515:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 516:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI_MAX(uint32_t basePri)
+ 517:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 518:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_max, %0" : : "r" (basePri) : "memory");
+ 519:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 520:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 521:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 522:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 523:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask
+ 524:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Fault Mask register.
+ 525:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 526:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 527:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FAULTMASK(void)
+ 528:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 529:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 530:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccY886Pn.s 			page 20
+
+
+ 531:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask" : "=r" (result) );
+ 532:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 533:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 534:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 535:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 536:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 537:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 538:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask (non-secure)
+ 539:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Fault Mask register when in secure state.
+ 540:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 541:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 542:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_FAULTMASK_NS(void)
+ 543:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 544:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 545:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 546:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask_ns" : "=r" (result) );
+ 547:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 548:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 549:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 550:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 551:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 552:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 553:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask
+ 554:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Fault Mask register.
+ 555:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 556:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 557:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FAULTMASK(uint32_t faultMask)
+ 558:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 559:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask, %0" : : "r" (faultMask) : "memory");
+ 560:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 561:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 562:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 563:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 564:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 565:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask (non-secure)
+ 566:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Fault Mask register when in secure state.
+ 567:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 568:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 569:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_FAULTMASK_NS(uint32_t faultMask)
+ 570:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 571:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask_ns, %0" : : "r" (faultMask) : "memory");
+ 572:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 573:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 574:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 575:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 576:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 577:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    ) */
+ 578:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 579:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 580:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 581:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    )
+ 582:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 583:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 584:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit
+ 585:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 586:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 587:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ARM GAS  /tmp/ccY886Pn.s 			page 21
+
+
+ 588:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 589:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer Limit (PSPLIM).
+ 590:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 591:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 592:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSPLIM(void)
+ 593:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 594:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 595:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 596:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 597:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 598:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 599:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 600:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim"  : "=r" (result) );
+ 601:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 602:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 603:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 604:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 605:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3))
+ 606:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 607:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit (non-secure)
+ 608:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 609:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 610:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 611:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer Limit (PSPLIM) when in
+ 612:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 613:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 614:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSPLIM_NS(void)
+ 615:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 616:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 617:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 618:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 619:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 620:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 621:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim_ns"  : "=r" (result) );
+ 622:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 623:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 624:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 625:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 626:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 627:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 628:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 629:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer Limit
+ 630:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 631:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 632:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 633:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 634:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer Limit (PSPLIM).
+ 635:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 636:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 637:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSPLIM(uint32_t ProcStackPtrLimit)
+ 638:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 639:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 640:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 641:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 642:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 643:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 644:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim, %0" : : "r" (ProcStackPtrLimit));
+ARM GAS  /tmp/ccY886Pn.s 			page 22
+
+
+ 645:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 646:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 647:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 648:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 649:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 650:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 651:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 652:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 653:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 654:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 655:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer Limit (PSPLIM) when in s
+ 656:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 657:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 658:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSPLIM_NS(uint32_t ProcStackPtrLimit)
+ 659:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 660:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 661:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 662:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 663:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 664:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim_ns, %0\n" : : "r" (ProcStackPtrLimit));
+ 665:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 666:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 667:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 668:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 669:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 670:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 671:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit
+ 672:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 673:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 674:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 675:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 676:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer Limit (MSPLIM).
+ 677:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 678:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 679:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSPLIM(void)
+ 680:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 681:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 682:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 683:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 684:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 685:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 686:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 687:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim" : "=r" (result) );
+ 688:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 689:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 690:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 691:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 692:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 693:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 694:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 695:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit (non-secure)
+ 696:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 697:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 698:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 699:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer Limit(MSPLIM) when in sec
+ 700:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 701:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccY886Pn.s 			page 23
+
+
+ 702:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSPLIM_NS(void)
+ 703:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 704:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 705:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 706:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 707:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 708:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 709:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim_ns" : "=r" (result) );
+ 710:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 711:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 712:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 713:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 714:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 715:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 716:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 717:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit
+ 718:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 719:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 720:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 721:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 722:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer Limit (MSPLIM).
+ 723:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer Limit value to set
+ 724:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 725:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSPLIM(uint32_t MainStackPtrLimit)
+ 726:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 727:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 728:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 729:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 730:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 731:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 732:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim, %0" : : "r" (MainStackPtrLimit));
+ 733:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 734:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 735:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 736:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 737:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 738:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 739:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit (non-secure)
+ 740:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 741:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 742:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 743:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer Limit (MSPLIM) when in secu
+ 744:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer value to set
+ 745:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 746:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSPLIM_NS(uint32_t MainStackPtrLimit)
+ 747:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 748:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 749:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 750:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 751:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 752:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim_ns, %0" : : "r" (MainStackPtrLimit));
+ 753:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 754:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 755:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 756:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 757:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 758:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    ) */
+ARM GAS  /tmp/ccY886Pn.s 			page 24
+
+
+ 759:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 760:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 761:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 762:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get FPSCR
+ 763:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Floating Point Status/Control register.
+ 764:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Floating Point Status/Control register value
+ 765:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 766:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FPSCR(void)
+ 767:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 768:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 769:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 770:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_get_fpscr) 
+ 771:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 772:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 773:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 774:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_arm_get_fpscr();
+ 775:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 776:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 777:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 778:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMRS %0, fpscr" : "=r" (result) );
+ 779:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 780:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 781:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 782:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(0U);
+ 783:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 784:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 785:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 786:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 787:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 788:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set FPSCR
+ 789:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Floating Point Status/Control register.
+ 790:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    fpscr  Floating Point Status/Control value to set
+ 791:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 792:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
+ 793:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 794:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 795:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 796:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_set_fpscr)
+ 797:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 798:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 799:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 800:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __builtin_arm_set_fpscr(fpscr);
+ 801:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 802:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMSR fpscr, %0" : : "r" (fpscr) : "vfpcc", "memory");
+ 803:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 804:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 805:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)fpscr;
+ 806:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 807:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 808:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 809:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 810:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*@} end of CMSIS_Core_RegAccFunctions */
+ 811:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 812:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 813:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ##########################  Core Instruction Access  ######################### */
+ 814:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+ 815:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Access to dedicated instructions
+ARM GAS  /tmp/ccY886Pn.s 			page 25
+
+
+ 816:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 817:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** */
+ 818:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 819:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Define macros for porting to both thumb1 and thumb2.
+ 820:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * For thumb1, use low register (r0-r7), specified by constraint "l"
+ 821:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Otherwise, use general registers, specified by constraint "r" */
+ 822:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if defined (__thumb__) && !defined (__thumb2__)
+ 823:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=l" (r)
+ 824:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+l" (r)
+ 825:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "l" (r)
+ 826:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 827:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=r" (r)
+ 828:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+r" (r)
+ 829:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "r" (r)
+ 830:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 831:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 832:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 833:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   No Operation
+ 834:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details No Operation does nothing. This instruction can be used for code alignment purposes.
+ 835:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 836:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __NOP()                             __ASM volatile ("nop")
+ 837:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 838:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 839:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Interrupt
+ 840:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Interrupt is a hint instruction that suspends execution until one of a number o
+ 841:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 842:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFI()                             __ASM volatile ("wfi")
+ 843:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 844:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 845:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 846:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Event
+ 847:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Event is a hint instruction that permits the processor to enter
+ 848:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            a low-power state until one of a number of events occurs.
+ 849:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 850:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFE()                             __ASM volatile ("wfe")
+ 851:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 852:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 853:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 854:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Send Event
+ 855:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 856:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 857:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __SEV()                             __ASM volatile ("sev")
+ 858:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 859:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 860:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 861:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Instruction Synchronization Barrier
+ 862:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 863:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            so that all instructions following the ISB are fetched from cache or memory,
+ 864:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            after the instruction has been completed.
+ 865:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 866:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __ISB(void)
+ 867:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 868:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("isb 0xF":::"memory");
+ 869:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 870:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 871:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 872:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ARM GAS  /tmp/ccY886Pn.s 			page 26
+
+
+ 873:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Synchronization Barrier
+ 874:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Acts as a special kind of Data Memory Barrier.
+ 875:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            It completes when all explicit memory accesses before this instruction complete.
+ 876:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 877:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DSB(void)
+ 878:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 879:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dsb 0xF":::"memory");
+ 880:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 881:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 882:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 883:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 884:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Memory Barrier
+ 885:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Ensures the apparent order of the explicit memory operations before
+ 886:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            and after the instruction, without ensuring their completion.
+ 887:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 888:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DMB(void)
+ 889:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 890:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dmb 0xF":::"memory");
+ 891:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 892:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 893:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 894:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 895:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (32 bit)
+ 896:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order in unsigned integer value. For example, 0x12345678 becomes 0x785
+ 897:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
+ 898:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
+ 899:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __REV(uint32_t value)
+ 901:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 902:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+ 903:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_bswap32(value);
+ 904:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 905:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 906:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 907:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("rev %0, %1" : __CMSIS_GCC_OUT_REG (result) : __CMSIS_GCC_USE_REG (value) );
+ 908:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 909:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 910:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 911:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 912:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 913:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 914:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (16 bit)
+ 915:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order within each halfword of a word. For example, 0x12345678 becomes 
+ 916:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
+ 917:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
+ 918:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 919:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __REV16(uint32_t value)
+ 920:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 921:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 922:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 923:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("rev16 %0, %1" : __CMSIS_GCC_OUT_REG (result) : __CMSIS_GCC_USE_REG (value) );
+ 924:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 925:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 926:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 927:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 928:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 929:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (16 bit)
+ARM GAS  /tmp/ccY886Pn.s 			page 27
+
+
+ 930:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order in a 16-bit value and returns the signed 16-bit result. For exam
+ 931:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
+ 932:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
+ 933:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 934:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE int16_t __REVSH(int16_t value)
+ 233              		.loc 2 934 30 is_stmt 1 view .LVU62
+ 234              	.LBB5:
+ 935:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 936:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+ 937:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return (int16_t)__builtin_bswap16(value);
+ 235              		.loc 2 937 3 view .LVU63
+ 236              	.LBE5:
+ 237              	.LBE4:
+ 238              		.loc 1 294 9 is_stmt 0 view .LVU64
+ 239 000e 2846     		mov	r0, r5
+ 240              	.LVL17:
+ 272:lwIP/src/netif/ethernet.c ****   struct eth_hdr *ethhdr;
+ 241              		.loc 1 272 33 view .LVU65
+ 242 0010 1646     		mov	r6, r2
+ 243 0012 1F46     		mov	r7, r3
+ 244              	.LVL18:
+ 245              		.loc 1 294 5 is_stmt 1 view .LVU66
+ 246              		.loc 1 294 9 is_stmt 0 view .LVU67
+ 247 0014 FFF7FEFF 		bl	pbuf_add_header
+ 248              	.LVL19:
+ 249              		.loc 1 294 8 view .LVU68
+ 250 0018 D8B9     		cbnz	r0, .L25
+ 295:lwIP/src/netif/ethernet.c ****       goto pbuf_header_failed;
+ 296:lwIP/src/netif/ethernet.c ****     }
+ 297:lwIP/src/netif/ethernet.c ****   }
+ 298:lwIP/src/netif/ethernet.c **** 
+ 299:lwIP/src/netif/ethernet.c ****   LWIP_ASSERT_CORE_LOCKED();
+ 251              		.loc 1 299 28 is_stmt 1 view .LVU69
+ 300:lwIP/src/netif/ethernet.c **** 
+ 301:lwIP/src/netif/ethernet.c ****   ethhdr = (struct eth_hdr *)p->payload;
+ 252              		.loc 1 301 3 view .LVU70
+ 253              		.loc 1 301 10 is_stmt 0 view .LVU71
+ 254 001a 6968     		ldr	r1, [r5, #4]
+ 255              	.LVL20:
+ 302:lwIP/src/netif/ethernet.c ****   ethhdr->type = eth_type_be;
+ 256              		.loc 1 302 3 is_stmt 1 view .LVU72
+ 257 001c 98FA98F8 		rev16	r8, r8
+ 258              	.LVL21:
+ 259              		.loc 1 302 16 is_stmt 0 view .LVU73
+ 260 0020 A1F80C80 		strh	r8, [r1, #12]	@ unaligned
+ 303:lwIP/src/netif/ethernet.c ****   SMEMCPY(&ethhdr->dest, dst, ETH_HWADDR_LEN);
+ 261              		.loc 1 303 3 is_stmt 1 view .LVU74
+ 262 0024 3B68     		ldr	r3, [r7]	@ unaligned
+ 263 0026 0B60     		str	r3, [r1]	@ unaligned
+ 264 0028 BB88     		ldrh	r3, [r7, #4]	@ unaligned
+ 265 002a 8B80     		strh	r3, [r1, #4]	@ unaligned
+ 304:lwIP/src/netif/ethernet.c ****   SMEMCPY(&ethhdr->src,  src, ETH_HWADDR_LEN);
+ 266              		.loc 1 304 3 view .LVU75
+ 267 002c 3368     		ldr	r3, [r6]	@ unaligned
+ 268 002e C1F80630 		str	r3, [r1, #6]	@ unaligned
+ 269 0032 B388     		ldrh	r3, [r6, #4]	@ unaligned
+ 270 0034 4B81     		strh	r3, [r1, #10]	@ unaligned
+ARM GAS  /tmp/ccY886Pn.s 			page 28
+
+
+ 305:lwIP/src/netif/ethernet.c **** 
+ 306:lwIP/src/netif/ethernet.c ****   LWIP_ASSERT("netif->hwaddr_len must be 6 for ethernet_output!",
+ 271              		.loc 1 306 3 view .LVU76
+ 272              		.loc 1 306 3 view .LVU77
+ 273 0036 94F82430 		ldrb	r3, [r4, #36]	@ zero_extendqisi2
+ 274 003a 062B     		cmp	r3, #6
+ 275 003c 05D1     		bne	.L29
+ 276              		.loc 1 306 3 discriminator 2 view .LVU78
+ 307:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 308:lwIP/src/netif/ethernet.c ****   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE,
+ 309:lwIP/src/netif/ethernet.c ****               ("ethernet_output: sending packet %p\n", (void *)p));
+ 277              		.loc 1 309 67 discriminator 2 view .LVU79
+ 310:lwIP/src/netif/ethernet.c **** 
+ 311:lwIP/src/netif/ethernet.c ****   /* send the packet */
+ 312:lwIP/src/netif/ethernet.c ****   return netif->linkoutput(netif, p);
+ 278              		.loc 1 312 3 discriminator 2 view .LVU80
+ 279              		.loc 1 312 10 is_stmt 0 discriminator 2 view .LVU81
+ 280 003e 2946     		mov	r1, r5
+ 281              	.LVL22:
+ 282              		.loc 1 312 10 discriminator 2 view .LVU82
+ 283 0040 6369     		ldr	r3, [r4, #20]
+ 284 0042 2046     		mov	r0, r4
+ 313:lwIP/src/netif/ethernet.c **** 
+ 314:lwIP/src/netif/ethernet.c **** pbuf_header_failed:
+ 315:lwIP/src/netif/ethernet.c ****   LWIP_DEBUGF(ETHARP_DEBUG | LWIP_DBG_TRACE | LWIP_DBG_LEVEL_SERIOUS,
+ 316:lwIP/src/netif/ethernet.c ****               ("ethernet_output: could not allocate room for header.\n"));
+ 317:lwIP/src/netif/ethernet.c ****   LINK_STATS_INC(link.lenerr);
+ 318:lwIP/src/netif/ethernet.c ****   return ERR_BUF;
+ 319:lwIP/src/netif/ethernet.c **** }
+ 285              		.loc 1 319 1 discriminator 2 view .LVU83
+ 286 0044 BDE8F041 		pop	{r4, r5, r6, r7, r8, lr}
+ 287              	.LCFI2:
+ 288              		.cfi_remember_state
+ 289              		.cfi_restore 14
+ 290              		.cfi_restore 8
+ 291              		.cfi_restore 7
+ 292              		.cfi_restore 6
+ 293              		.cfi_restore 5
+ 294              		.cfi_restore 4
+ 295              		.cfi_def_cfa_offset 0
+ 296              	.LVL23:
+ 312:lwIP/src/netif/ethernet.c **** 
+ 297              		.loc 1 312 10 discriminator 2 view .LVU84
+ 298 0048 1847     		bx	r3
+ 299              	.LVL24:
+ 300              	.L29:
+ 301              	.LCFI3:
+ 302              		.cfi_restore_state
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 303              		.loc 1 306 3 is_stmt 1 discriminator 1 view .LVU85
+ 304 004a 0448     		ldr	r0, .L30
+ 305 004c FFF7FEFF 		bl	printf
+ 306              	.LVL25:
+ 307              	.L27:
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 308              		.loc 1 306 3 discriminator 1 view .LVU86
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ARM GAS  /tmp/ccY886Pn.s 			page 29
+
+
+ 309              		.loc 1 306 3 discriminator 1 view .LVU87
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 310              		.loc 1 306 3 discriminator 1 view .LVU88
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 311              		.loc 1 306 3 discriminator 1 view .LVU89
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 312              		.loc 1 306 3 discriminator 1 view .LVU90
+ 306:lwIP/src/netif/ethernet.c ****               (netif->hwaddr_len == ETH_HWADDR_LEN));
+ 313              		.loc 1 306 3 discriminator 1 view .LVU91
+ 314 0050 FEE7     		b	.L27
+ 315              	.LVL26:
+ 316              	.L25:
+ 317              	.LDL1:
+ 318              		.loc 1 319 1 is_stmt 0 view .LVU92
+ 319 0052 6FF00100 		mvn	r0, #1
+ 320 0056 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 321              	.LVL27:
+ 322              	.L31:
+ 323              		.loc 1 319 1 view .LVU93
+ 324 005a 00BF     		.align	2
+ 325              	.L30:
+ 326 005c 00000000 		.word	.LC0
+ 327              		.cfi_endproc
+ 328              	.LFE106:
+ 330              		.global	ethzero
+ 331              		.global	ethbroadcast
+ 332              		.section	.rodata.ethbroadcast,"a"
+ 333              		.align	2
+ 334              		.set	.LANCHOR0,. + 0
+ 337              	ethbroadcast:
+ 338 0000 FFFFFFFF 		.ascii	"\377\377\377\377\377\377"
+ 338      FFFF
+ 339              		.section	.rodata.ethzero,"a"
+ 340              		.align	2
+ 343              	ethzero:
+ 344 0000 00000000 		.space	6
+ 344      0000
+ 345              		.text
+ 346              	.Letext0:
+ 347              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 348              		.file 4 "/usr/arm-none-eabi/include/sys/lock.h"
+ 349              		.file 5 "/usr/arm-none-eabi/include/sys/_types.h"
+ 350              		.file 6 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 351              		.file 7 "/usr/arm-none-eabi/include/sys/reent.h"
+ 352              		.file 8 "/usr/arm-none-eabi/include/stdlib.h"
+ 353              		.file 9 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 354              		.file 10 "lwIP/src/include/lwip/arch.h"
+ 355              		.file 11 "/usr/arm-none-eabi/include/ctype.h"
+ 356              		.file 12 "lwIP/src/include/lwip/err.h"
+ 357              		.file 13 "lwIP/src/include/lwip/pbuf.h"
+ 358              		.file 14 "lwIP/src/include/lwip/ip4_addr.h"
+ 359              		.file 15 "lwIP/src/include/lwip/ip_addr.h"
+ 360              		.file 16 "lwIP/src/include/lwip/memp.h"
+ 361              		.file 17 "lwIP/src/include/lwip/priv/memp_priv.h"
+ 362              		.file 18 "lwIP/src/include/lwip/netif.h"
+ 363              		.file 19 "lwIP/src/include/lwip/prot/ethernet.h"
+ 364              		.file 20 "lwIP/src/include/netif/ethernet.h"
+ARM GAS  /tmp/ccY886Pn.s 			page 30
+
+
+ 365              		.file 21 "lwIP/src/include/lwip/prot/ip4.h"
+ 366              		.file 22 "lwIP/src/include/lwip/ip.h"
+ 367              		.file 23 "/usr/arm-none-eabi/include/stdio.h"
+ 368              		.file 24 "lwIP/src/include/lwip/etharp.h"
+ 369              		.file 25 "lwIP/src/include/lwip/ip4.h"
+ 370              		.file 26 "lwIP/src/include/lwip/prot/ieee.h"
+ 371              		.file 27 "<built-in>"
+ARM GAS  /tmp/ccY886Pn.s 			page 31
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ethernet.c
+     /tmp/ccY886Pn.s:18     .text.ethernet_input:0000000000000000 $t
+     /tmp/ccY886Pn.s:27     .text.ethernet_input:0000000000000000 ethernet_input
+     /tmp/ccY886Pn.s:185    .text.ethernet_input:00000000000000a0 $d
+     /tmp/ccY886Pn.s:190    .rodata.ethernet_output.str1.4:0000000000000000 $d
+     /tmp/ccY886Pn.s:194    .text.ethernet_output:0000000000000000 $t
+     /tmp/ccY886Pn.s:202    .text.ethernet_output:0000000000000000 ethernet_output
+     /tmp/ccY886Pn.s:326    .text.ethernet_output:000000000000005c $d
+     /tmp/ccY886Pn.s:343    .rodata.ethzero:0000000000000000 ethzero
+     /tmp/ccY886Pn.s:337    .rodata.ethbroadcast:0000000000000000 ethbroadcast
+     /tmp/ccY886Pn.s:333    .rodata.ethbroadcast:0000000000000000 $d
+     /tmp/ccY886Pn.s:340    .rodata.ethzero:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+memcmp
+pbuf_free
+pbuf_remove_header
+etharp_input
+ip4_input
+pbuf_add_header
+printf

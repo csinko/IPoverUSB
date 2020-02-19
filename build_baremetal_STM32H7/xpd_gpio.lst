@@ -1,0 +1,1211 @@
+ARM GAS  /tmp/ccVgfwZG.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_gpio.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.GPIO_vInitPort,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	GPIO_vInitPort
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	GPIO_vInitPort:
+  28              	.LVL0:
+  29              	.LFB159:
+  30              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_gpio.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * @file    xpd_gpio.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * @version 0.4
+   6:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * @date    2019-02-13
+   7:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * @brief   STM32 eXtensible Peripheral Drivers General Purpose I/O Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #include <xpd_gpio.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #include <xpd_rcc.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  26:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #define GPIO_PORT_OFFSET(GPIOX) \
+  27:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     (((uint32_t)(GPIOX) - (uint32_t)GPIOA_BASE) >> 10)
+  28:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ARM GAS  /tmp/ccVgfwZG.s 			page 2
+
+
+  29:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_CR3_APC
+  30:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** static struct {
+  31:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     __IO uint32_t PUCR;
+  32:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     __IO uint32_t PDCR;
+  33:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** } * const pwr_pxPullConfig = (void*)&PWR->PUCRA;
+  34:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  35:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_BB
+  36:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** static struct {
+  37:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     __IO uint32_t PUC[32];
+  38:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     __IO uint32_t PDC[32];
+  39:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** } * const pwr_pxPullPinConfig = (void*)PERIPH_BB(&PWR->PUCRA);
+  40:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+  41:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+  42:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  43:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /** @defgroup GPIO
+  44:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @{ */
+  45:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  46:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** static void GPIO_prvClockEnable(GPIO_TypeDef * pxGPIO)
+  47:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+  48:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #if defined(GPIOH) && (RCC_POS_GPIOH < RCC_POS_GPIOA)
+  49:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if (pxGPIO == GPIOH)
+  50:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+  51:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         RCC_vClockEnable(RCC_POS_GPIOH);
+  52:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  53:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     else
+  54:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+  55:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         RCC_vClockEnable(RCC_POS_GPIOA + GPIO_PORT_OFFSET(pxGPIO));
+  57:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  58:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+  59:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  60:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /** @defgroup GPIO_Exported_Functions GPIO Exported Functions
+  61:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @{ */
+  62:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  63:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /** @defgroup GPIO_Exported_Functions_Port GPIO Port Management Functions
+  64:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  *  @brief    GPIO port initialization, collective I/O control
+  65:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @{
+  66:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+  67:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  68:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /**
+  69:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @brief Initializes the GPIO port based on setup structure.
+  70:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param pxGPIO: pointer to the GPIO peripheral
+  71:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param pxConfig: pointer to the setup parameters
+  72:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+  73:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** void GPIO_vInitPort(GPIO_TypeDef * pxGPIO, const GPIO_InitType * pxConfig)
+  74:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+  31              		.loc 1 74 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  75:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulTmp;
+  35              		.loc 1 75 5 view .LVU1
+  76:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulAFR = 0;
+  36              		.loc 1 76 5 view .LVU2
+  77:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  78:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* enable GPIO clock */
+  79:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_prvClockEnable(pxGPIO);
+ARM GAS  /tmp/ccVgfwZG.s 			page 3
+
+
+  37              		.loc 1 79 5 view .LVU3
+  74:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulTmp;
+  38              		.loc 1 74 1 is_stmt 0 view .LVU4
+  39 0000 38B5     		push	{r3, r4, r5, lr}
+  40              	.LCFI0:
+  41              		.cfi_def_cfa_offset 16
+  42              		.cfi_offset 3, -16
+  43              		.cfi_offset 4, -12
+  44              		.cfi_offset 5, -8
+  45              		.cfi_offset 14, -4
+  46              	.LBB8:
+  47              	.LBB9:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  48              		.loc 1 56 42 view .LVU5
+  49 0002 2E4B     		ldr	r3, .L27
+  50              	.LBE9:
+  51              	.LBE8:
+  74:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulTmp;
+  52              		.loc 1 74 1 view .LVU6
+  53 0004 0D46     		mov	r5, r1
+  54 0006 0446     		mov	r4, r0
+  55              	.LVL1:
+  56              	.LBB11:
+  57              	.LBI8:
+  46:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+  58              		.loc 1 46 13 is_stmt 1 view .LVU7
+  59              	.LBB10:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  60              		.loc 1 56 9 view .LVU8
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  61              		.loc 1 56 42 is_stmt 0 view .LVU9
+  62 0008 0344     		add	r3, r3, r0
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  63              		.loc 1 56 9 view .LVU10
+  64 000a C3F38F20 		ubfx	r0, r3, #10, #16
+  65              	.LVL2:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  66              		.loc 1 56 9 view .LVU11
+  67 000e FFF7FEFF 		bl	RCC_vClockEnable
+  68              	.LVL3:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  69              		.loc 1 56 9 view .LVU12
+  70              	.LBE10:
+  71              	.LBE11:
+  80:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+  81:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_CR3_APC
+  82:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     switch (pxConfig->PowerDownPull)
+  83:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+  84:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_UP:
+  85:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PUCR = 0xFFFF;
+  86:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PDCR = 0;
+  87:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+  88:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_DOWN:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PUCR = 0;
+  90:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PDCR = 0xFFFF;
+  91:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+  92:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_FLOAT:
+ARM GAS  /tmp/ccVgfwZG.s 			page 4
+
+
+  93:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         default:
+  94:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PUCR = 0;
+  95:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pwr_pxPullConfig[GPIO_PORT_OFFSET(pxGPIO)].PDCR = 0;
+  96:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+  97:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+  98:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+  99:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* alternate function mapping */
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if ((pxConfig->Mode == GPIO_MODE_ALTERNATE) && (pxConfig->AlternateMap != 0))
+  72              		.loc 1 101 5 is_stmt 1 view .LVU13
+  73              		.loc 1 101 18 is_stmt 0 view .LVU14
+  74 0012 2A78     		ldrb	r2, [r5]	@ zero_extendqisi2
+  75              		.loc 1 101 8 view .LVU15
+  76 0014 022A     		cmp	r2, #2
+  77 0016 22D0     		beq	.L24
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         for (ulTmp = pxConfig->AlternateMap; ulTmp != 0; ulTmp <<= 4)
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             ulAFR |= ulTmp;
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         }
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[0] = ulAFR;
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = ulAFR;
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     else
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[0] = 0;
+  78              		.loc 1 112 9 is_stmt 1 view .LVU16
+  79              		.loc 1 112 24 is_stmt 0 view .LVU17
+  80 0018 0023     		movs	r3, #0
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* IO direction setup */
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     switch (pxConfig->Mode)
+  81              		.loc 1 117 5 view .LVU18
+  82 001a 032A     		cmp	r2, #3
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+  83              		.loc 1 112 24 view .LVU19
+  84 001c 2362     		str	r3, [r4, #32]
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+  85              		.loc 1 113 9 is_stmt 1 view .LVU20
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+  86              		.loc 1 113 24 is_stmt 0 view .LVU21
+  87 001e 6362     		str	r3, [r4, #36]
+  88              		.loc 1 117 5 is_stmt 1 view .LVU22
+  89 0020 31D0     		beq	.L6
+  90 0022 34D8     		bhi	.L7
+  91 0024 012A     		cmp	r2, #1
+  92 0026 32D1     		bne	.L7
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_OUTPUT:
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->MODER = 0x55555555;
+  93              		.loc 1 120 13 view .LVU23
+  94              		.loc 1 120 27 is_stmt 0 view .LVU24
+  95 0028 4FF05533 		mov	r3, #1431655765
+  96 002c 2360     		str	r3, [r4]
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ARM GAS  /tmp/ccVgfwZG.s 			page 5
+
+
+  97              		.loc 1 121 13 is_stmt 1 view .LVU25
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_ALTERNATE:
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->MODER = 0xAAAAAAAA;
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_ANALOG:
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->MODER = 0xFFFFFFFF;
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_INPUT:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_EXTI:
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         default:
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->MODER = 0;
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef GPIO_ASCR_ASC0
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Set the ADC connection bit if GPIO_ADC_AF is selected */
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if (pxConfig->AlternateMap == GPIO_ADC_AF)
+ 138:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->ASCR = 0xFFFF;
+ 140:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 141:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     else
+ 142:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 143:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->ASCR = 0x0000;
+ 144:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 145:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 146:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* output stage configuration */
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if ((pxConfig->Mode == GPIO_MODE_OUTPUT) || (pxConfig->Mode == GPIO_MODE_ALTERNATE))
+  98              		.loc 1 148 5 view .LVU26
+ 149:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* speed */
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         switch (pxConfig->Output.Speed)
+  99              		.loc 1 151 9 view .LVU27
+ 100              		.loc 1 151 33 is_stmt 0 view .LVU28
+ 101 002e EB78     		ldrb	r3, [r5, #3]	@ zero_extendqisi2
+ 102              		.loc 1 151 9 view .LVU29
+ 103 0030 022B     		cmp	r3, #2
+ 104 0032 34D0     		beq	.L11
+ 105              	.LVL4:
+ 106              	.L26:
+ 107              		.loc 1 151 9 view .LVU30
+ 108 0034 032B     		cmp	r3, #3
+ 109 0036 3DD0     		beq	.L12
+ 110 0038 012B     		cmp	r3, #1
+ 111 003a 37D0     		beq	.L25
+ 152:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 153:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case MEDIUM:
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 pxGPIO->OSPEEDR = 0x55555555;
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case HIGH:
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 pxGPIO->OSPEEDR = 0xAAAAAAAA;
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case VERY_HIGH:
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 pxGPIO->OSPEEDR = 0xFFFFFFFF;
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 162:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case LOW:
+ 163:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             default:
+ARM GAS  /tmp/ccVgfwZG.s 			page 6
+
+
+ 164:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 pxGPIO->OSPEEDR = 0;
+ 112              		.loc 1 164 17 is_stmt 1 view .LVU31
+ 113              		.loc 1 164 33 is_stmt 0 view .LVU32
+ 114 003c 0023     		movs	r3, #0
+ 115 003e A360     		str	r3, [r4, #8]
+ 165:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 116              		.loc 1 165 17 is_stmt 1 view .LVU33
+ 117              	.L14:
+ 166:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         }
+ 167:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 168:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* type */
+ 169:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         if (pxConfig->Output.Type == GPIO_OUTPUT_OPENDRAIN)
+ 118              		.loc 1 169 9 view .LVU34
+ 119              		.loc 1 169 12 is_stmt 0 view .LVU35
+ 120 0040 AB78     		ldrb	r3, [r5, #2]	@ zero_extendqisi2
+ 121 0042 012B     		cmp	r3, #1
+ 170:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->OTYPER = 0xFFFF;
+ 122              		.loc 1 170 13 is_stmt 1 view .LVU36
+ 123              		.loc 1 170 28 is_stmt 0 view .LVU37
+ 124 0044 0CBF     		ite	eq
+ 125 0046 4FF6FF73 		movweq	r3, #65535
+ 171:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         else
+ 172:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->OTYPER = 0;
+ 126              		.loc 1 172 13 is_stmt 1 view .LVU38
+ 127              		.loc 1 172 28 is_stmt 0 view .LVU39
+ 128 004a 0023     		movne	r3, #0
+ 129 004c 6360     		str	r3, [r4, #4]
+ 130              	.L10:
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 175:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* pull */
+ 176:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     switch (pxConfig->Pull)
+ 131              		.loc 1 176 5 is_stmt 1 view .LVU40
+ 132              		.loc 1 176 21 is_stmt 0 view .LVU41
+ 133 004e 6B78     		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 134              		.loc 1 176 5 view .LVU42
+ 135 0050 012B     		cmp	r3, #1
+ 136 0052 14D0     		beq	.L16
+ 137 0054 022B     		cmp	r3, #2
+ 138 0056 0ED0     		beq	.L17
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 178:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_UP:
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->PUPDR = 0x55555555;
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 181:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_DOWN:
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->PUPDR = 0xAAAAAAAA;
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 184:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_FLOAT:
+ 185:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         default:
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             pxGPIO->PUPDR = 0;
+ 139              		.loc 1 186 13 is_stmt 1 view .LVU43
+ 140              		.loc 1 186 27 is_stmt 0 view .LVU44
+ 141 0058 0023     		movs	r3, #0
+ 142 005a E360     		str	r3, [r4, #12]
+ 187:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 143              		.loc 1 187 13 is_stmt 1 view .LVU45
+ 188:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ARM GAS  /tmp/ccVgfwZG.s 			page 7
+
+
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 190:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* EXTI mode configuration is left out */
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+ 144              		.loc 1 191 1 is_stmt 0 view .LVU46
+ 145 005c 38BD     		pop	{r3, r4, r5, pc}
+ 146              	.LVL5:
+ 147              	.L24:
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 148              		.loc 1 101 61 discriminator 1 view .LVU47
+ 149 005e 6B79     		ldrb	r3, [r5, #5]	@ zero_extendqisi2
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 150              		.loc 1 101 49 discriminator 1 view .LVU48
+ 151 0060 0BB3     		cbz	r3, .L3
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 152              		.loc 1 103 9 is_stmt 1 view .LVU49
+ 153              	.LVL6:
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 154              		.loc 1 103 46 view .LVU50
+  76:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 155              		.loc 1 76 14 is_stmt 0 view .LVU51
+ 156 0062 0021     		movs	r1, #0
+ 157              	.LVL7:
+ 158              	.L4:
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         }
+ 159              		.loc 1 105 13 is_stmt 1 discriminator 3 view .LVU52
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         }
+ 160              		.loc 1 105 19 is_stmt 0 discriminator 3 view .LVU53
+ 161 0064 1943     		orrs	r1, r1, r3
+ 162              	.LVL8:
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 163              		.loc 1 103 58 is_stmt 1 discriminator 3 view .LVU54
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 164              		.loc 1 103 46 discriminator 3 view .LVU55
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 165              		.loc 1 103 9 is_stmt 0 discriminator 3 view .LVU56
+ 166 0066 1B01     		lsls	r3, r3, #4
+ 167              	.LVL9:
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 168              		.loc 1 103 9 discriminator 3 view .LVU57
+ 169 0068 FCD1     		bne	.L4
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = ulAFR;
+ 170              		.loc 1 107 9 is_stmt 1 view .LVU58
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = ulAFR;
+ 171              		.loc 1 107 24 is_stmt 0 view .LVU59
+ 172 006a 2162     		str	r1, [r4, #32]
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 173              		.loc 1 108 9 is_stmt 1 view .LVU60
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 174              		.loc 1 108 24 is_stmt 0 view .LVU61
+ 175 006c 6162     		str	r1, [r4, #36]
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 176              		.loc 1 117 5 is_stmt 1 view .LVU62
+ 177              	.LVL10:
+ 178              	.L5:
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 179              		.loc 1 123 13 view .LVU63
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ARM GAS  /tmp/ccVgfwZG.s 			page 8
+
+
+ 180              		.loc 1 123 27 is_stmt 0 view .LVU64
+ 181 006e 4FF0AA33 		mov	r3, #-1431655766
+ 182 0072 2360     		str	r3, [r4]
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_ANALOG:
+ 183              		.loc 1 124 13 is_stmt 1 view .LVU65
+ 184 0074 0DE0     		b	.L9
+ 185              	.L17:
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 186              		.loc 1 182 13 view .LVU66
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 187              		.loc 1 182 27 is_stmt 0 view .LVU67
+ 188 0076 4FF0AA33 		mov	r3, #-1431655766
+ 189 007a E360     		str	r3, [r4, #12]
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_FLOAT:
+ 190              		.loc 1 183 13 is_stmt 1 view .LVU68
+ 191              		.loc 1 191 1 is_stmt 0 view .LVU69
+ 192 007c 38BD     		pop	{r3, r4, r5, pc}
+ 193              	.LVL11:
+ 194              	.L16:
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 195              		.loc 1 179 13 is_stmt 1 view .LVU70
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 196              		.loc 1 179 27 is_stmt 0 view .LVU71
+ 197 007e 4FF05533 		mov	r3, #1431655765
+ 198 0082 E360     		str	r3, [r4, #12]
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_PULL_DOWN:
+ 199              		.loc 1 180 13 is_stmt 1 view .LVU72
+ 200              		.loc 1 191 1 is_stmt 0 view .LVU73
+ 201 0084 38BD     		pop	{r3, r4, r5, pc}
+ 202              	.LVL12:
+ 203              	.L6:
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 204              		.loc 1 126 13 is_stmt 1 view .LVU74
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 205              		.loc 1 126 27 is_stmt 0 view .LVU75
+ 206 0086 4FF0FF33 		mov	r3, #-1
+ 207 008a 2360     		str	r3, [r4]
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         case GPIO_MODE_INPUT:
+ 208              		.loc 1 127 13 is_stmt 1 view .LVU76
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 209              		.loc 1 148 5 view .LVU77
+ 210 008c DFE7     		b	.L10
+ 211              	.L7:
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 212              		.loc 1 131 13 view .LVU78
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             break;
+ 213              		.loc 1 131 27 is_stmt 0 view .LVU79
+ 214 008e 0023     		movs	r3, #0
+ 215 0090 2360     		str	r3, [r4]
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 216              		.loc 1 132 13 is_stmt 1 view .LVU80
+ 217              	.LVL13:
+ 218              	.L9:
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 219              		.loc 1 148 5 view .LVU81
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 220              		.loc 1 148 8 is_stmt 0 view .LVU82
+ARM GAS  /tmp/ccVgfwZG.s 			page 9
+
+
+ 221 0092 013A     		subs	r2, r2, #1
+ 222 0094 012A     		cmp	r2, #1
+ 223 0096 DAD8     		bhi	.L10
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 224              		.loc 1 151 9 is_stmt 1 view .LVU83
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 225              		.loc 1 151 33 is_stmt 0 view .LVU84
+ 226 0098 EB78     		ldrb	r3, [r5, #3]	@ zero_extendqisi2
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         {
+ 227              		.loc 1 151 9 view .LVU85
+ 228 009a 022B     		cmp	r3, #2
+ 229 009c CAD1     		bne	.L26
+ 230              	.L11:
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 231              		.loc 1 157 17 is_stmt 1 view .LVU86
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 232              		.loc 1 157 33 is_stmt 0 view .LVU87
+ 233 009e 4FF0AA33 		mov	r3, #-1431655766
+ 234 00a2 A360     		str	r3, [r4, #8]
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case VERY_HIGH:
+ 235              		.loc 1 158 17 is_stmt 1 view .LVU88
+ 236 00a4 CCE7     		b	.L14
+ 237              	.LVL14:
+ 238              	.L3:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+ 239              		.loc 1 112 9 view .LVU89
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->AFR[1] = 0;
+ 240              		.loc 1 112 24 is_stmt 0 view .LVU90
+ 241 00a6 2362     		str	r3, [r4, #32]
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 242              		.loc 1 113 9 is_stmt 1 view .LVU91
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 243              		.loc 1 113 24 is_stmt 0 view .LVU92
+ 244 00a8 6362     		str	r3, [r4, #36]
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 245              		.loc 1 117 5 is_stmt 1 view .LVU93
+ 246 00aa E0E7     		b	.L5
+ 247              	.LVL15:
+ 248              	.L25:
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 249              		.loc 1 154 17 view .LVU94
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 250              		.loc 1 154 33 is_stmt 0 view .LVU95
+ 251 00ac 4FF05533 		mov	r3, #1431655765
+ 252 00b0 A360     		str	r3, [r4, #8]
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case HIGH:
+ 253              		.loc 1 155 17 is_stmt 1 view .LVU96
+ 254 00b2 C5E7     		b	.L14
+ 255              	.L12:
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 256              		.loc 1 160 17 view .LVU97
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                 break;
+ 257              		.loc 1 160 33 is_stmt 0 view .LVU98
+ 258 00b4 4FF0FF33 		mov	r3, #-1
+ 259 00b8 A360     		str	r3, [r4, #8]
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****             case LOW:
+ 260              		.loc 1 161 17 is_stmt 1 view .LVU99
+ARM GAS  /tmp/ccVgfwZG.s 			page 10
+
+
+ 261 00ba C1E7     		b	.L14
+ 262              	.L28:
+ 263              		.align	2
+ 264              	.L27:
+ 265 00bc 0000FEA7 		.word	-1476526080
+ 266              		.cfi_endproc
+ 267              	.LFE159:
+ 269              		.section	.text.GPIO_vInitPin,"ax",%progbits
+ 270              		.align	1
+ 271              		.p2align 2,,3
+ 272              		.global	GPIO_vInitPin
+ 273              		.syntax unified
+ 274              		.thumb
+ 275              		.thumb_func
+ 276              		.fpu fpv4-sp-d16
+ 278              	GPIO_vInitPin:
+ 279              	.LVL16:
+ 280              	.LFB160:
+ 192:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 193:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /** @} */
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 195:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /** @defgroup GPIO_Exported_Functions_Pin GPIO Pin Handling Functions
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  *  @brief    GPIO pin initialization, individual I/O control
+ 197:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @{
+ 198:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /**
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @brief Initializes the GPIO pin based on setup structure.
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param ePin: selected pin
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param pxConfig: pointer to the setup parameters
+ 204:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+ 205:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** void GPIO_vInitPin(GPIO_PinType ePin, const GPIO_InitType * pxConfig)
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+ 281              		.loc 1 206 1 view -0
+ 282              		.cfi_startproc
+ 283              		@ args = 0, pretend = 0, frame = 0
+ 284              		@ frame_needed = 0, uses_anonymous_args = 0
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 285              		.loc 1 207 5 view .LVU101
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 286              		.loc 1 206 1 is_stmt 0 view .LVU102
+ 287 0000 2DE9F84F 		push	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 288              	.LCFI1:
+ 289              		.cfi_def_cfa_offset 40
+ 290              		.cfi_offset 3, -40
+ 291              		.cfi_offset 4, -36
+ 292              		.cfi_offset 5, -32
+ 293              		.cfi_offset 6, -28
+ 294              		.cfi_offset 7, -24
+ 295              		.cfi_offset 8, -20
+ 296              		.cfi_offset 9, -16
+ 297              		.cfi_offset 10, -12
+ 298              		.cfi_offset 11, -8
+ 299              		.cfi_offset 14, -4
+ 300              		.loc 1 207 28 view .LVU103
+ 301 0004 494C     		ldr	r4, .L37
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ARM GAS  /tmp/ccVgfwZG.s 			page 11
+
+
+ 302              		.loc 1 206 1 view .LVU104
+ 303 0006 0E46     		mov	r6, r1
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 304              		.loc 1 208 13 view .LVU105
+ 305 0008 00F00F08 		and	r8, r0, #15
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 306              		.loc 1 206 1 view .LVU106
+ 307 000c 0546     		mov	r5, r0
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 308              		.loc 1 207 28 view .LVU107
+ 309 000e 04EA8014 		and	r4, r4, r0, lsl #6
+ 310 0012 DFF82091 		ldr	r9, .L37+8
+ 311              	.LBB12:
+ 312              	.LBB13:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 313              		.loc 1 56 9 view .LVU108
+ 314 0016 A00A     		lsrs	r0, r4, #10
+ 315              	.LVL17:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 316              		.loc 1 56 9 view .LVU109
+ 317              	.LBE13:
+ 318              	.LBE12:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 319              		.loc 1 207 28 view .LVU110
+ 320 0018 04EB0907 		add	r7, r4, r9
+ 321              	.LVL18:
+ 322              		.loc 1 208 5 is_stmt 1 view .LVU111
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t uc2BitPos = ucPin * 2;
+ 323              		.loc 1 209 5 view .LVU112
+ 210:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* enable GPIO clock */
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_prvClockEnable(pxGPIO);
+ 324              		.loc 1 212 5 view .LVU113
+ 325              	.LBB15:
+ 326              	.LBI12:
+  46:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+ 327              		.loc 1 46 13 view .LVU114
+ 328              	.LBB14:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 329              		.loc 1 56 9 view .LVU115
+ 330 001c FFF7FEFF 		bl	RCC_vClockEnable
+ 331              	.LVL19:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 332              		.loc 1 56 9 is_stmt 0 view .LVU116
+ 333              	.LBE14:
+ 334              	.LBE15:
+ 213:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_CR3_APC
+ 215:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* configure pull direction in power down */
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_BB
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     pwr_pxPullPinConfig[ePin >> __GPIO_PIN_BITS].PUC[ucPin] = pxConfig->PowerDownPull;
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     pwr_pxPullPinConfig[ePin >> __GPIO_PIN_BITS].PDC[ucPin] = pxConfig->PowerDownPull >> 1;
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #else
+ 220:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     MODIFY_REG(pwr_pxPullConfig[ePin >> __GPIO_PIN_BITS].PUCR, 1 << ucPin,
+ 221:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                                (uin32_t)pxConfig->PowerDownPull  << ucPin);
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     MODIFY_REG(pwr_pxPullConfig[ePin >> __GPIO_PIN_BITS].PDCR, 1 << ucPin,
+ 223:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          ((uin32_t)pxConfig->PowerDownPull >> 1) << ucPin);
+ARM GAS  /tmp/ccVgfwZG.s 			page 12
+
+
+ 224:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 225:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 226:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 227:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* alternate mapping */
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if (pxConfig->Mode == GPIO_MODE_ALTERNATE)
+ 335              		.loc 1 228 5 is_stmt 1 view .LVU117
+ 336 0020 0323     		movs	r3, #3
+ 337 0022 4FEA480C 		lsl	ip, r8, #1
+ 338              		.loc 1 228 17 is_stmt 0 view .LVU118
+ 339 0026 3278     		ldrb	r2, [r6]	@ zero_extendqisi2
+ 340 0028 03FA0CF3 		lsl	r3, r3, ip
+ 341              		.loc 1 228 8 view .LVU119
+ 342 002c 022A     		cmp	r2, #2
+ 343 002e 6FEA030E 		mvn	lr, r3
+ 344 0032 36D0     		beq	.L35
+ 229:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         uint8_t ucAFPos = (ucPin & 0x7) << 2;
+ 231:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         MODIFY_REG(pxGPIO->AFR[ucPin >> 3], 0xF << ucAFPos,
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          pxConfig->AlternateMap << ucAFPos);
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* IO mode */
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     MODIFY_REG(pxGPIO->MODER, 3 << uc2BitPos,
+ 345              		.loc 1 237 5 is_stmt 1 view .LVU120
+ 346 0034 54F80910 		ldr	r1, [r4, r9]
+ 347 0038 02FA0CF0 		lsl	r0, r2, ip
+ 238:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 240:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef GPIO_ASCR_ASC0
+ 241:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Set the ADC connection bit if GPIO_ADC_AF is selected */
+ 242:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     MODIFY_REG(pxGPIO->ASCR, 1 << ucPin, (pxConfig->AlternateMap >> 4) << ucPin);
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* output stage configuration */
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if (    (pxConfig->Mode == GPIO_MODE_OUTPUT)
+ 348              		.loc 1 246 8 is_stmt 0 view .LVU121
+ 349 003c 02F1FF3A 		add	r10, r2, #-1
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 350              		.loc 1 237 5 view .LVU122
+ 351 0040 01EA0E01 		and	r1, r1, lr
+ 352 0044 1840     		ands	r0, r0, r3
+ 353              		.loc 1 246 8 view .LVU123
+ 354 0046 BAF1010F 		cmp	r10, #1
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 355              		.loc 1 237 5 view .LVU124
+ 356 004a 40EA0100 		orr	r0, r0, r1
+ 357 004e 44F80900 		str	r0, [r4, r9]
+ 358              		.loc 1 246 5 is_stmt 1 view .LVU125
+ 359 0052 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 360 0054 01FA0CF1 		lsl	r1, r1, ip
+ 361 0058 01EA0301 		and	r1, r1, r3
+ 362              		.loc 1 246 8 is_stmt 0 view .LVU126
+ 363 005c 46D9     		bls	.L31
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****          || (pxConfig->Mode == GPIO_MODE_ALTERNATE))
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 249:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* speed */
+ARM GAS  /tmp/ccVgfwZG.s 			page 13
+
+
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         MODIFY_REG(pxGPIO->OSPEEDR, 3 << uc2BitPos,
+ 251:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                  pxConfig->Output.Speed << uc2BitPos);
+ 252:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* type */
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         MODIFY_REG(pxGPIO->OTYPER, 1 << ucPin,
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                pxConfig->Output.Type << ucPin);
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 258:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Activate the Pull-up or Pull down resistor for the current IO */
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     MODIFY_REG(pxGPIO->PUPDR, 3 << uc2BitPos,
+ 364              		.loc 1 259 5 is_stmt 1 view .LVU127
+ 365 005e FB68     		ldr	r3, [r7, #12]
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Pull << uc2BitPos);
+ 261:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 262:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* EXTI configuration */
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if (pxConfig->Mode == GPIO_MODE_EXTI)
+ 366              		.loc 1 263 8 is_stmt 0 view .LVU128
+ 367 0060 102A     		cmp	r2, #16
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Pull << uc2BitPos);
+ 368              		.loc 1 259 5 view .LVU129
+ 369 0062 03EA0E0E 		and	lr, r3, lr
+ 370 0066 4EEA0101 		orr	r1, lr, r1
+ 371 006a F960     		str	r1, [r7, #12]
+ 372              		.loc 1 263 5 is_stmt 1 view .LVU130
+ 373              		.loc 1 263 8 is_stmt 0 view .LVU131
+ 374 006c 01D0     		beq	.L36
+ 264:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 265:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* set EXTI source */
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         uint8_t ucPortPos = (ucPin & 0x03) << 2;
+ 267:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         MODIFY_REG(SYSCFG->EXTICR[ucPin >> 2], 0xF << ucPortPos,
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          (ePin >> __GPIO_PIN_BITS) << ucPortPos);
+ 270:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 271:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* hand over EXTI configuration */
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         EXTI_vInit(ucPin, &pxConfig->ExtI);
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 274:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+ 375              		.loc 1 274 1 view .LVU132
+ 376 006e BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 377              	.LVL20:
+ 378              	.L36:
+ 379              	.LBB16:
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 380              		.loc 1 266 9 is_stmt 1 view .LVU133
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          (ePin >> __GPIO_PIN_BITS) << ucPortPos);
+ 381              		.loc 1 268 9 view .LVU134
+ 382 0072 08F00C01 		and	r1, r8, #12
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 383              		.loc 1 266 44 is_stmt 0 view .LVU135
+ 384 0076 4FEA8804 		lsl	r4, r8, #2
+ 385 007a 2D4B     		ldr	r3, .L37+4
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          (ePin >> __GPIO_PIN_BITS) << ucPortPos);
+ 386              		.loc 1 268 9 view .LVU136
+ 387 007c 0F22     		movs	r2, #15
+ 388 007e 04F00C04 		and	r4, r4, #12
+ 389 0082 2D09     		lsrs	r5, r5, #4
+ 390 0084 0B44     		add	r3, r3, r1
+ARM GAS  /tmp/ccVgfwZG.s 			page 14
+
+
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 391              		.loc 1 272 9 view .LVU137
+ 392 0086 311D     		adds	r1, r6, #4
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          (ePin >> __GPIO_PIN_BITS) << ucPortPos);
+ 393              		.loc 1 268 9 view .LVU138
+ 394 0088 A540     		lsls	r5, r5, r4
+ 395 008a A240     		lsls	r2, r2, r4
+ 396 008c 9E68     		ldr	r6, [r3, #8]
+ 397              	.LVL21:
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 398              		.loc 1 272 9 view .LVU139
+ 399 008e 4046     		mov	r0, r8
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          (ePin >> __GPIO_PIN_BITS) << ucPortPos);
+ 400              		.loc 1 268 9 view .LVU140
+ 401 0090 1540     		ands	r5, r5, r2
+ 402 0092 26EA0204 		bic	r4, r6, r2
+ 403 0096 2543     		orrs	r5, r5, r4
+ 404 0098 9D60     		str	r5, [r3, #8]
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 405              		.loc 1 272 9 is_stmt 1 view .LVU141
+ 406              	.LBE16:
+ 407              		.loc 1 274 1 is_stmt 0 view .LVU142
+ 408 009a BDE8F84F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 409              	.LCFI2:
+ 410              		.cfi_remember_state
+ 411              		.cfi_restore 14
+ 412              		.cfi_restore 11
+ 413              		.cfi_restore 10
+ 414              		.cfi_restore 9
+ 415              		.cfi_restore 8
+ 416              		.cfi_restore 7
+ 417              		.cfi_restore 6
+ 418              		.cfi_restore 5
+ 419              		.cfi_restore 4
+ 420              		.cfi_restore 3
+ 421              		.cfi_def_cfa_offset 0
+ 422              	.LVL22:
+ 423              	.LBB17:
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 424              		.loc 1 272 9 view .LVU143
+ 425 009e FFF7FEBF 		b	EXTI_vInit
+ 426              	.LVL23:
+ 427              	.L35:
+ 428              	.LCFI3:
+ 429              		.cfi_restore_state
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 430              		.loc 1 272 9 view .LVU144
+ 431              	.LBE17:
+ 432              	.LBB18:
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 433              		.loc 1 230 9 is_stmt 1 view .LVU145
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          pxConfig->AlternateMap << ucAFPos);
+ 434              		.loc 1 232 9 view .LVU146
+ 435 00a2 4FEAD805 		lsr	r5, r8, #3
+ 436 00a6 7079     		ldrb	r0, [r6, #5]	@ zero_extendqisi2
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 437              		.loc 1 230 41 is_stmt 0 view .LVU147
+ARM GAS  /tmp/ccVgfwZG.s 			page 15
+
+
+ 438 00a8 4FEA880A 		lsl	r10, r8, #2
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          pxConfig->AlternateMap << ucAFPos);
+ 439              		.loc 1 232 9 view .LVU148
+ 440 00ac 4FF00F0B 		mov	fp, #15
+ 441 00b0 07EB8505 		add	r5, r7, r5, lsl #2
+ 442              	.LBE18:
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 443              		.loc 1 237 5 view .LVU149
+ 444 00b4 02FA0CF2 		lsl	r2, r2, ip
+ 445              	.LBB19:
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          pxConfig->AlternateMap << ucAFPos);
+ 446              		.loc 1 232 9 view .LVU150
+ 447 00b8 0AF01C0A 		and	r10, r10, #28
+ 448 00bc 296A     		ldr	r1, [r5, #32]
+ 449              	.LBE19:
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 450              		.loc 1 237 5 view .LVU151
+ 451 00be 1A40     		ands	r2, r2, r3
+ 452              	.LBB20:
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                          pxConfig->AlternateMap << ucAFPos);
+ 453              		.loc 1 232 9 view .LVU152
+ 454 00c0 0BFA0AFB 		lsl	fp, fp, r10
+ 455 00c4 00FA0AF0 		lsl	r0, r0, r10
+ 456 00c8 21EA0B0A 		bic	r10, r1, fp
+ 457 00cc 00EA0B01 		and	r1, r0, fp
+ 458 00d0 41EA0A01 		orr	r1, r1, r10
+ 459 00d4 2962     		str	r1, [r5, #32]
+ 460              	.LBE20:
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Mode << uc2BitPos);
+ 461              		.loc 1 237 5 is_stmt 1 view .LVU153
+ 462 00d6 54F80910 		ldr	r1, [r4, r9]
+ 463 00da 01EA0E01 		and	r1, r1, lr
+ 464 00de 0A43     		orrs	r2, r2, r1
+ 465 00e0 44F80920 		str	r2, [r4, r9]
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****          || (pxConfig->Mode == GPIO_MODE_ALTERNATE))
+ 466              		.loc 1 246 5 view .LVU154
+ 467 00e4 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 468 00e6 01FA0CF1 		lsl	r1, r1, ip
+ 469 00ea 1940     		ands	r1, r1, r3
+ 470              	.LVL24:
+ 471              	.L31:
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                  pxConfig->Output.Speed << uc2BitPos);
+ 472              		.loc 1 250 9 view .LVU155
+ 473 00ec F278     		ldrb	r2, [r6, #3]	@ zero_extendqisi2
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                pxConfig->Output.Type << ucPin);
+ 474              		.loc 1 254 9 is_stmt 0 view .LVU156
+ 475 00ee 0120     		movs	r0, #1
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                  pxConfig->Output.Speed << uc2BitPos);
+ 476              		.loc 1 250 9 view .LVU157
+ 477 00f0 02FA0CFC 		lsl	ip, r2, ip
+ 478 00f4 BA68     		ldr	r2, [r7, #8]
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                pxConfig->Output.Type << ucPin);
+ 479              		.loc 1 254 9 view .LVU158
+ 480 00f6 00FA08F0 		lsl	r0, r0, r8
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                  pxConfig->Output.Speed << uc2BitPos);
+ 481              		.loc 1 250 9 view .LVU159
+ 482 00fa 0CEA0303 		and	r3, ip, r3
+ARM GAS  /tmp/ccVgfwZG.s 			page 16
+
+
+ 483 00fe 02EA0E02 		and	r2, r2, lr
+ 484 0102 1A43     		orrs	r2, r2, r3
+ 485 0104 BA60     		str	r2, [r7, #8]
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                pxConfig->Output.Type << ucPin);
+ 486              		.loc 1 254 9 is_stmt 1 view .LVU160
+ 487 0106 B378     		ldrb	r3, [r6, #2]	@ zero_extendqisi2
+ 488 0108 7A68     		ldr	r2, [r7, #4]
+ 489 010a 03FA08F3 		lsl	r3, r3, r8
+ 490 010e 22EA0008 		bic	r8, r2, r0
+ 491              	.LVL25:
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                pxConfig->Output.Type << ucPin);
+ 492              		.loc 1 254 9 is_stmt 0 view .LVU161
+ 493 0112 0340     		ands	r3, r3, r0
+ 494 0114 43EA0803 		orr	r3, r3, r8
+ 495 0118 7B60     		str	r3, [r7, #4]
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****                    pxConfig->Pull << uc2BitPos);
+ 496              		.loc 1 259 5 is_stmt 1 view .LVU162
+ 497 011a FB68     		ldr	r3, [r7, #12]
+ 498 011c 03EA0E0E 		and	lr, r3, lr
+ 499 0120 4EEA0101 		orr	r1, lr, r1
+ 500 0124 F960     		str	r1, [r7, #12]
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ 501              		.loc 1 263 5 view .LVU163
+ 502              		.loc 1 274 1 is_stmt 0 view .LVU164
+ 503 0126 BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 504              	.LVL26:
+ 505              	.L38:
+ 506              		.loc 1 274 1 view .LVU165
+ 507 012a 00BF     		.align	2
+ 508              	.L37:
+ 509 012c 00FCFFFF 		.word	-1024
+ 510 0130 00040058 		.word	1476396032
+ 511 0134 00000258 		.word	1476526080
+ 512              		.cfi_endproc
+ 513              	.LFE160:
+ 515              		.section	.text.GPIO_vDeinitPin,"ax",%progbits
+ 516              		.align	1
+ 517              		.p2align 2,,3
+ 518              		.global	GPIO_vDeinitPin
+ 519              		.syntax unified
+ 520              		.thumb
+ 521              		.thumb_func
+ 522              		.fpu fpv4-sp-d16
+ 524              	GPIO_vDeinitPin:
+ 525              	.LVL27:
+ 526              	.LFB161:
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /**
+ 277:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @brief Restores the GPIO pin to the default settings.
+ 278:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param ePin: selected pin
+ 279:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+ 280:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** void GPIO_vDeinitPin(GPIO_PinType ePin)
+ 281:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+ 527              		.loc 1 281 1 is_stmt 1 view -0
+ 528              		.cfi_startproc
+ 529              		@ args = 0, pretend = 0, frame = 0
+ 530              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  /tmp/ccVgfwZG.s 			page 17
+
+
+ 531              		@ link register save eliminated.
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 532              		.loc 1 282 5 view .LVU167
+ 281:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 533              		.loc 1 281 1 is_stmt 0 view .LVU168
+ 534 0000 70B4     		push	{r4, r5, r6}
+ 535              	.LCFI4:
+ 536              		.cfi_def_cfa_offset 12
+ 537              		.cfi_offset 4, -12
+ 538              		.cfi_offset 5, -8
+ 539              		.cfi_offset 6, -4
+ 540              		.loc 1 282 28 view .LVU169
+ 541 0002 124B     		ldr	r3, .L41
+ 283:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 284:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_CR3_APC
+ 285:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* configure pull direction in power down */
+ 286:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #ifdef PWR_BB
+ 287:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     pwr_pxPullPinConfig[ePin >> __GPIO_PIN_BITS].PUC[ucPin] = 0;
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     pwr_pxPullPinConfig[ePin >> __GPIO_PIN_BITS].PDC[ucPin] = 0;
+ 289:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #else
+ 290:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     CLEAR_BIT(pwr_pxPullConfig[ePin >> __GPIO_PIN_BITS].PUCR, 1 << ucPin);
+ 291:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     CLEAR_BIT(pwr_pxPullConfig[ePin >> __GPIO_PIN_BITS].PDCR, 1 << ucPin);
+ 292:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 293:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** #endif
+ 294:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 295:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* GPIO Mode Configuration */
+ 296:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Configure IO Direction in Input Floating Mode */
+ 297:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     CLEAR_BIT(pxGPIO->MODER, (3 << (ucPin * 2)));
+ 542              		.loc 1 297 5 view .LVU170
+ 543 0004 00F00F06 		and	r6, r0, #15
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 544              		.loc 1 282 28 view .LVU171
+ 545 0008 114C     		ldr	r4, .L41+4
+ 546              		.loc 1 297 5 view .LVU172
+ 547 000a 0321     		movs	r1, #3
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 548              		.loc 1 282 28 view .LVU173
+ 549 000c 03EA8013 		and	r3, r3, r0, lsl #6
+ 550 0010 104A     		ldr	r2, .L41+8
+ 551              		.loc 1 297 5 view .LVU174
+ 552 0012 7600     		lsls	r6, r6, #1
+ 553 0014 1D59     		ldr	r5, [r3, r4]
+ 554 0016 B140     		lsls	r1, r1, r6
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 555              		.loc 1 282 28 view .LVU175
+ 556 0018 1E19     		adds	r6, r3, r4
+ 557              	.LVL28:
+ 283:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 558              		.loc 1 283 5 is_stmt 1 view .LVU176
+ 559              		.loc 1 297 5 view .LVU177
+ 560 001a 25EA0105 		bic	r5, r5, r1
+ 561 001e 1D51     		str	r5, [r3, r4]
+ 298:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Deactivate the Pull-up and Pull-down resistor for the current IO */
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     CLEAR_BIT(pxGPIO->PUPDR, (3 << (ucPin * 2)));
+ 562              		.loc 1 300 5 view .LVU178
+ 563 0020 00F00C05 		and	r5, r0, #12
+ARM GAS  /tmp/ccVgfwZG.s 			page 18
+
+
+ 564 0024 F468     		ldr	r4, [r6, #12]
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     /* Configure the External Interrupt or event for the current IO */
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     CLEAR_BIT(SYSCFG->EXTICR[ucPin >> 2], ((uint32_t)0xF) << (4 * (ucPin & 3)));
+ 565              		.loc 1 303 5 is_stmt 0 view .LVU179
+ 566 0026 00F00303 		and	r3, r0, #3
+ 567 002a 2A44     		add	r2, r2, r5
+ 304:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     EXTI_vDeinit(ucPin);
+ 568              		.loc 1 305 5 view .LVU180
+ 569 002c 00F00F00 		and	r0, r0, #15
+ 570              	.LVL29:
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 571              		.loc 1 300 5 view .LVU181
+ 572 0030 24EA0104 		bic	r4, r4, r1
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 573              		.loc 1 303 5 view .LVU182
+ 574 0034 9900     		lsls	r1, r3, #2
+ 575 0036 0F23     		movs	r3, #15
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 576              		.loc 1 300 5 view .LVU183
+ 577 0038 F460     		str	r4, [r6, #12]
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 578              		.loc 1 303 5 is_stmt 1 view .LVU184
+ 579 003a 03FA01F1 		lsl	r1, r3, r1
+ 580 003e 9368     		ldr	r3, [r2, #8]
+ 581 0040 23EA0103 		bic	r3, r3, r1
+ 306:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+ 582              		.loc 1 306 1 is_stmt 0 view .LVU185
+ 583 0044 70BC     		pop	{r4, r5, r6}
+ 584              	.LCFI5:
+ 585              		.cfi_restore 6
+ 586              		.cfi_restore 5
+ 587              		.cfi_restore 4
+ 588              		.cfi_def_cfa_offset 0
+ 589              	.LVL30:
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 590              		.loc 1 303 5 view .LVU186
+ 591 0046 9360     		str	r3, [r2, #8]
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+ 592              		.loc 1 305 5 is_stmt 1 view .LVU187
+ 593 0048 FFF7FEBF 		b	EXTI_vDeinit
+ 594              	.LVL31:
+ 595              	.L42:
+ 596              		.align	2
+ 597              	.L41:
+ 598 004c 00FCFFFF 		.word	-1024
+ 599 0050 00000258 		.word	1476526080
+ 600 0054 00040058 		.word	1476396032
+ 601              		.cfi_endproc
+ 602              	.LFE161:
+ 604              		.section	.text.GPIO_vLockPin,"ax",%progbits
+ 605              		.align	1
+ 606              		.p2align 2,,3
+ 607              		.global	GPIO_vLockPin
+ 608              		.syntax unified
+ 609              		.thumb
+ARM GAS  /tmp/ccVgfwZG.s 			page 19
+
+
+ 610              		.thumb_func
+ 611              		.fpu fpv4-sp-d16
+ 613              	GPIO_vLockPin:
+ 614              	.LVL32:
+ 615              	.LFB162:
+ 307:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** /**
+ 309:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @brief Locks the pin's configuration until the next device reset
+ 310:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  * @param ePin: selected pin
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****  */
+ 312:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** void GPIO_vLockPin(GPIO_PinType ePin)
+ 313:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** {
+ 616              		.loc 1 313 1 view -0
+ 617              		.cfi_startproc
+ 618              		@ args = 0, pretend = 0, frame = 0
+ 619              		@ frame_needed = 0, uses_anonymous_args = 0
+ 620              		@ link register save eliminated.
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 621              		.loc 1 314 5 view .LVU189
+ 622              		.loc 1 314 28 is_stmt 0 view .LVU190
+ 623 0000 0949     		ldr	r1, .L45
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulPinMask = 1 << (uint32_t)ucPin;
+ 624              		.loc 1 316 28 view .LVU191
+ 625 0002 0122     		movs	r2, #1
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 626              		.loc 1 314 28 view .LVU192
+ 627 0004 094B     		ldr	r3, .L45+4
+ 628 0006 01EA8011 		and	r1, r1, r0, lsl #6
+ 629              		.loc 1 316 31 view .LVU193
+ 630 000a 00F00F00 		and	r0, r0, #15
+ 631              	.LVL33:
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     GPIO_TypeDef *pxGPIO = __GPIO_PORT_FROM_PIN(ePin);
+ 632              		.loc 1 314 28 view .LVU194
+ 633 000e 0B44     		add	r3, r3, r1
+ 634              	.LVL34:
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint8_t ucPin = ePin & __GPIO_PIN_MASK;
+ 635              		.loc 1 315 5 is_stmt 1 view .LVU195
+ 636              		.loc 1 316 5 view .LVU196
+ 637              		.loc 1 316 28 is_stmt 0 view .LVU197
+ 638 0010 02FA00F0 		lsl	r0, r2, r0
+ 639              	.LVL35:
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulPinLock = GPIO_LCKR_LCKK | ulPinMask;
+ 640              		.loc 1 317 5 is_stmt 1 view .LVU198
+ 318:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 319:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     if ((pxGPIO->LCKR & ulPinMask) == 0)
+ 641              		.loc 1 319 5 view .LVU199
+ 642              		.loc 1 319 16 is_stmt 0 view .LVU200
+ 643 0014 DA69     		ldr	r2, [r3, #28]
+ 644              		.loc 1 319 8 view .LVU201
+ 645 0016 0242     		tst	r2, r0
+ 646 0018 05D1     		bne	.L43
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     uint32_t ulPinLock = GPIO_LCKR_LCKK | ulPinMask;
+ 647              		.loc 1 317 14 view .LVU202
+ 648 001a 40F48032 		orr	r2, r0, #65536
+ 649              	.LVL36:
+ 320:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     {
+ARM GAS  /tmp/ccVgfwZG.s 			page 20
+
+
+ 321:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* Apply lock key write sequence */
+ 322:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* LCKK='1' + LCK[x] */
+ 323:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->LCKR = ulPinLock;
+ 650              		.loc 1 323 9 is_stmt 1 view .LVU203
+ 651              		.loc 1 323 22 is_stmt 0 view .LVU204
+ 652 001e DA61     		str	r2, [r3, #28]
+ 324:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* LCKK='0' + LCK[x] */
+ 325:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->LCKR = ulPinMask;
+ 653              		.loc 1 325 9 is_stmt 1 view .LVU205
+ 654              		.loc 1 325 22 is_stmt 0 view .LVU206
+ 655 0020 D861     		str	r0, [r3, #28]
+ 326:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* LCKK='1' + LCK[x] */
+ 327:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         pxGPIO->LCKR = ulPinLock;
+ 656              		.loc 1 327 9 is_stmt 1 view .LVU207
+ 657              		.loc 1 327 22 is_stmt 0 view .LVU208
+ 658 0022 DA61     		str	r2, [r3, #28]
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** 
+ 329:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         /* read register */
+ 330:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****         (void) pxGPIO->LCKR;
+ 659              		.loc 1 330 9 is_stmt 1 view .LVU209
+ 660 0024 DB69     		ldr	r3, [r3, #28]
+ 661              	.LVL37:
+ 662              	.L43:
+ 331:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c ****     }
+ 332:STM32_XPD/STM32H7_XPD/src/xpd_gpio.c **** }
+ 663              		.loc 1 332 1 is_stmt 0 view .LVU210
+ 664 0026 7047     		bx	lr
+ 665              	.L46:
+ 666              		.align	2
+ 667              	.L45:
+ 668 0028 00FCFFFF 		.word	-1024
+ 669 002c 00000258 		.word	1476526080
+ 670              		.cfi_endproc
+ 671              	.LFE162:
+ 673              		.text
+ 674              	.Letext0:
+ 675              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 676              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 677              		.file 4 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 678              		.file 5 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 679              		.file 6 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 680              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 681              		.file 8 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ 682              		.file 9 "STM32_XPD/STM32H7_XPD/inc/xpd_gpio.h"
+ 683              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ 684              		.file 11 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc.h"
+ARM GAS  /tmp/ccVgfwZG.s 			page 21
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_gpio.c
+     /tmp/ccVgfwZG.s:18     .text.GPIO_vInitPort:0000000000000000 $t
+     /tmp/ccVgfwZG.s:27     .text.GPIO_vInitPort:0000000000000000 GPIO_vInitPort
+     /tmp/ccVgfwZG.s:265    .text.GPIO_vInitPort:00000000000000bc $d
+     /tmp/ccVgfwZG.s:270    .text.GPIO_vInitPin:0000000000000000 $t
+     /tmp/ccVgfwZG.s:278    .text.GPIO_vInitPin:0000000000000000 GPIO_vInitPin
+     /tmp/ccVgfwZG.s:509    .text.GPIO_vInitPin:000000000000012c $d
+     /tmp/ccVgfwZG.s:516    .text.GPIO_vDeinitPin:0000000000000000 $t
+     /tmp/ccVgfwZG.s:524    .text.GPIO_vDeinitPin:0000000000000000 GPIO_vDeinitPin
+     /tmp/ccVgfwZG.s:598    .text.GPIO_vDeinitPin:000000000000004c $d
+     /tmp/ccVgfwZG.s:605    .text.GPIO_vLockPin:0000000000000000 $t
+     /tmp/ccVgfwZG.s:613    .text.GPIO_vLockPin:0000000000000000 GPIO_vLockPin
+     /tmp/ccVgfwZG.s:668    .text.GPIO_vLockPin:0000000000000028 $d
+
+UNDEFINED SYMBOLS
+RCC_vClockEnable
+EXTI_vInit
+EXTI_vDeinit

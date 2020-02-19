@@ -1,0 +1,56 @@
+ARM GAS  /tmp/ccFtl4nQ.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"bsp_io.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	BSP_IOCfg
+  18              		.section	.rodata.BSP_IOCfg,"a"
+  19              		.align	2
+  22              	BSP_IOCfg:
+  23 0000 02       		.byte	2
+  24 0001 00       		.byte	0
+  25 0002 00       		.byte	0
+  26 0003 03       		.byte	3
+  27 0004 0000     		.space	2
+  28 0006 00       		.byte	0
+  29 0007 00       		.byte	0
+  30 0008 00000000 		.space	4
+  31 000c 01       		.byte	1
+  32 000d 00       		.byte	0
+  33 000e 00       		.byte	0
+  34 000f 02       		.byte	2
+  35 0010 0000     		.space	2
+  36              		.text
+  37              	.Letext0:
+  38              		.file 1 "/usr/arm-none-eabi/include/machine/_default_types.h"
+  39              		.file 2 "/usr/arm-none-eabi/include/sys/_stdint.h"
+  40              		.file 3 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+  41              		.file 4 "STM32_XPD/CMSIS/Include/core_cm7.h"
+  42              		.file 5 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+  43              		.file 6 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+  44              		.file 7 "STM32_XPD/STM32H7_XPD/inc/xpd_gpio.h"
+  45              		.file 8 "BSP_STM32H7xx/bsp_io.h"
+  46              		.file 9 "BSP_STM32H7xx/bsp_io.c"
+ARM GAS  /tmp/ccFtl4nQ.s 			page 2
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_io.c
+     /tmp/ccFtl4nQ.s:22     .rodata.BSP_IOCfg:0000000000000000 BSP_IOCfg
+     /tmp/ccFtl4nQ.s:19     .rodata.BSP_IOCfg:0000000000000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,1041 @@
+ARM GAS  /tmp/ccytc5fp.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"fs.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.fs_open,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	fs_open
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	fs_open:
+  28              	.LVL0:
+  29              	.LFB105:
+  30              		.file 1 "lwIP/src/apps/http/fs.c"
+   1:lwIP/src/apps/http/fs.c **** /*
+   2:lwIP/src/apps/http/fs.c ****  * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
+   3:lwIP/src/apps/http/fs.c ****  * All rights reserved.
+   4:lwIP/src/apps/http/fs.c ****  *
+   5:lwIP/src/apps/http/fs.c ****  * Redistribution and use in source and binary forms, with or without modification,
+   6:lwIP/src/apps/http/fs.c ****  * are permitted provided that the following conditions are met:
+   7:lwIP/src/apps/http/fs.c ****  *
+   8:lwIP/src/apps/http/fs.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+   9:lwIP/src/apps/http/fs.c ****  *    this list of conditions and the following disclaimer.
+  10:lwIP/src/apps/http/fs.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  11:lwIP/src/apps/http/fs.c ****  *    this list of conditions and the following disclaimer in the documentation
+  12:lwIP/src/apps/http/fs.c ****  *    and/or other materials provided with the distribution.
+  13:lwIP/src/apps/http/fs.c ****  * 3. The name of the author may not be used to endorse or promote products
+  14:lwIP/src/apps/http/fs.c ****  *    derived from this software without specific prior written permission.
+  15:lwIP/src/apps/http/fs.c ****  *
+  16:lwIP/src/apps/http/fs.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  17:lwIP/src/apps/http/fs.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  18:lwIP/src/apps/http/fs.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  19:lwIP/src/apps/http/fs.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  20:lwIP/src/apps/http/fs.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  21:lwIP/src/apps/http/fs.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  22:lwIP/src/apps/http/fs.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  23:lwIP/src/apps/http/fs.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  24:lwIP/src/apps/http/fs.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  25:lwIP/src/apps/http/fs.c ****  * OF SUCH DAMAGE.
+  26:lwIP/src/apps/http/fs.c ****  *
+  27:lwIP/src/apps/http/fs.c ****  * This file is part of the lwIP TCP/IP stack.
+  28:lwIP/src/apps/http/fs.c ****  *
+ARM GAS  /tmp/ccytc5fp.s 			page 2
+
+
+  29:lwIP/src/apps/http/fs.c ****  * Author: Adam Dunkels <adam@sics.se>
+  30:lwIP/src/apps/http/fs.c ****  *
+  31:lwIP/src/apps/http/fs.c ****  */
+  32:lwIP/src/apps/http/fs.c **** 
+  33:lwIP/src/apps/http/fs.c **** #include "lwip/apps/httpd_opts.h"
+  34:lwIP/src/apps/http/fs.c **** #include "lwip/def.h"
+  35:lwIP/src/apps/http/fs.c **** #include "lwip/apps/fs.h"
+  36:lwIP/src/apps/http/fs.c **** #include <string.h>
+  37:lwIP/src/apps/http/fs.c **** 
+  38:lwIP/src/apps/http/fs.c **** 
+  39:lwIP/src/apps/http/fs.c **** #include HTTPD_FSDATA_FILE
+  40:lwIP/src/apps/http/fs.c **** 
+  41:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+  42:lwIP/src/apps/http/fs.c **** 
+  43:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_CUSTOM_FILES
+  44:lwIP/src/apps/http/fs.c **** int fs_open_custom(struct fs_file *file, const char *name);
+  45:lwIP/src/apps/http/fs.c **** void fs_close_custom(struct fs_file *file);
+  46:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+  47:lwIP/src/apps/http/fs.c **** u8_t fs_canread_custom(struct fs_file *file);
+  48:lwIP/src/apps/http/fs.c **** u8_t fs_wait_read_custom(struct fs_file *file, fs_wait_cb callback_fn, void *callback_arg);
+  49:lwIP/src/apps/http/fs.c **** int fs_read_async_custom(struct fs_file *file, char *buffer, int count, fs_wait_cb callback_fn, voi
+  50:lwIP/src/apps/http/fs.c **** #else /* LWIP_HTTPD_FS_ASYNC_READ */
+  51:lwIP/src/apps/http/fs.c **** int fs_read_custom(struct fs_file *file, char *buffer, int count);
+  52:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+  53:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_CUSTOM_FILES */
+  54:lwIP/src/apps/http/fs.c **** 
+  55:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+  56:lwIP/src/apps/http/fs.c **** err_t
+  57:lwIP/src/apps/http/fs.c **** fs_open(struct fs_file *file, const char *name)
+  58:lwIP/src/apps/http/fs.c **** {
+  31              		.loc 1 58 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  59:lwIP/src/apps/http/fs.c ****   const struct fsdata_file *f;
+  35              		.loc 1 59 3 view .LVU1
+  60:lwIP/src/apps/http/fs.c **** 
+  61:lwIP/src/apps/http/fs.c ****   if ((file == NULL) || (name == NULL)) {
+  36              		.loc 1 61 3 view .LVU2
+  37              		.loc 1 61 6 is_stmt 0 view .LVU3
+  38 0000 00B3     		cbz	r0, .L8
+  58:lwIP/src/apps/http/fs.c ****   const struct fsdata_file *f;
+  39              		.loc 1 58 1 view .LVU4
+  40 0002 70B5     		push	{r4, r5, r6, lr}
+  41              	.LCFI0:
+  42              		.cfi_def_cfa_offset 16
+  43              		.cfi_offset 4, -16
+  44              		.cfi_offset 5, -12
+  45              		.cfi_offset 6, -8
+  46              		.cfi_offset 14, -4
+  47 0004 0D46     		mov	r5, r1
+  48              		.loc 1 61 6 view .LVU5
+  49 0006 D1B1     		cbz	r1, .L5
+  50 0008 0646     		mov	r6, r0
+  51 000a 1049     		ldr	r1, .L14
+  52              	.LVL1:
+  62:lwIP/src/apps/http/fs.c ****     return ERR_ARG;
+ARM GAS  /tmp/ccytc5fp.s 			page 3
+
+
+  63:lwIP/src/apps/http/fs.c ****   }
+  64:lwIP/src/apps/http/fs.c **** 
+  65:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_CUSTOM_FILES
+  66:lwIP/src/apps/http/fs.c ****   if (fs_open_custom(file, name)) {
+  67:lwIP/src/apps/http/fs.c ****     file->is_custom_file = 1;
+  68:lwIP/src/apps/http/fs.c ****     return ERR_OK;
+  69:lwIP/src/apps/http/fs.c ****   }
+  70:lwIP/src/apps/http/fs.c ****   file->is_custom_file = 0;
+  71:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_CUSTOM_FILES */
+  72:lwIP/src/apps/http/fs.c **** 
+  73:lwIP/src/apps/http/fs.c ****   for (f = FS_ROOT; f != NULL; f = f->next) {
+  53              		.loc 1 73 10 view .LVU6
+  54 000c 104C     		ldr	r4, .L14+4
+  55 000e 00E0     		b	.L4
+  56              	.LVL2:
+  57              	.L13:
+  58              		.loc 1 73 10 view .LVU7
+  59 0010 6168     		ldr	r1, [r4, #4]
+  60              	.LVL3:
+  61              	.L4:
+  74:lwIP/src/apps/http/fs.c ****     if (!strcmp(name, (const char *)f->name)) {
+  62              		.loc 1 74 5 is_stmt 1 view .LVU8
+  63              		.loc 1 74 10 is_stmt 0 view .LVU9
+  64 0012 2846     		mov	r0, r5
+  65 0014 FFF7FEFF 		bl	strcmp
+  66              	.LVL4:
+  73:lwIP/src/apps/http/fs.c ****     if (!strcmp(name, (const char *)f->name)) {
+  67              		.loc 1 73 32 is_stmt 1 view .LVU10
+  68              		.loc 1 74 8 is_stmt 0 view .LVU11
+  69 0018 30B1     		cbz	r0, .L12
+  73:lwIP/src/apps/http/fs.c ****     if (!strcmp(name, (const char *)f->name)) {
+  70              		.loc 1 73 34 discriminator 2 view .LVU12
+  71 001a 2468     		ldr	r4, [r4]
+  72              	.LVL5:
+  73:lwIP/src/apps/http/fs.c ****     if (!strcmp(name, (const char *)f->name)) {
+  73              		.loc 1 73 21 is_stmt 1 discriminator 2 view .LVU13
+  73:lwIP/src/apps/http/fs.c ****     if (!strcmp(name, (const char *)f->name)) {
+  74              		.loc 1 73 3 is_stmt 0 discriminator 2 view .LVU14
+  75 001c 002C     		cmp	r4, #0
+  76 001e F7D1     		bne	.L13
+  75:lwIP/src/apps/http/fs.c ****       file->data = (const char *)f->data;
+  76:lwIP/src/apps/http/fs.c ****       file->len = f->len;
+  77:lwIP/src/apps/http/fs.c ****       file->index = f->len;
+  78:lwIP/src/apps/http/fs.c ****       file->pextension = NULL;
+  79:lwIP/src/apps/http/fs.c ****       file->flags = f->flags;
+  80:lwIP/src/apps/http/fs.c **** #if HTTPD_PRECALCULATED_CHECKSUM
+  81:lwIP/src/apps/http/fs.c ****       file->chksum_count = f->chksum_count;
+  82:lwIP/src/apps/http/fs.c ****       file->chksum = f->chksum;
+  83:lwIP/src/apps/http/fs.c **** #endif /* HTTPD_PRECALCULATED_CHECKSUM */
+  84:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FILE_STATE
+  85:lwIP/src/apps/http/fs.c ****       file->state = fs_state_init(file, name);
+  86:lwIP/src/apps/http/fs.c **** #endif /* #if LWIP_HTTPD_FILE_STATE */
+  87:lwIP/src/apps/http/fs.c ****       return ERR_OK;
+  88:lwIP/src/apps/http/fs.c ****     }
+  89:lwIP/src/apps/http/fs.c ****   }
+  90:lwIP/src/apps/http/fs.c ****   /* file not found */
+  91:lwIP/src/apps/http/fs.c ****   return ERR_VAL;
+ARM GAS  /tmp/ccytc5fp.s 			page 4
+
+
+  77              		.loc 1 91 10 view .LVU15
+  78 0020 6FF00503 		mvn	r3, #5
+  79              	.LVL6:
+  80              	.L2:
+  92:lwIP/src/apps/http/fs.c **** }
+  81              		.loc 1 92 1 view .LVU16
+  82 0024 1846     		mov	r0, r3
+  83 0026 70BD     		pop	{r4, r5, r6, pc}
+  84              	.LVL7:
+  85              	.L12:
+  75:lwIP/src/apps/http/fs.c ****       file->data = (const char *)f->data;
+  86              		.loc 1 75 7 is_stmt 1 view .LVU17
+  76:lwIP/src/apps/http/fs.c ****       file->index = f->len;
+  87              		.loc 1 76 20 is_stmt 0 view .LVU18
+  88 0028 E268     		ldr	r2, [r4, #12]
+  87:lwIP/src/apps/http/fs.c ****     }
+  89              		.loc 1 87 14 view .LVU19
+  90 002a 0346     		mov	r3, r0
+  75:lwIP/src/apps/http/fs.c ****       file->len = f->len;
+  91              		.loc 1 75 18 view .LVU20
+  92 002c A168     		ldr	r1, [r4, #8]
+  78:lwIP/src/apps/http/fs.c ****       file->flags = f->flags;
+  93              		.loc 1 78 24 view .LVU21
+  94 002e C6E90220 		strd	r2, r0, [r6, #8]
+  76:lwIP/src/apps/http/fs.c ****       file->index = f->len;
+  95              		.loc 1 76 17 view .LVU22
+  96 0032 C6E90012 		strd	r1, r2, [r6]
+  77:lwIP/src/apps/http/fs.c ****       file->pextension = NULL;
+  97              		.loc 1 77 7 is_stmt 1 view .LVU23
+  79:lwIP/src/apps/http/fs.c **** #if HTTPD_PRECALCULATED_CHECKSUM
+  98              		.loc 1 79 7 view .LVU24
+  79:lwIP/src/apps/http/fs.c **** #if HTTPD_PRECALCULATED_CHECKSUM
+  99              		.loc 1 79 19 is_stmt 0 view .LVU25
+ 100 0036 227C     		ldrb	r2, [r4, #16]	@ zero_extendqisi2
+ 101              		.loc 1 92 1 view .LVU26
+ 102 0038 1846     		mov	r0, r3
+  79:lwIP/src/apps/http/fs.c **** #if HTTPD_PRECALCULATED_CHECKSUM
+ 103              		.loc 1 79 19 view .LVU27
+ 104 003a 3274     		strb	r2, [r6, #16]
+  87:lwIP/src/apps/http/fs.c ****     }
+ 105              		.loc 1 87 7 is_stmt 1 view .LVU28
+ 106              		.loc 1 92 1 is_stmt 0 view .LVU29
+ 107 003c 70BD     		pop	{r4, r5, r6, pc}
+ 108              	.LVL8:
+ 109              	.L5:
+  62:lwIP/src/apps/http/fs.c ****   }
+ 110              		.loc 1 62 12 view .LVU30
+ 111 003e 6FF00F03 		mvn	r3, #15
+ 112 0042 EFE7     		b	.L2
+ 113              	.L8:
+ 114              	.LCFI1:
+ 115              		.cfi_def_cfa_offset 0
+ 116              		.cfi_restore 4
+ 117              		.cfi_restore 5
+ 118              		.cfi_restore 6
+ 119              		.cfi_restore 14
+  62:lwIP/src/apps/http/fs.c ****   }
+ARM GAS  /tmp/ccytc5fp.s 			page 5
+
+
+ 120              		.loc 1 62 12 view .LVU31
+ 121 0044 6FF00F03 		mvn	r3, #15
+ 122              		.loc 1 92 1 view .LVU32
+ 123 0048 1846     		mov	r0, r3
+ 124              	.LVL9:
+ 125              		.loc 1 92 1 view .LVU33
+ 126 004a 7047     		bx	lr
+ 127              	.L15:
+ 128              		.align	2
+ 129              	.L14:
+ 130 004c 00000000 		.word	.LANCHOR0
+ 131 0050 00000000 		.word	.LANCHOR1
+ 132              		.cfi_endproc
+ 133              	.LFE105:
+ 135              		.section	.text.fs_close,"ax",%progbits
+ 136              		.align	1
+ 137              		.p2align 2,,3
+ 138              		.global	fs_close
+ 139              		.syntax unified
+ 140              		.thumb
+ 141              		.thumb_func
+ 142              		.fpu fpv4-sp-d16
+ 144              	fs_close:
+ 145              	.LVL10:
+ 146              	.LFB106:
+  93:lwIP/src/apps/http/fs.c **** 
+  94:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+  95:lwIP/src/apps/http/fs.c **** void
+  96:lwIP/src/apps/http/fs.c **** fs_close(struct fs_file *file)
+  97:lwIP/src/apps/http/fs.c **** {
+ 147              		.loc 1 97 1 is_stmt 1 view -0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 0
+ 150              		@ frame_needed = 0, uses_anonymous_args = 0
+ 151              		@ link register save eliminated.
+  98:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_CUSTOM_FILES
+  99:lwIP/src/apps/http/fs.c ****   if (file->is_custom_file) {
+ 100:lwIP/src/apps/http/fs.c ****     fs_close_custom(file);
+ 101:lwIP/src/apps/http/fs.c ****   }
+ 102:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_CUSTOM_FILES */
+ 103:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FILE_STATE
+ 104:lwIP/src/apps/http/fs.c ****   fs_state_free(file, file->state);
+ 105:lwIP/src/apps/http/fs.c **** #endif /* #if LWIP_HTTPD_FILE_STATE */
+ 106:lwIP/src/apps/http/fs.c ****   LWIP_UNUSED_ARG(file);
+ 152              		.loc 1 106 3 view .LVU35
+ 107:lwIP/src/apps/http/fs.c **** }
+ 153              		.loc 1 107 1 is_stmt 0 view .LVU36
+ 154 0000 7047     		bx	lr
+ 155              		.cfi_endproc
+ 156              	.LFE106:
+ 158 0002 00BF     		.section	.text.fs_bytes_left,"ax",%progbits
+ 159              		.align	1
+ 160              		.p2align 2,,3
+ 161              		.global	fs_bytes_left
+ 162              		.syntax unified
+ 163              		.thumb
+ 164              		.thumb_func
+ARM GAS  /tmp/ccytc5fp.s 			page 6
+
+
+ 165              		.fpu fpv4-sp-d16
+ 167              	fs_bytes_left:
+ 168              	.LVL11:
+ 169              	.LFB107:
+ 108:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+ 109:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_DYNAMIC_FILE_READ
+ 110:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+ 111:lwIP/src/apps/http/fs.c **** int
+ 112:lwIP/src/apps/http/fs.c **** fs_read_async(struct fs_file *file, char *buffer, int count, fs_wait_cb callback_fn, void *callback
+ 113:lwIP/src/apps/http/fs.c **** #else /* LWIP_HTTPD_FS_ASYNC_READ */
+ 114:lwIP/src/apps/http/fs.c **** int
+ 115:lwIP/src/apps/http/fs.c **** fs_read(struct fs_file *file, char *buffer, int count)
+ 116:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+ 117:lwIP/src/apps/http/fs.c **** {
+ 118:lwIP/src/apps/http/fs.c ****   int read;
+ 119:lwIP/src/apps/http/fs.c ****   if (file->index == file->len) {
+ 120:lwIP/src/apps/http/fs.c ****     return FS_READ_EOF;
+ 121:lwIP/src/apps/http/fs.c ****   }
+ 122:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+ 123:lwIP/src/apps/http/fs.c ****   LWIP_UNUSED_ARG(callback_fn);
+ 124:lwIP/src/apps/http/fs.c ****   LWIP_UNUSED_ARG(callback_arg);
+ 125:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+ 126:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_CUSTOM_FILES
+ 127:lwIP/src/apps/http/fs.c ****   if (file->is_custom_file) {
+ 128:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+ 129:lwIP/src/apps/http/fs.c ****     return fs_read_async_custom(file, buffer, count, callback_fn, callback_arg);
+ 130:lwIP/src/apps/http/fs.c **** #else /* LWIP_HTTPD_FS_ASYNC_READ */
+ 131:lwIP/src/apps/http/fs.c ****     return fs_read_custom(file, buffer, count);
+ 132:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+ 133:lwIP/src/apps/http/fs.c ****   }
+ 134:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_CUSTOM_FILES */
+ 135:lwIP/src/apps/http/fs.c **** 
+ 136:lwIP/src/apps/http/fs.c ****   read = file->len - file->index;
+ 137:lwIP/src/apps/http/fs.c ****   if (read > count) {
+ 138:lwIP/src/apps/http/fs.c ****     read = count;
+ 139:lwIP/src/apps/http/fs.c ****   }
+ 140:lwIP/src/apps/http/fs.c **** 
+ 141:lwIP/src/apps/http/fs.c ****   MEMCPY(buffer, (file->data + file->index), read);
+ 142:lwIP/src/apps/http/fs.c ****   file->index += read;
+ 143:lwIP/src/apps/http/fs.c **** 
+ 144:lwIP/src/apps/http/fs.c ****   return (read);
+ 145:lwIP/src/apps/http/fs.c **** }
+ 146:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_DYNAMIC_FILE_READ */
+ 147:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+ 148:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+ 149:lwIP/src/apps/http/fs.c **** int
+ 150:lwIP/src/apps/http/fs.c **** fs_is_file_ready(struct fs_file *file, fs_wait_cb callback_fn, void *callback_arg)
+ 151:lwIP/src/apps/http/fs.c **** {
+ 152:lwIP/src/apps/http/fs.c ****   if (file != NULL) {
+ 153:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_FS_ASYNC_READ
+ 154:lwIP/src/apps/http/fs.c **** #if LWIP_HTTPD_CUSTOM_FILES
+ 155:lwIP/src/apps/http/fs.c ****     if (!fs_canread_custom(file)) {
+ 156:lwIP/src/apps/http/fs.c ****       if (fs_wait_read_custom(file, callback_fn, callback_arg)) {
+ 157:lwIP/src/apps/http/fs.c ****         return 0;
+ 158:lwIP/src/apps/http/fs.c ****       }
+ 159:lwIP/src/apps/http/fs.c ****     }
+ 160:lwIP/src/apps/http/fs.c **** #else /* LWIP_HTTPD_CUSTOM_FILES */
+ARM GAS  /tmp/ccytc5fp.s 			page 7
+
+
+ 161:lwIP/src/apps/http/fs.c ****     LWIP_UNUSED_ARG(callback_fn);
+ 162:lwIP/src/apps/http/fs.c ****     LWIP_UNUSED_ARG(callback_arg);
+ 163:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_CUSTOM_FILES */
+ 164:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+ 165:lwIP/src/apps/http/fs.c ****   }
+ 166:lwIP/src/apps/http/fs.c ****   return 1;
+ 167:lwIP/src/apps/http/fs.c **** }
+ 168:lwIP/src/apps/http/fs.c **** #endif /* LWIP_HTTPD_FS_ASYNC_READ */
+ 169:lwIP/src/apps/http/fs.c **** /*-----------------------------------------------------------------------------------*/
+ 170:lwIP/src/apps/http/fs.c **** int
+ 171:lwIP/src/apps/http/fs.c **** fs_bytes_left(struct fs_file *file)
+ 172:lwIP/src/apps/http/fs.c **** {
+ 170              		.loc 1 172 1 is_stmt 1 view -0
+ 171              		.cfi_startproc
+ 172              		@ args = 0, pretend = 0, frame = 0
+ 173              		@ frame_needed = 0, uses_anonymous_args = 0
+ 174              		@ link register save eliminated.
+ 173:lwIP/src/apps/http/fs.c ****   return file->len - file->index;
+ 175              		.loc 1 173 3 view .LVU38
+ 176              		.loc 1 173 20 is_stmt 0 view .LVU39
+ 177 0000 D0E90120 		ldrd	r2, r0, [r0, #4]
+ 178              	.LVL12:
+ 174:lwIP/src/apps/http/fs.c **** }
+ 179              		.loc 1 174 1 view .LVU40
+ 180 0004 101A     		subs	r0, r2, r0
+ 181 0006 7047     		bx	lr
+ 182              		.cfi_endproc
+ 183              	.LFE107:
+ 185              		.global	file__index_html
+ 186              		.global	file__404_html
+ 187              		.global	file__img_sics_gif
+ 188              		.section	.rodata.data__404_html,"a"
+ 189              		.align	2
+ 192              	data__404_html:
+ 193 0000 2F343034 		.ascii	"/404.html\000\000\000HTTP/1.0 404 File not found\015"
+ 193      2E68746D 
+ 193      6C000000 
+ 193      48545450 
+ 193      2F312E30 
+ 194 0028 0A536572 		.ascii	"\012Server: lwIP/2.0.3d (http://savannah.nongnu.org"
+ 194      7665723A 
+ 194      206C7749 
+ 194      502F322E 
+ 194      302E3364 
+ 195 0058 2F70726F 		.ascii	"/projects/lwip)\015\012Content-Length: 565\015\012C"
+ 195      6A656374 
+ 195      732F6C77 
+ 195      6970290D 
+ 195      0A436F6E 
+ 196 007f 6F6E7465 		.ascii	"ontent-Type: text/html\015\012\015\012<html>\015\012"
+ 196      6E742D54 
+ 196      7970653A 
+ 196      20746578 
+ 196      742F6874 
+ 197 00a1 3C686561 		.ascii	"<head><title>lwIP - A Lightweight TCP/IP Stack</tit"
+ 197      643E3C74 
+ 197      69746C65 
+ARM GAS  /tmp/ccytc5fp.s 			page 8
+
+
+ 197      3E6C7749 
+ 197      50202D20 
+ 198 00d4 6C653E3C 		.ascii	"le></head>\015\012<body bgcolor=\"white\" text=\"bl"
+ 198      2F686561 
+ 198      643E0D0A 
+ 198      3C626F64 
+ 198      79206267 
+ 199 00fe 61636B22 		.ascii	"ack\">\015\012\015\012    <table width=\"100%\">\015"
+ 199      3E0D0A0D 
+ 199      0A202020 
+ 199      203C7461 
+ 199      626C6520 
+ 200 0120 0A202020 		.ascii	"\012      <tr valign=\"top\"><td width=\"80\">\011 "
+ 200      2020203C 
+ 200      74722076 
+ 200      616C6967 
+ 200      6E3D2274 
+ 201 0149 200D0A09 		.ascii	" \015\012\011  <a href=\"http://www.sics.se/\"><img"
+ 201      20203C61 
+ 201      20687265 
+ 201      663D2268 
+ 201      7474703A 
+ 202 0171 20737263 		.ascii	" src=\"/img/sics.gif\"\015\012\011  border=\"0\" al"
+ 202      3D222F69 
+ 202      6D672F73 
+ 202      6963732E 
+ 202      67696622 
+ 203 0197 743D2253 		.ascii	"t=\"SICS logo\" title=\"SICS logo\"></a>\015\012\011"
+ 203      49435320 
+ 203      6C6F676F 
+ 203      22207469 
+ 203      746C653D 
+ 204 01be 3C2F7464 		.ascii	"</td><td width=\"500\">\011  \015\012\011  <h1>lwIP"
+ 204      3E3C7464 
+ 204      20776964 
+ 204      74683D22 
+ 204      35303022 
+ 205 01e3 202D2041 		.ascii	" - A Lightweight TCP/IP Stack</h1>\015\012\011  <h2"
+ 205      204C6967 
+ 205      68747765 
+ 205      69676874 
+ 205      20544350 
+ 206 020d 3E343034 		.ascii	">404 - Page not found</h2>\015\012\011  <p>\015\012"
+ 206      202D2050 
+ 206      61676520 
+ 206      6E6F7420 
+ 206      666F756E 
+ 207 0231 09202020 		.ascii	"\011    Sorry, the page you are requesting was not "
+ 207      20536F72 
+ 207      72792C20 
+ 207      74686520 
+ 207      70616765 
+ 208 0261 666F756E 		.ascii	"found on this\015\012\011    server. \015\012\011  "
+ 208      64206F6E 
+ 208      20746869 
+ 208      730D0A09 
+ 208      20202020 
+ARM GAS  /tmp/ccytc5fp.s 			page 9
+
+
+ 209 0282 3C2F703E 		.ascii	"</p>\015\012\011</td><td>\015\012\011  &nbsp;\015\012"
+ 209      0D0A093C 
+ 209      2F74643E 
+ 209      3C74643E 
+ 209      0D0A0920 
+ 210 029f 093C2F74 		.ascii	"\011</td></tr>\015\012      </table>\015\012</body>"
+ 210      643E3C2F 
+ 210      74723E0D 
+ 210      0A202020 
+ 210      2020203C 
+ 211 02c3 0D0A3C2F 		.ascii	"\015\012</html>\015\012"
+ 211      68746D6C 
+ 211      3E0D0A
+ 212              		.section	.rodata.data__img_sics_gif,"a"
+ 213              		.align	2
+ 216              	data__img_sics_gif:
+ 217 0000 2F696D67 		.ascii	"/img/sics.gif\000\000\000HTTP/1.0 200 OK\015\012Ser"
+ 217      2F736963 
+ 217      732E6769 
+ 217      66000000 
+ 217      48545450 
+ 218 0024 7665723A 		.ascii	"ver: lwIP/2.0.3d (http://savannah.nongnu.org/projec"
+ 218      206C7749 
+ 218      502F322E 
+ 218      302E3364 
+ 218      20286874 
+ 219 0057 74732F6C 		.ascii	"ts/lwip)\015\012Content-Length: 724\015\012Content-"
+ 219      77697029 
+ 219      0D0A436F 
+ 219      6E74656E 
+ 219      742D4C65 
+ 220 007e 54797065 		.ascii	"Type: image/gif\015\012\015\012GIF89aF\000\"\000\245"
+ 220      3A20696D 
+ 220      6167652F 
+ 220      6769660D 
+ 220      0A0D0A47 
+ 221 009c 0000D92B 		.ascii	"\000\000\331+9jjj\277\277\277\223\223\223\017\017\017"
+ 221      396A6A6A 
+ 221      BFBFBF93 
+ 221      93930F0F 
+ 221      0F
+ 222 00ad B0B0B0A6 		.ascii	"\260\260\260\246\246\246\200\200\200vvv\036\036\036"
+ 222      A6A68080 
+ 222      80767676 
+ 222      1E1E1E
+ 223 00bc 9D9D9D2E 		.ascii	"\235\235\235...IIITTT\212\212\212```\306\246\231\275"
+ 223      2E2E4949 
+ 223      49545454 
+ 223      8A8A8A60 
+ 223      6060C6A6 
+ 224 00d2 B5B2C2AB 		.ascii	"\265\262\302\253\241\331A@\325gU\300\260\252\325^N\326"
+ 224      A1D94140 
+ 224      D56755C0 
+ 224      B0AAD55E 
+ 224      4ED6
+ 225 00e4 5045CC93 		.ascii	"PE\314\223}\310\241\220\316\213v\322{e\321\204m\311"
+ 225      7DC8A190 
+ARM GAS  /tmp/ccytc5fp.s 			page 10
+
+
+ 225      CE8B76D2 
+ 225      7B65D184 
+ 225      6DC9
+ 226 00f6 99863A3A 		.ascii	"\231\206:::\000\000\000\270\270\270\377\377\377\377"
+ 226      3A000000 
+ 226      B8B8B8FF 
+ 226      FFFFFF
+ 227 0105 FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 227      FFFFFFFF 
+ 227      FFFFFFFF 
+ 227      FF
+ 228 0112 FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 228      FFFFFFFF 
+ 228      FFFFFFFF 
+ 228      FF
+ 229 011f FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 229      FFFFFFFF 
+ 229      FFFFFFFF 
+ 229      FF
+ 230 012c FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 230      FFFFFFFF 
+ 230      FFFFFFFF 
+ 230      FF
+ 231 0139 FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 231      FFFFFFFF 
+ 231      FFFFFFFF 
+ 231      FF
+ 232 0146 FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377\377\377"
+ 232      FFFFFFFF 
+ 232      FFFFFFFF 
+ 232      FF
+ 233 0153 FFFFFFFF 		.ascii	"\377\377\377\377\377\377\377\377\377\377\377,\000\000"
+ 233      FFFFFFFF 
+ 233      FFFFFF2C 
+ 233      0000
+ 234 0161 00004600 		.ascii	"\000\000F\000\"\000\000\006\376@\220pH,\032\217\310"
+ 234      22000006 
+ 234      FE409070 
+ 234      482C1A8F 
+ 234      C8
+ 235 0172 A472C96C 		.ascii	"\244r\311l:\237\320\250tJ\255Z\257\330\254v\251@\004"
+ 235      3A9FD0A8 
+ 235      744AAD5A 
+ 235      AFD8AC76 
+ 235      A94004
+ 236 0185 BE83E260 		.ascii	"\276\203\342`<P \015\216o\0001(\034\015\007\265\303"
+ 236      3C50200D 
+ 236      8E6F0031 
+ 236      281C0D07 
+ 236      B5C3
+ 237 0197 6075243E 		.ascii	"`u$>\370\374\207\021\006\351=F\007\013zz|C\006\036\204"
+ 237      F8FC8711 
+ 237      06E93D46 
+ 237      070B7A7A 
+ 237      7C43061E 
+ 238 01ac 780B076E 		.ascii	"x\013\007nQ\001\212\204\010~y\200\207\211\221z\223\012"
+ 238      51018A84 
+ARM GAS  /tmp/ccytc5fp.s 			page 11
+
+
+ 238      087E7980 
+ 238      8789917A 
+ 238      930A
+ 239 01be 04997896 		.ascii	"\004\231x\226O\003\236y\001\224\237C\234\243\244\005"
+ 239      4F039E79 
+ 239      01949F43 
+ 239      9CA3A405 
+ 240 01ce 77A3A04E 		.ascii	"w\243\240N\230y\013\036\203\244\246\037\226\005\235"
+ 240      98790B1E 
+ 240      83A4A61F 
+ 240      96059D
+ 241 01dd AA780107 		.ascii	"\252x\001\007\204\004\036\036\273\270Q\204\016C\005"
+ 241      84041E1E 
+ 241      BBB85184 
+ 241      0E4305
+ 242 01ec 0777A57F 		.ascii	"\007w\245\177B\261\262\001c\010\015\273\001\014z\015"
+ 242      42B1B201 
+ 242      63080DBB 
+ 242      010C7A0D 
+ 243 01fc 440ED8AF 		.ascii	"D\016\330\257L\005z\004G\007\007\267\200\242\341}D\005"
+ 243      4C057A04 
+ 243      470707B7 
+ 243      80A2E17D 
+ 243      4405
+ 244 020e 010401D0 		.ascii	"\001\004\001\320\352\207\223O\340\232I\316\330y\004"
+ 244      EA87934F 
+ 244      E09A49CE 
+ 244      D87904
+ 245 021d 66201510 		.ascii	"f \025\020\020\021\222)\200\266\300\221\025E\036\220"
+ 245      10119229 
+ 245      80B6C091 
+ 245      15451E90 
+ 246 022d 197146A8 		.ascii	"\031qF\250\\\004\016\000\"N\350@$\237>\004\006\247X"
+ 246      5C040E00 
+ 246      224EE840 
+ 246      249F3E04 
+ 246      06A758
+ 247 0240 D493A01C 		.ascii	"\324\223\240\034\221?\350\360\210\003\261!\242I\000"
+ 247      913FE8F0 
+ 247      8803B121 
+ 247      A24900
+ 248 024f 1986FC52 		.ascii	"\031\206\374RD\340\001\235)!\025%P\367g%\036\006\375"
+ 248      44E0019D 
+ 248      29211525 
+ 248      50F76725 
+ 248      1E06FD
+ 249 0262 4E9AB490 		.ascii	"N\232\264\220\254\025\372\313RS\036\214\362\370\007"
+ 249      AC15FACB 
+ 249      52531E8C 
+ 249      F2F807
+ 250 0271 922D083A 		.ascii	"\222-\010:M\022I\225I\333\024\004\304\024\205)\252\347"
+ 250      4D124995 
+ 250      49DB1404 
+ 250      C4148529 
+ 250      AAE7
+ 251 0283 0108A449 		.ascii	"\001\010\244I\001\024Q\340S\221\325)\006\032d\002\364"
+ 251      011451E0 
+ARM GAS  /tmp/ccytc5fp.s 			page 12
+
+
+ 251      5391D529 
+ 251      061A6402 
+ 251      F4
+ 252 0294 C7819E05 		.ascii	"\307\201\236\005 \"d\2450\256\253\236\227S\330\271\375"
+ 252      202264A5 
+ 252      30AEAB9E 
+ 252      9753D8B9 
+ 252      FD
+ 253 02a5 50EF9302 		.ascii	"P\357\223\002Bt4\350\234 !\311\001hx\346U) VOL@Qq\202"
+ 253      427434E8 
+ 253      9C2021C9 
+ 253      016878E6 
+ 253      55292056 
+ 254 02bf C0702122 		.ascii	"\300p!\"\205\276K\034D\005\352\244\001\277\"\265\360"
+ 254      85BE4B1C 
+ 254      4405EAA4 
+ 254      01BF22B5 
+ 254      F0
+ 255 02d0 1C065138 		.ascii	"\034\006Q8\217\340\"\354\030\2549\"\324\326\223D\001"
+ 255      8FE022EC 
+ 255      18AC3922 
+ 255      D4D69344 
+ 255      01
+ 256 02e1 3282C8FC 		.ascii	"2\202\310\374a\263\001E\014.\2030\320\016\027$\017p"
+ 256      61B30145 
+ 256      0C2E8330 
+ 256      D00E1724 
+ 256      0F70
+ 257 02f3 8594EE05 		.ascii	"\205\224\356\005\005SK2\033?\230\323\035)\201\260\256"
+ 257      05534B32 
+ 257      1B3F98D3 
+ 257      1D2981B0 
+ 257      AE
+ 258 0304 1E8C7E68 		.ascii	"\036\214~h\340`ZT\217\260xis\006\242\000kW\312=\021"
+ 258      E0605A54 
+ 258      8FB07869 
+ 258      7306A200 
+ 258      6B57CA3D 
+ 259 0319 50BD0430 		.ascii	"P\275\0040K:\324\253_\037\233=\023t'\210<%\340\027\276"
+ 259      4B3AD4AB 
+ 259      5F1F9B3D 
+ 259      13742788 
+ 259      3C25E017 
+ 260 032e 7A79450D 		.ascii	"zyE\015\014\260\213\332\220\312\200\006]\027`\034\""
+ 260      0CB08BDA 
+ 260      90CA8006 
+ 260      5D17601C 
+ 260      22
+ 261 033f 4CD85722 		.ascii	"L\330W\"\006 \000\230\007\010\344V\200\200\034\305\267"
+ 261      06200098 
+ 261      0708E456 
+ 261      80801CC5 
+ 261      B7
+ 262 0350 C5820C36 		.ascii	"\305\202\0146\350\340\203\020F(\341\204\024Vh\241\020"
+ 262      E8E08310 
+ 262      4628E184 
+ 262      145668A1 
+ARM GAS  /tmp/ccytc5fp.s 			page 13
+
+
+ 262      10
+ 263 0361 4100003B 		.ascii	"A\000\000;"
+ 264              		.section	.rodata.data__index_html,"a"
+ 265              		.align	2
+ 266              		.set	.LANCHOR0,. + 0
+ 269              	data__index_html:
+ 270 0000 2F696E64 		.ascii	"/index.html\000HTTP/1.0 200 OK\015\012Server: lwIP/"
+ 270      65782E68 
+ 270      746D6C00 
+ 270      48545450 
+ 270      2F312E30 
+ 271 002a 322E302E 		.ascii	"2.0.3d (http://savannah.nongnu.org/projects/lwip)\015"
+ 271      33642028 
+ 271      68747470 
+ 271      3A2F2F73 
+ 271      6176616E 
+ 272 005c 0A436F6E 		.ascii	"\012Content-Length: 1751\015\012Content-Type: text/"
+ 272      74656E74 
+ 272      2D4C656E 
+ 272      6774683A 
+ 272      20313735 
+ 273 0086 68746D6C 		.ascii	"html\015\012\015\012<html>\015\012<head><title>lwIP"
+ 273      0D0A0D0A 
+ 273      3C68746D 
+ 273      6C3E0D0A 
+ 273      3C686561 
+ 274 00a7 202D2041 		.ascii	" - A Lightweight TCP/IP Stack</title></head>\015\012"
+ 274      204C6967 
+ 274      68747765 
+ 274      69676874 
+ 274      20544350 
+ 275 00d5 3C626F64 		.ascii	"<body bgcolor=\"white\" text=\"black\">\015\012\015"
+ 275      79206267 
+ 275      636F6C6F 
+ 275      723D2277 
+ 275      68697465 
+ 276 00fb 0A202020 		.ascii	"\012    <table width=\"100%\">\015\012      <tr val"
+ 276      203C7461 
+ 276      626C6520 
+ 276      77696474 
+ 276      683D2231 
+ 277 0123 69676E3D 		.ascii	"ign=\"top\"><td width=\"80\">\011  \015\012\011  <a"
+ 277      22746F70 
+ 277      223E3C74 
+ 277      64207769 
+ 277      6474683D 
+ 278 0146 20687265 		.ascii	" href=\"http://www.sics.se/\"><img src=\"/img/sics."
+ 278      663D2268 
+ 278      7474703A 
+ 278      2F2F7777 
+ 278      772E7369 
+ 279 0176 67696622 		.ascii	"gif\"\015\012\011  border=\"0\" alt=\"SICS logo\" t"
+ 279      0D0A0920 
+ 279      20626F72 
+ 279      6465723D 
+ 279      22302220 
+ 280 019b 69746C65 		.ascii	"itle=\"SICS logo\"></a>\015\012\011</td><td width=\""
+ARM GAS  /tmp/ccytc5fp.s 			page 14
+
+
+ 280      3D225349 
+ 280      4353206C 
+ 280      6F676F22 
+ 280      3E3C2F61 
+ 281 01c3 35303022 		.ascii	"500\">\011  \015\012\011  <h1>lwIP - A Lightweight "
+ 281      3E092020 
+ 281      0D0A0920 
+ 281      203C6831 
+ 281      3E6C7749 
+ 282 01e9 5443502F 		.ascii	"TCP/IP Stack</h1>\015\012\011  <p>\015\012\011    T"
+ 282      49502053 
+ 282      7461636B 
+ 282      3C2F6831 
+ 282      3E0D0A09 
+ 283 020a 68652077 		.ascii	"he web page you are watching was served by a simple"
+ 283      65622070 
+ 283      61676520 
+ 283      796F7520 
+ 283      61726520 
+ 284 023d 20776562 		.ascii	" web\015\012\011    server running on top of the li"
+ 284      0D0A0920 
+ 284      20202073 
+ 284      65727665 
+ 284      72207275 
+ 285 0267 67687477 		.ascii	"ghtweight TCP/IP stack <a\015\012\011    href=\"htt"
+ 285      65696768 
+ 285      74205443 
+ 285      502F4950 
+ 285      20737461 
+ 286 0290 703A2F2F 		.ascii	"p://www.sics.se/~adam/lwip/\">lwIP</a>.\015\012\011"
+ 286      7777772E 
+ 286      73696373 
+ 286      2E73652F 
+ 286      7E616461 
+ 287 02b9 20203C2F 		.ascii	"  </p>\015\012\011  <p>\015\012\011    lwIP is an o"
+ 287      703E0D0A 
+ 287      0920203C 
+ 287      703E0D0A 
+ 287      09202020 
+ 288 02da 70656E20 		.ascii	"pen source implementation of the TCP/IP\015\012\011"
+ 288      736F7572 
+ 288      63652069 
+ 288      6D706C65 
+ 288      6D656E74 
+ 289 0304 20202020 		.ascii	"    protocol suite that was originally written by <"
+ 289      70726F74 
+ 289      6F636F6C 
+ 289      20737569 
+ 289      74652074 
+ 290 0337 610D0A09 		.ascii	"a\015\012\011    href=\"http://www.sics.se/~adam/lw"
+ 290      20202020 
+ 290      68726566 
+ 290      3D226874 
+ 290      74703A2F 
+ 291 0360 69702F22 		.ascii	"ip/\">Adam Dunkels\015\012\011    of the Swedish In"
+ 291      3E416461 
+ 291      6D204475 
+ARM GAS  /tmp/ccytc5fp.s 			page 15
+
+
+ 291      6E6B656C 
+ 291      730D0A09 
+ 292 0389 73746974 		.ascii	"stitute of Computer Science</a> but now is\015\012\011"
+ 292      75746520 
+ 292      6F662043 
+ 292      6F6D7075 
+ 292      74657220 
+ 293 03b6 20202020 		.ascii	"    being actively developed by a team of developer"
+ 293      6265696E 
+ 293      67206163 
+ 293      74697665 
+ 293      6C792064 
+ 294 03e9 730D0A09 		.ascii	"s\015\012\011    distributed world-wide. Since it's"
+ 294      20202020 
+ 294      64697374 
+ 294      72696275 
+ 294      74656420 
+ 295 0413 2072656C 		.ascii	" release, lwIP has\015\012\011    spurred a lot of "
+ 295      65617365 
+ 295      2C206C77 
+ 295      49502068 
+ 295      61730D0A 
+ 296 043d 696E7465 		.ascii	"interest and has been ported to several\015\012\011"
+ 296      72657374 
+ 296      20616E64 
+ 296      20686173 
+ 296      20626565 
+ 297 0467 20202020 		.ascii	"    platforms and operating systems. lwIP can be us"
+ 297      706C6174 
+ 297      666F726D 
+ 297      7320616E 
+ 297      64206F70 
+ 298 049a 65642065 		.ascii	"ed either\015\012\011    with or without an underly"
+ 298      69746865 
+ 298      720D0A09 
+ 298      20202020 
+ 298      77697468 
+ 299 04c4 696E6720 		.ascii	"ing OS.\015\012\011  </p>\015\012\011  <p>\015\012\011"
+ 299      4F532E0D 
+ 299      0A092020 
+ 299      3C2F703E 
+ 299      0D0A0920 
+ 300 04df 20202020 		.ascii	"    The focus of the lwIP TCP/IP implementation is "
+ 300      54686520 
+ 300      666F6375 
+ 300      73206F66 
+ 300      20746865 
+ 301 0512 746F2072 		.ascii	"to reduce\015\012\011    the RAM usage while still "
+ 301      65647563 
+ 301      650D0A09 
+ 301      20202020 
+ 301      74686520 
+ 302 053c 68617669 		.ascii	"having a full scale TCP. This\015\012\011    makes "
+ 302      6E672061 
+ 302      2066756C 
+ 302      6C207363 
+ 302      616C6520 
+ARM GAS  /tmp/ccytc5fp.s 			page 16
+
+
+ 303 0566 6C774950 		.ascii	"lwIP suitable for use in embedded systems with tens"
+ 303      20737569 
+ 303      7461626C 
+ 303      6520666F 
+ 303      72207573 
+ 304 0599 0D0A0920 		.ascii	"\015\012\011    of kilobytes of free RAM and room f"
+ 304      2020206F 
+ 304      66206B69 
+ 304      6C6F6279 
+ 304      74657320 
+ 305 05c3 6F722061 		.ascii	"or around 40 kilobytes\015\012\011    of code ROM.\015"
+ 305      726F756E 
+ 305      64203430 
+ 305      206B696C 
+ 305      6F627974 
+ 306 05ed 0A092020 		.ascii	"\012\011  </p>\015\012\011  <p>\015\012\011    More"
+ 306      3C2F703E 
+ 306      0D0A0920 
+ 306      203C703E 
+ 306      0D0A0920 
+ 307 0608 20696E66 		.ascii	" information about lwIP can be found at the lwIP\015"
+ 307      6F726D61 
+ 307      74696F6E 
+ 307      2061626F 
+ 307      7574206C 
+ 308 0639 0A092020 		.ascii	"\012\011    homepage at <a\015\012\011    href=\"ht"
+ 308      2020686F 
+ 308      6D657061 
+ 308      67652061 
+ 308      74203C61 
+ 309 065c 74703A2F 		.ascii	"tp://savannah.nongnu.org/projects/lwip/\">http://sa"
+ 309      2F736176 
+ 309      616E6E61 
+ 309      682E6E6F 
+ 309      6E676E75 
+ 310 068e 76616E6E 		.ascii	"vannah.nongnu.org/projects/lwip/</a>\015\012\011   "
+ 310      61682E6E 
+ 310      6F6E676E 
+ 310      752E6F72 
+ 310      672F7072 
+ 311 06b8 206F7220 		.ascii	" or at the lwIP wiki at <a\015\012\011    href=\"ht"
+ 311      61742074 
+ 311      6865206C 
+ 311      77495020 
+ 311      77696B69 
+ 312 06e1 74703A2F 		.ascii	"tp://lwip.wikia.com/\">http://lwip.wikia.com/</a>.\015"
+ 312      2F6C7769 
+ 312      702E7769 
+ 312      6B69612E 
+ 312      636F6D2F 
+ 313 0713 0A092020 		.ascii	"\012\011  </p>\015\012\011</td><td>\015\012\011  &n"
+ 313      3C2F703E 
+ 313      0D0A093C 
+ 313      2F74643E 
+ 313      3C74643E 
+ 314 072e 6273703B 		.ascii	"bsp;\015\012\011</td></tr>\015\012      </table>\015"
+ 314      0D0A093C 
+ARM GAS  /tmp/ccytc5fp.s 			page 17
+
+
+ 314      2F74643E 
+ 314      3C2F7472 
+ 314      3E0D0A20 
+ 315 0750 0A3C2F62 		.ascii	"\012</body>\015\012</html>\015\012\015\012"
+ 315      6F64793E 
+ 315      0D0A3C2F 
+ 315      68746D6C 
+ 315      3E0D0A0D 
+ 316              		.section	.rodata.file__404_html,"a"
+ 317              		.align	2
+ 320              	file__404_html:
+ 321 0000 00000000 		.word	file__img_sics_gif
+ 322 0004 00000000 		.word	data__404_html
+ 323 0008 0C000000 		.word	data__404_html+12
+ 324 000c C2020000 		.word	706
+ 325 0010 03       		.byte	3
+ 326 0011 000000   		.space	3
+ 327              		.section	.rodata.file__img_sics_gif,"a"
+ 328              		.align	2
+ 331              	file__img_sics_gif:
+ 332 0000 00000000 		.word	0
+ 333 0004 00000000 		.word	data__img_sics_gif
+ 334 0008 10000000 		.word	data__img_sics_gif+16
+ 335 000c 55030000 		.word	853
+ 336 0010 03       		.byte	3
+ 337 0011 000000   		.space	3
+ 338              		.section	.rodata.file__index_html,"a"
+ 339              		.align	2
+ 340              		.set	.LANCHOR1,. + 0
+ 343              	file__index_html:
+ 344 0000 00000000 		.word	file__404_html
+ 345 0004 00000000 		.word	data__index_html
+ 346 0008 0C000000 		.word	data__index_html+12
+ 347 000c 59070000 		.word	1881
+ 348 0010 03       		.byte	3
+ 349 0011 000000   		.space	3
+ 350              		.text
+ 351              	.Letext0:
+ 352              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 353              		.file 3 "/usr/arm-none-eabi/include/sys/lock.h"
+ 354              		.file 4 "/usr/arm-none-eabi/include/sys/_types.h"
+ 355              		.file 5 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 356              		.file 6 "/usr/arm-none-eabi/include/sys/reent.h"
+ 357              		.file 7 "/usr/arm-none-eabi/include/stdlib.h"
+ 358              		.file 8 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 359              		.file 9 "lwIP/src/include/lwip/arch.h"
+ 360              		.file 10 "/usr/arm-none-eabi/include/ctype.h"
+ 361              		.file 11 "lwIP/src/include/lwip/err.h"
+ 362              		.file 12 "lwIP/src/include/lwip/apps/fs.h"
+ 363              		.file 13 "lwIP/src/apps/http/fsdata.c"
+ 364              		.file 14 "/usr/arm-none-eabi/include/string.h"
+ARM GAS  /tmp/ccytc5fp.s 			page 18
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 fs.c
+     /tmp/ccytc5fp.s:18     .text.fs_open:0000000000000000 $t
+     /tmp/ccytc5fp.s:27     .text.fs_open:0000000000000000 fs_open
+     /tmp/ccytc5fp.s:130    .text.fs_open:000000000000004c $d
+     /tmp/ccytc5fp.s:136    .text.fs_close:0000000000000000 $t
+     /tmp/ccytc5fp.s:144    .text.fs_close:0000000000000000 fs_close
+     /tmp/ccytc5fp.s:159    .text.fs_bytes_left:0000000000000000 $t
+     /tmp/ccytc5fp.s:167    .text.fs_bytes_left:0000000000000000 fs_bytes_left
+     /tmp/ccytc5fp.s:343    .rodata.file__index_html:0000000000000000 file__index_html
+     /tmp/ccytc5fp.s:320    .rodata.file__404_html:0000000000000000 file__404_html
+     /tmp/ccytc5fp.s:331    .rodata.file__img_sics_gif:0000000000000000 file__img_sics_gif
+     /tmp/ccytc5fp.s:189    .rodata.data__404_html:0000000000000000 $d
+     /tmp/ccytc5fp.s:192    .rodata.data__404_html:0000000000000000 data__404_html
+     /tmp/ccytc5fp.s:213    .rodata.data__img_sics_gif:0000000000000000 $d
+     /tmp/ccytc5fp.s:216    .rodata.data__img_sics_gif:0000000000000000 data__img_sics_gif
+     /tmp/ccytc5fp.s:265    .rodata.data__index_html:0000000000000000 $d
+     /tmp/ccytc5fp.s:269    .rodata.data__index_html:0000000000000000 data__index_html
+     /tmp/ccytc5fp.s:317    .rodata.file__404_html:0000000000000000 $d
+     /tmp/ccytc5fp.s:328    .rodata.file__img_sics_gif:0000000000000000 $d
+     /tmp/ccytc5fp.s:339    .rodata.file__index_html:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+strcmp

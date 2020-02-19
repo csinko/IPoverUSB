@@ -1,0 +1,427 @@
+ARM GAS  /tmp/ccpnk5O3.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_exti.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.EXTI_vInit,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	EXTI_vInit
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	EXTI_vInit:
+  28              	.LVL0:
+  29              	.LFB145:
+  30              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_exti.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * @file    xpd_exti.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * @version 0.2
+   6:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * @brief   STM32 eXtensible Peripheral Drivers EXTI Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  24:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #include <xpd_exti.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  26:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /** @addtogroup EXTI
+  27:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @{ */
+  28:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ARM GAS  /tmp/ccpnk5O3.s 			page 2
+
+
+  29:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** XPD_ValueCallbackType EXTI_xPinCallbacks[16] = {
+  30:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  31:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+  32:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** };
+  33:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  34:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** static const EXTI_InitType exti_xDefConfig = { .Reaction = REACTION_IT, .Edge = EDGE_RISING };
+  35:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  36:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /** @defgroup EXTI_Exported_Functions EXTI Exported Functions
+  37:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  39:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /**
+  40:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @brief Configures the EXTI line according to the setup parameters.
+  41:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @param ucLine: the selected EXTI line
+  42:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @param pxConfig: pointer to the setup structure
+  43:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  */
+  44:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** void EXTI_vInit(uint8_t ucLine, const EXTI_InitType * pxConfig)
+  45:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** {
+  31              		.loc 1 45 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  46:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #ifdef RCC_APB2ENR_EXTITEN
+  47:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     RCC_vClockEnable(RCC_POS_EXTI);
+  48:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #endif
+  49:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  50:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #ifdef EXTI_BB
+  51:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->IMR[ucLine] = pxConfig->w;
+  52:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  53:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->EMR[ucLine] = pxConfig->w >> 1;
+  54:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  55:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->RTSR[ucLine] = pxConfig->w >> 2;
+  56:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  57:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->FTSR[ucLine] = pxConfig->w >> 3;
+  58:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #else
+  59:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     uint32_t ulLineBit = 1 << ucLine;
+  36              		.loc 1 59 5 view .LVU1
+  60:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  61:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* set EXTI line configuration */
+  62:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     if (pxConfig->Reaction & REACTION_IT)
+  37              		.loc 1 62 17 is_stmt 0 view .LVU2
+  38 0000 0B78     		ldrb	r3, [r1]	@ zero_extendqisi2
+  59:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  39              		.loc 1 59 28 view .LVU3
+  40 0002 0122     		movs	r2, #1
+  45:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #ifdef RCC_APB2ENR_EXTITEN
+  41              		.loc 1 45 1 view .LVU4
+  42 0004 10B4     		push	{r4}
+  43              	.LCFI0:
+  44              		.cfi_def_cfa_offset 4
+  45              		.cfi_offset 4, -4
+  63:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  64:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         SET_BIT(EXTI->IMR1, ulLineBit);
+  46              		.loc 1 64 9 view .LVU5
+  47 0006 4FF0B044 		mov	r4, #1476395008
+  59:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  48              		.loc 1 59 28 view .LVU6
+ARM GAS  /tmp/ccpnk5O3.s 			page 3
+
+
+  49 000a 02FA00F0 		lsl	r0, r2, r0
+  50              	.LVL1:
+  62:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  51              		.loc 1 62 5 is_stmt 1 view .LVU7
+  62:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  52              		.loc 1 62 8 is_stmt 0 view .LVU8
+  53 000e 13F0010F 		tst	r3, #1
+  54              		.loc 1 64 9 is_stmt 1 view .LVU9
+  65:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  66:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     else
+  67:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  68:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         CLEAR_BIT(EXTI->IMR1, ulLineBit);
+  55              		.loc 1 68 9 view .LVU10
+  69:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  70:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  71:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     if (pxConfig->Reaction & REACTION_EVENT)
+  56              		.loc 1 71 5 view .LVU11
+  62:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  57              		.loc 1 62 17 is_stmt 0 view .LVU12
+  58 0012 03F00302 		and	r2, r3, #3
+  64:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  59              		.loc 1 64 9 view .LVU13
+  60 0016 D4F88010 		ldr	r1, [r4, #128]
+  61              	.LVL2:
+  64:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  62              		.loc 1 64 9 view .LVU14
+  63 001a 14BF     		ite	ne
+  64 001c 0143     		orrne	r1, r1, r0
+  68:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  65              		.loc 1 68 9 view .LVU15
+  66 001e 8143     		biceq	r1, r1, r0
+  67              		.loc 1 71 8 view .LVU16
+  68 0020 12F0020F 		tst	r2, #2
+  68:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  69              		.loc 1 68 9 view .LVU17
+  70 0024 C4F88010 		str	r1, [r4, #128]
+  72:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  73:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         SET_BIT(EXTI->EMR1, ulLineBit);
+  71              		.loc 1 73 9 view .LVU18
+  72 0028 4FF0B041 		mov	r1, #1476395008
+  74:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  75:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     else
+  76:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  77:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         CLEAR_BIT(EXTI->EMR1, ulLineBit);
+  78:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  79:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  80:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* set rising and falling edge configuration */
+  81:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     if (pxConfig->Edge & EDGE_RISING)
+  82:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  83:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         SET_BIT(EXTI->RTSR1, ulLineBit);
+  84:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  85:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     else
+  86:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  87:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         CLEAR_BIT(EXTI->RTSR1, ulLineBit);
+  88:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  89:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+  90:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     if (pxConfig->Edge & EDGE_FALLING)
+ARM GAS  /tmp/ccpnk5O3.s 			page 4
+
+
+  91:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  92:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         SET_BIT(EXTI->FTSR1, ulLineBit);
+  93:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  94:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     else
+  95:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  96:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****         CLEAR_BIT(EXTI->FTSR1, ulLineBit);
+  97:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  98:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #endif
+  99:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** }
+  73              		.loc 1 99 1 view .LVU19
+  74 002c 5DF8044B 		ldr	r4, [sp], #4
+  75              	.LCFI1:
+  76              		.cfi_restore 4
+  77              		.cfi_def_cfa_offset 0
+  73:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  78              		.loc 1 73 9 view .LVU20
+  79 0030 D1F88420 		ldr	r2, [r1, #132]
+  73:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  80              		.loc 1 73 9 is_stmt 1 view .LVU21
+  77:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  81              		.loc 1 77 9 view .LVU22
+  81:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  82              		.loc 1 81 5 view .LVU23
+  73:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  83              		.loc 1 73 9 is_stmt 0 view .LVU24
+  84 0034 14BF     		ite	ne
+  85 0036 0243     		orrne	r2, r2, r0
+  77:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  86              		.loc 1 77 9 view .LVU25
+  87 0038 8243     		biceq	r2, r2, r0
+  81:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  88              		.loc 1 81 8 view .LVU26
+  89 003a 13F0040F 		tst	r3, #4
+  77:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  90              		.loc 1 77 9 view .LVU27
+  91 003e C1F88420 		str	r2, [r1, #132]
+  83:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  92              		.loc 1 83 9 view .LVU28
+  93 0042 4FF0B041 		mov	r1, #1476395008
+  81:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+  94              		.loc 1 81 17 view .LVU29
+  95 0046 C3F38102 		ubfx	r2, r3, #2, #2
+  83:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  96              		.loc 1 83 9 view .LVU30
+  97 004a 0B68     		ldr	r3, [r1]
+  83:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  98              		.loc 1 83 9 is_stmt 1 view .LVU31
+  87:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+  99              		.loc 1 87 9 view .LVU32
+  90:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+ 100              		.loc 1 90 5 view .LVU33
+  83:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 101              		.loc 1 83 9 is_stmt 0 view .LVU34
+ 102 004c 14BF     		ite	ne
+ 103 004e 0343     		orrne	r3, r3, r0
+  87:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 104              		.loc 1 87 9 view .LVU35
+ARM GAS  /tmp/ccpnk5O3.s 			page 5
+
+
+ 105 0050 8343     		biceq	r3, r3, r0
+  90:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     {
+ 106              		.loc 1 90 8 view .LVU36
+ 107 0052 12F0020F 		tst	r2, #2
+  92:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 108              		.loc 1 92 9 view .LVU37
+ 109 0056 4FF0B042 		mov	r2, #1476395008
+  87:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 110              		.loc 1 87 9 view .LVU38
+ 111 005a 0B60     		str	r3, [r1]
+  92:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 112              		.loc 1 92 9 view .LVU39
+ 113 005c 5368     		ldr	r3, [r2, #4]
+  92:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 114              		.loc 1 92 9 is_stmt 1 view .LVU40
+  96:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 115              		.loc 1 96 9 view .LVU41
+  92:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 116              		.loc 1 92 9 is_stmt 0 view .LVU42
+ 117 005e 14BF     		ite	ne
+ 118 0060 1843     		orrne	r0, r0, r3
+ 119              	.LVL3:
+  96:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     }
+ 120              		.loc 1 96 9 view .LVU43
+ 121 0062 23EA0000 		biceq	r0, r3, r0
+ 122 0066 5060     		str	r0, [r2, #4]
+ 123              		.loc 1 99 1 view .LVU44
+ 124 0068 7047     		bx	lr
+ 125              		.cfi_endproc
+ 126              	.LFE145:
+ 128 006a 00BF     		.section	.text.EXTI_vDeinit,"ax",%progbits
+ 129              		.align	1
+ 130              		.p2align 2,,3
+ 131              		.global	EXTI_vDeinit
+ 132              		.syntax unified
+ 133              		.thumb
+ 134              		.thumb_func
+ 135              		.fpu fpv4-sp-d16
+ 137              	EXTI_vDeinit:
+ 138              	.LVL4:
+ 139              	.LFB146:
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /**
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @brief Restores the EXTI line to its default state.
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @param ucLine: the selected EXTI line
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  */
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** void EXTI_vDeinit(uint8_t ucLine)
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** {
+ 140              		.loc 1 106 1 is_stmt 1 view -0
+ 141              		.cfi_startproc
+ 142              		@ args = 0, pretend = 0, frame = 0
+ 143              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144              		@ link register save eliminated.
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #ifdef EXTI_BB
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* Clear EXTI line configuration */
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->IMR1[ucLine] = 0;
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->EMR1[ucLine] = 0;
+ARM GAS  /tmp/ccpnk5O3.s 			page 6
+
+
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* Clear Rising Falling edge configuration */
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->RTSR1[ucLine] = 0;
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     EXTI_BB->FTSR1[ucLine] = 0;
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #else
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     uint32_t ulLineBit = 1 << ucLine;
+ 145              		.loc 1 116 5 view .LVU46
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* Clear EXTI line configuration */
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     CLEAR_BIT(EXTI->IMR1, ulLineBit);
+ 146              		.loc 1 119 5 view .LVU47
+ 147 0000 4FF0B043 		mov	r3, #1476395008
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ 148              		.loc 1 116 28 is_stmt 0 view .LVU48
+ 149 0004 0122     		movs	r2, #1
+ 150 0006 02FA00F0 		lsl	r0, r2, r0
+ 151              	.LVL5:
+ 152              		.loc 1 119 5 view .LVU49
+ 153 000a D3F88020 		ldr	r2, [r3, #128]
+ 154 000e 22EA0002 		bic	r2, r2, r0
+ 155 0012 C3F88020 		str	r2, [r3, #128]
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     CLEAR_BIT(EXTI->EMR1, ulLineBit);
+ 156              		.loc 1 120 5 is_stmt 1 view .LVU50
+ 157 0016 D3F88420 		ldr	r2, [r3, #132]
+ 158 001a 22EA0002 		bic	r2, r2, r0
+ 159 001e C3F88420 		str	r2, [r3, #132]
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     /* Clear Rising Falling edge configuration */
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     CLEAR_BIT(EXTI->RTSR1, ulLineBit);
+ 160              		.loc 1 123 5 view .LVU51
+ 161 0022 1A68     		ldr	r2, [r3]
+ 162 0024 22EA0002 		bic	r2, r2, r0
+ 163 0028 1A60     		str	r2, [r3]
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     CLEAR_BIT(EXTI->FTSR1, ulLineBit);
+ 164              		.loc 1 124 5 view .LVU52
+ 165 002a 5A68     		ldr	r2, [r3, #4]
+ 166 002c 22EA0000 		bic	r0, r2, r0
+ 167              	.LVL6:
+ 168              		.loc 1 124 5 is_stmt 0 view .LVU53
+ 169 0030 5860     		str	r0, [r3, #4]
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** #endif
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** }
+ 170              		.loc 1 126 1 view .LVU54
+ 171 0032 7047     		bx	lr
+ 172              		.cfi_endproc
+ 173              	.LFE146:
+ 175              		.section	.text.EXTI_pxDefaultConfig,"ax",%progbits
+ 176              		.align	1
+ 177              		.p2align 2,,3
+ 178              		.global	EXTI_pxDefaultConfig
+ 179              		.syntax unified
+ 180              		.thumb
+ 181              		.thumb_func
+ 182              		.fpu fpv4-sp-d16
+ 184              	EXTI_pxDefaultConfig:
+ 185              	.LFB147:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** 
+ARM GAS  /tmp/ccpnk5O3.s 			page 7
+
+
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** /**
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @brief Gets the default EXTI configuration (trigger interrupt on rising edge).
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  * @return Reference to the default EXTI configuration value
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****  */
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** const EXTI_InitType * EXTI_pxDefaultConfig(void)
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** {
+ 186              		.loc 1 133 1 is_stmt 1 view -0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 0
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              		@ link register save eliminated.
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_exti.c ****     return &exti_xDefConfig;
+ 191              		.loc 1 134 5 view .LVU56
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_exti.c **** }
+ 192              		.loc 1 135 1 is_stmt 0 view .LVU57
+ 193 0000 0048     		ldr	r0, .L14
+ 194 0002 7047     		bx	lr
+ 195              	.L15:
+ 196              		.align	2
+ 197              	.L14:
+ 198 0004 00000000 		.word	.LANCHOR0
+ 199              		.cfi_endproc
+ 200              	.LFE147:
+ 202              		.global	EXTI_xPinCallbacks
+ 203              		.section	.bss.EXTI_xPinCallbacks,"aw",%nobits
+ 204              		.align	2
+ 207              	EXTI_xPinCallbacks:
+ 208 0000 00000000 		.space	64
+ 208      00000000 
+ 208      00000000 
+ 208      00000000 
+ 208      00000000 
+ 209              		.section	.rodata.exti_xDefConfig,"a"
+ 210              		.align	2
+ 211              		.set	.LANCHOR0,. + 0
+ 214              	exti_xDefConfig:
+ 215 0000 05       		.byte	5
+ 216              		.text
+ 217              	.Letext0:
+ 218              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 219              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 220              		.file 4 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 221              		.file 5 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 222              		.file 6 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 223              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 224              		.file 8 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ARM GAS  /tmp/ccpnk5O3.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_exti.c
+     /tmp/ccpnk5O3.s:18     .text.EXTI_vInit:0000000000000000 $t
+     /tmp/ccpnk5O3.s:27     .text.EXTI_vInit:0000000000000000 EXTI_vInit
+     /tmp/ccpnk5O3.s:129    .text.EXTI_vDeinit:0000000000000000 $t
+     /tmp/ccpnk5O3.s:137    .text.EXTI_vDeinit:0000000000000000 EXTI_vDeinit
+     /tmp/ccpnk5O3.s:176    .text.EXTI_pxDefaultConfig:0000000000000000 $t
+     /tmp/ccpnk5O3.s:184    .text.EXTI_pxDefaultConfig:0000000000000000 EXTI_pxDefaultConfig
+     /tmp/ccpnk5O3.s:198    .text.EXTI_pxDefaultConfig:0000000000000004 $d
+     /tmp/ccpnk5O3.s:207    .bss.EXTI_xPinCallbacks:0000000000000000 EXTI_xPinCallbacks
+     /tmp/ccpnk5O3.s:204    .bss.EXTI_xPinCallbacks:0000000000000000 $d
+     /tmp/ccpnk5O3.s:210    .rodata.exti_xDefConfig:0000000000000000 $d
+     /tmp/ccpnk5O3.s:214    .rodata.exti_xDefConfig:0000000000000000 exti_xDefConfig
+
+NO UNDEFINED SYMBOLS

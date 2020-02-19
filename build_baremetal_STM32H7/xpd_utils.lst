@@ -1,0 +1,2065 @@
+ARM GAS  /tmp/ccrHk5l1.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_utils.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.prvInitTimer,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv4-sp-d16
+  26              	prvInitTimer:
+  27              	.LVL0:
+  28              	.LFB173:
+  29              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_utils.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * @file    xpd_utils.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * @brief   STM32 eXtensible Peripheral Drivers Utilities
+   8:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #include <xpd_utils.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #include <xpd_rcc.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #include <xpd_core.h>
+  26:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  27:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** extern uint32_t SystemCoreClock;
+  28:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  29:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @addtogroup XPD_Utils
+ARM GAS  /tmp/ccrHk5l1.s 			page 2
+
+
+  30:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{ */
+  31:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  32:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @defgroup XPD_Private_Functions XPD Private Functions
+  33:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{ */
+  34:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  35:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+  36:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Millisecond timer initializer utility.
+  37:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulCoreFreq_Hz: the new core frequency in Hz
+  38:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+  39:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** static void prvInitTimer(uint32_t ulCoreFreq_Hz)
+  40:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+  30              		.loc 1 40 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  41:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Enable SysTick and configure 1ms tick */
+  42:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     (void)SysTick_eInit(SYSTICK_CLOCKSOURCE_HCLK, ulCoreFreq_Hz / 1000);
+  35              		.loc 1 42 5 view .LVU1
+  36              		.loc 1 42 11 is_stmt 0 view .LVU2
+  37 0000 0A4B     		ldr	r3, .L4
+  38              	.LVL1:
+  39              	.LBB24:
+  40              	.LBI24:
+  41              		.file 2 "STM32_XPD/STM32H7_XPD/inc/xpd_systick.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * @file    xpd_systick.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * @version 0.2
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * @brief   STM32 eXtensible Peripheral Drivers SysTick Module
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   *
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** #ifndef __XPD_SYSTICK_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** #define __XPD_SYSTICK_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ARM GAS  /tmp/ccrHk5l1.s 			page 3
+
+
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /** @defgroup SysTick
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /** @defgroup SysTick_Exported_Types SysTick Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /** @brief SysTick clock source types */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** typedef enum
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SYSTICK_CLOCKSOURCE_HCLK_DIV8 = 0, /*!< SysTick clock source is HCLK divided by 8 */
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SYSTICK_CLOCKSOURCE_HCLK      = 1  /*!< SysTick clock source is HCLK */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** }SysTick_ClockSourceType;
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /** @} */
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /** @defgroup SysTick_Exported_Functions SysTick Exported Functions
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @{ */
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @brief Configures the SysTick timer and interrupt generation
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @param ClockSource: clock source of the timer
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @param Period: the amount of timer counts until the counter reset
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @return ERROR if the Period is too large to fit in the 24 bit register,
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  *         OK if successful
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  */
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** __STATIC_INLINE XPD_ReturnType SysTick_eInit(
+  42              		.loc 2 58 32 is_stmt 1 view .LVU3
+  43              	.LBB25:
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         SysTick_ClockSourceType eClockSource,
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         uint32_t                ulPeriod)
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     /* check against counter size (24 bits) */
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     if ((--ulPeriod) > SysTick_LOAD_RELOAD_Msk)
+  44              		.loc 2 63 5 view .LVU4
+  45              	.LBE25:
+  46              	.LBE24:
+  47              		.loc 1 42 11 is_stmt 0 view .LVU5
+  48 0002 A3FB0030 		umull	r3, r0, r3, r0
+  49              	.LVL2:
+  50              		.loc 1 42 11 view .LVU6
+  51 0006 8309     		lsrs	r3, r0, #6
+  52              	.LBB27:
+  53              	.LBB26:
+  54              		.loc 2 63 8 view .LVU7
+  55 0008 013B     		subs	r3, r3, #1
+  56              	.LVL3:
+  57              		.loc 2 63 8 view .LVU8
+  58 000a B3F1807F 		cmp	r3, #16777216
+  59 000e 07D2     		bcs	.L2
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     {
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         return XPD_ERROR;
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     }
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     else
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     {
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         /* set reload register */
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         SysTick->LOAD = ulPeriod;
+  60              		.loc 2 70 9 is_stmt 1 view .LVU9
+ARM GAS  /tmp/ccrHk5l1.s 			page 4
+
+
+  61              		.loc 2 70 23 is_stmt 0 view .LVU10
+  62 0010 074A     		ldr	r2, .L4+4
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         /* reset the SysTick Counter Value */
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         SysTick->VAL  = 0;
+  63              		.loc 2 73 23 view .LVU11
+  64 0012 0021     		movs	r1, #0
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  65              		.loc 2 70 23 view .LVU12
+  66 0014 5360     		str	r3, [r2, #4]
+  67              		.loc 2 73 9 is_stmt 1 view .LVU13
+  68              		.loc 2 73 23 is_stmt 0 view .LVU14
+  69 0016 9160     		str	r1, [r2, #8]
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         /* set clock source */
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         if (eClockSource != 0) {
+  70              		.loc 2 76 9 is_stmt 1 view .LVU15
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****           SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
+  71              		.loc 2 77 11 view .LVU16
+  72              		.loc 2 77 25 is_stmt 0 view .LVU17
+  73 0018 1368     		ldr	r3, [r2]
+  74              	.LVL4:
+  75              		.loc 2 77 25 view .LVU18
+  76 001a 43F00403 		orr	r3, r3, #4
+  77 001e 1360     		str	r3, [r2]
+  78              	.L2:
+  79              	.LVL5:
+  80              		.loc 2 77 25 view .LVU19
+  81              	.LBE26:
+  82              	.LBE27:
+  43:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStart();
+  83              		.loc 1 43 5 is_stmt 1 view .LVU20
+  84              	.LBB28:
+  85              	.LBI28:
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         } else {
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****           SysTick->CTRL &= ~SysTick_CTRL_CLKSOURCE_Msk;
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         }
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         return XPD_OK;
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     }
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** }
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @brief Enables the SysTick timer
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  */
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** __STATIC_INLINE void SysTick_vStart(void)
+  86              		.loc 2 89 22 view .LVU21
+  87              	.LBB29:
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
+  88              		.loc 2 91 5 view .LVU22
+  89              		.loc 2 91 19 is_stmt 0 view .LVU23
+  90 0020 034A     		ldr	r2, .L4+4
+  91 0022 1368     		ldr	r3, [r2]
+  92 0024 43F00103 		orr	r3, r3, #1
+  93 0028 1360     		str	r3, [r2]
+  94              	.LBE29:
+ARM GAS  /tmp/ccrHk5l1.s 			page 5
+
+
+  95              	.LBE28:
+  44:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+  96              		.loc 1 44 1 view .LVU24
+  97 002a 7047     		bx	lr
+  98              	.L5:
+  99              		.align	2
+ 100              	.L4:
+ 101 002c D34D6210 		.word	274877907
+ 102 0030 10E000E0 		.word	-536813552
+ 103              		.cfi_endproc
+ 104              	.LFE173:
+ 106              		.section	.text.prvDelay_ms,"ax",%progbits
+ 107              		.align	1
+ 108              		.p2align 2,,3
+ 109              		.syntax unified
+ 110              		.thumb
+ 111              		.thumb_func
+ 112              		.fpu fpv4-sp-d16
+ 114              	prvDelay_ms:
+ 115              	.LVL6:
+ 116              	.LFB174:
+  45:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  46:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+  47:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Inserts code delay of the specified time in milliseconds.
+  48:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @note  The milliseconds based waiting utilities shall not be used concurrently.
+  49:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        The time of the preempted waiters do not elapse.
+  50:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulMilliseconds: the desired delay in ms
+  51:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+  52:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** static void prvDelay_ms(uint32_t ulMilliseconds)
+  53:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 117              		.loc 1 53 1 is_stmt 1 view -0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121              		@ link register save eliminated.
+  54:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Initially clear flag */
+  55:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick->CTRL &= ~SysTick_CTRL_COUNTFLAG_Msk;
+ 122              		.loc 1 55 5 view .LVU26
+ 123              		.loc 1 55 19 is_stmt 0 view .LVU27
+ 124 0000 054A     		ldr	r2, .L13
+ 125 0002 1368     		ldr	r3, [r2]
+ 126 0004 23F48033 		bic	r3, r3, #65536
+ 127 0008 1360     		str	r3, [r2]
+  56:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while (ulMilliseconds != 0)
+ 128              		.loc 1 56 5 is_stmt 1 view .LVU28
+ 129              		.loc 1 56 11 view .LVU29
+ 130 000a 20B1     		cbz	r0, .L6
+ 131              	.LVL7:
+ 132              	.L8:
+  57:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+  58:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         /* COUNTFLAG returns 1 if timer counted to 0 since the last flag read */
+  59:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         ulMilliseconds -= ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) >> SysTick_CTRL_COUNTFLAG_P
+ 133              		.loc 1 59 9 view .LVU30
+ 134              		.loc 1 59 36 is_stmt 0 view .LVU31
+ 135 000c 1368     		ldr	r3, [r2]
+ 136              		.loc 1 59 73 view .LVU32
+ 137 000e C3F30043 		ubfx	r3, r3, #16, #1
+ARM GAS  /tmp/ccrHk5l1.s 			page 6
+
+
+ 138              	.LVL8:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while (ulMilliseconds != 0)
+ 139              		.loc 1 56 11 is_stmt 1 view .LVU33
+ 140 0012 C01A     		subs	r0, r0, r3
+ 141              	.LVL9:
+  56:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while (ulMilliseconds != 0)
+ 142              		.loc 1 56 11 is_stmt 0 view .LVU34
+ 143 0014 FAD1     		bne	.L8
+ 144              	.LVL10:
+ 145              	.L6:
+  60:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  61:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+  62:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 146              		.loc 1 62 1 view .LVU35
+ 147 0016 7047     		bx	lr
+ 148              	.L14:
+ 149              		.align	2
+ 150              	.L13:
+ 151 0018 10E000E0 		.word	-536813552
+ 152              		.cfi_endproc
+ 153              	.LFE174:
+ 155              		.section	.text.prvWaitForMatch,"ax",%progbits
+ 156              		.align	1
+ 157              		.p2align 2,,3
+ 158              		.syntax unified
+ 159              		.thumb
+ 160              		.thumb_func
+ 161              		.fpu fpv4-sp-d16
+ 163              	prvWaitForMatch:
+ 164              	.LVL11:
+ 165              	.LFB175:
+  63:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  64:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+  65:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Waits until the masked value read from address matches the input ulMatch, or until times 
+  66:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @note  The milliseconds based waiting utilities shall not be used concurrently.
+  67:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        The time of the preempted waiters do not elapse.
+  68:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulVarAddress: the word address that needs to be monitored
+  69:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+  70:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulMatch: the expected value to wait for
+  71:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulTimeout: pointer to the timeout in ms
+  72:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+  73:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+  74:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** static XPD_ReturnType prvWaitForMatch(
+  75:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         volatile uint32_t * pulVarAddress,
+  76:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t            ulBitSelector,
+  77:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t            ulMatch,
+  78:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t *          pulTimeout)
+  79:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 166              		.loc 1 79 1 is_stmt 1 view -0
+ 167              		.cfi_startproc
+ 168              		@ args = 0, pretend = 0, frame = 0
+ 169              		@ frame_needed = 0, uses_anonymous_args = 0
+ 170              		@ link register save eliminated.
+  80:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_ReturnType eResult = XPD_OK;
+ 171              		.loc 1 80 5 view .LVU37
+  81:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  82:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick->CTRL &= ~SysTick_CTRL_COUNTFLAG_Msk;
+ARM GAS  /tmp/ccrHk5l1.s 			page 7
+
+
+ 172              		.loc 1 82 5 view .LVU38
+  79:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_ReturnType eResult = XPD_OK;
+ 173              		.loc 1 79 1 is_stmt 0 view .LVU39
+ 174 0000 70B4     		push	{r4, r5, r6}
+ 175              	.LCFI0:
+ 176              		.cfi_def_cfa_offset 12
+ 177              		.cfi_offset 4, -12
+ 178              		.cfi_offset 5, -8
+ 179              		.cfi_offset 6, -4
+ 180              		.loc 1 82 19 view .LVU40
+ 181 0002 0D4E     		ldr	r6, .L23
+ 182 0004 3468     		ldr	r4, [r6]
+ 183 0006 24F48034 		bic	r4, r4, #65536
+ 184 000a 3460     		str	r4, [r6]
+  83:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  84:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while ((*pulVarAddress & ulBitSelector) != ulMatch)
+ 185              		.loc 1 84 5 is_stmt 1 view .LVU41
+ 186              		.loc 1 84 11 view .LVU42
+ 187              		.loc 1 84 13 is_stmt 0 view .LVU43
+ 188 000c 0468     		ldr	r4, [r0]
+ 189              		.loc 1 84 28 view .LVU44
+ 190 000e 0C40     		ands	r4, r4, r1
+ 191              		.loc 1 84 11 view .LVU45
+ 192 0010 A242     		cmp	r2, r4
+ 193 0012 0AD0     		beq	.L19
+ 194 0014 1C68     		ldr	r4, [r3]
+ 195              	.L18:
+  85:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+  86:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         if (*pulTimeout == 0)
+ 196              		.loc 1 86 9 is_stmt 1 view .LVU46
+  87:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         {
+  88:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             eResult = XPD_TIMEOUT;
+  89:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+  90:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         }
+  91:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         /* COUNTFLAG returns 1 if timer counted to 0 since the last flag read */
+  92:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         *pulTimeout -= ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) >> SysTick_CTRL_COUNTFLAG_Pos)
+ 197              		.loc 1 92 9 view .LVU47
+  86:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         {
+ 198              		.loc 1 86 12 is_stmt 0 view .LVU48
+ 199 0016 5CB1     		cbz	r4, .L20
+ 200              		.loc 1 92 33 view .LVU49
+ 201 0018 3568     		ldr	r5, [r6]
+ 202              		.loc 1 92 70 view .LVU50
+ 203 001a C5F30045 		ubfx	r5, r5, #16, #1
+ 204              		.loc 1 92 21 view .LVU51
+ 205 001e 641B     		subs	r4, r4, r5
+ 206 0020 1C60     		str	r4, [r3]
+  84:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 207              		.loc 1 84 11 is_stmt 1 view .LVU52
+  84:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 208              		.loc 1 84 13 is_stmt 0 view .LVU53
+ 209 0022 0568     		ldr	r5, [r0]
+  84:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 210              		.loc 1 84 28 view .LVU54
+ 211 0024 0D40     		ands	r5, r5, r1
+  84:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 212              		.loc 1 84 11 view .LVU55
+ARM GAS  /tmp/ccrHk5l1.s 			page 8
+
+
+ 213 0026 9542     		cmp	r5, r2
+ 214 0028 F5D1     		bne	.L18
+ 215              	.L19:
+  80:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 216              		.loc 1 80 20 view .LVU56
+ 217 002a 0020     		movs	r0, #0
+ 218              	.LVL12:
+  93:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  94:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+  95:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     return eResult;
+ 219              		.loc 1 95 5 is_stmt 1 view .LVU57
+  96:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 220              		.loc 1 96 1 is_stmt 0 view .LVU58
+ 221 002c 70BC     		pop	{r4, r5, r6}
+ 222              	.LCFI1:
+ 223              		.cfi_remember_state
+ 224              		.cfi_restore 6
+ 225              		.cfi_restore 5
+ 226              		.cfi_restore 4
+ 227              		.cfi_def_cfa_offset 0
+ 228 002e 7047     		bx	lr
+ 229              	.LVL13:
+ 230              	.L20:
+ 231              	.LCFI2:
+ 232              		.cfi_restore_state
+  88:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 233              		.loc 1 88 21 view .LVU59
+ 234 0030 0320     		movs	r0, #3
+ 235              	.LVL14:
+  95:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 236              		.loc 1 95 5 is_stmt 1 view .LVU60
+ 237              		.loc 1 96 1 is_stmt 0 view .LVU61
+ 238 0032 70BC     		pop	{r4, r5, r6}
+ 239              	.LCFI3:
+ 240              		.cfi_restore 6
+ 241              		.cfi_restore 5
+ 242              		.cfi_restore 4
+ 243              		.cfi_def_cfa_offset 0
+ 244 0034 7047     		bx	lr
+ 245              	.L24:
+ 246 0036 00BF     		.align	2
+ 247              	.L23:
+ 248 0038 10E000E0 		.word	-536813552
+ 249              		.cfi_endproc
+ 250              	.LFE175:
+ 252              		.section	.text.prvWaitForDiff,"ax",%progbits
+ 253              		.align	1
+ 254              		.p2align 2,,3
+ 255              		.syntax unified
+ 256              		.thumb
+ 257              		.thumb_func
+ 258              		.fpu fpv4-sp-d16
+ 260              	prvWaitForDiff:
+ 261              	.LVL15:
+ 262              	.LFB176:
+  97:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+  98:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ARM GAS  /tmp/ccrHk5l1.s 			page 9
+
+
+  99:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Waits until the masked value read from address differs from the input ulMatch, or until t
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @note  The milliseconds based waiting utilities shall not be used concurrently.
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        The time of the preempted waiters do not elapse.
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulVarAddress: the word address that needs to be monitored
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulMatch: the initial value that needs to differ
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulTimeout: pointer to the timeout in ms
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** static XPD_ReturnType prvWaitForDiff(
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         volatile uint32_t * pulVarAddress,
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t            ulBitSelector,
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t            ulMatch,
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         uint32_t *          pulTimeout)
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 263              		.loc 1 113 1 is_stmt 1 view -0
+ 264              		.cfi_startproc
+ 265              		@ args = 0, pretend = 0, frame = 0
+ 266              		@ frame_needed = 0, uses_anonymous_args = 0
+ 267              		@ link register save eliminated.
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_ReturnType eResult = XPD_OK;
+ 268              		.loc 1 114 5 view .LVU63
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Initially clear flag */
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick->CTRL &= ~SysTick_CTRL_COUNTFLAG_Msk;
+ 269              		.loc 1 117 5 view .LVU64
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_ReturnType eResult = XPD_OK;
+ 270              		.loc 1 113 1 is_stmt 0 view .LVU65
+ 271 0000 70B4     		push	{r4, r5, r6}
+ 272              	.LCFI4:
+ 273              		.cfi_def_cfa_offset 12
+ 274              		.cfi_offset 4, -12
+ 275              		.cfi_offset 5, -8
+ 276              		.cfi_offset 6, -4
+ 277              		.loc 1 117 19 view .LVU66
+ 278 0002 0D4E     		ldr	r6, .L33
+ 279 0004 3468     		ldr	r4, [r6]
+ 280 0006 24F48034 		bic	r4, r4, #65536
+ 281 000a 3460     		str	r4, [r6]
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while ((*pulVarAddress & ulBitSelector) == ulMatch)
+ 282              		.loc 1 119 5 is_stmt 1 view .LVU67
+ 283              		.loc 1 119 11 view .LVU68
+ 284              		.loc 1 119 13 is_stmt 0 view .LVU69
+ 285 000c 0468     		ldr	r4, [r0]
+ 286              		.loc 1 119 28 view .LVU70
+ 287 000e 0C40     		ands	r4, r4, r1
+ 288              		.loc 1 119 11 view .LVU71
+ 289 0010 A242     		cmp	r2, r4
+ 290 0012 0AD1     		bne	.L29
+ 291 0014 1C68     		ldr	r4, [r3]
+ 292              	.L28:
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         if (*pulTimeout == 0)
+ 293              		.loc 1 121 9 is_stmt 1 view .LVU72
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         {
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             eResult = XPD_TIMEOUT;
+ARM GAS  /tmp/ccrHk5l1.s 			page 10
+
+
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         }
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         /* COUNTFLAG returns 1 if timer counted to 0 since the last flag read */
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         *pulTimeout -= ((SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) >> SysTick_CTRL_COUNTFLAG_Pos)
+ 294              		.loc 1 127 9 view .LVU73
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         {
+ 295              		.loc 1 121 12 is_stmt 0 view .LVU74
+ 296 0016 5CB1     		cbz	r4, .L30
+ 297              		.loc 1 127 33 view .LVU75
+ 298 0018 3568     		ldr	r5, [r6]
+ 299              		.loc 1 127 70 view .LVU76
+ 300 001a C5F30045 		ubfx	r5, r5, #16, #1
+ 301              		.loc 1 127 21 view .LVU77
+ 302 001e 641B     		subs	r4, r4, r5
+ 303 0020 1C60     		str	r4, [r3]
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 304              		.loc 1 119 11 is_stmt 1 view .LVU78
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 305              		.loc 1 119 13 is_stmt 0 view .LVU79
+ 306 0022 0568     		ldr	r5, [r0]
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 307              		.loc 1 119 28 view .LVU80
+ 308 0024 0D40     		ands	r5, r5, r1
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 309              		.loc 1 119 11 view .LVU81
+ 310 0026 9542     		cmp	r5, r2
+ 311 0028 F5D0     		beq	.L28
+ 312              	.L29:
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 313              		.loc 1 114 20 view .LVU82
+ 314 002a 0020     		movs	r0, #0
+ 315              	.LVL16:
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     return eResult;
+ 316              		.loc 1 129 5 is_stmt 1 view .LVU83
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 317              		.loc 1 130 1 is_stmt 0 view .LVU84
+ 318 002c 70BC     		pop	{r4, r5, r6}
+ 319              	.LCFI5:
+ 320              		.cfi_remember_state
+ 321              		.cfi_restore 6
+ 322              		.cfi_restore 5
+ 323              		.cfi_restore 4
+ 324              		.cfi_def_cfa_offset 0
+ 325 002e 7047     		bx	lr
+ 326              	.LVL17:
+ 327              	.L30:
+ 328              	.LCFI6:
+ 329              		.cfi_restore_state
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 330              		.loc 1 123 21 view .LVU85
+ 331 0030 0320     		movs	r0, #3
+ 332              	.LVL18:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 333              		.loc 1 129 5 is_stmt 1 view .LVU86
+ 334              		.loc 1 130 1 is_stmt 0 view .LVU87
+ 335 0032 70BC     		pop	{r4, r5, r6}
+ARM GAS  /tmp/ccrHk5l1.s 			page 11
+
+
+ 336              	.LCFI7:
+ 337              		.cfi_restore 6
+ 338              		.cfi_restore 5
+ 339              		.cfi_restore 4
+ 340              		.cfi_def_cfa_offset 0
+ 341 0034 7047     		bx	lr
+ 342              	.L34:
+ 343 0036 00BF     		.align	2
+ 344              	.L33:
+ 345 0038 10E000E0 		.word	-536813552
+ 346              		.cfi_endproc
+ 347              	.LFE176:
+ 349              		.section	.text.XPD_pxTimeService,"ax",%progbits
+ 350              		.align	1
+ 351              		.p2align 2,,3
+ 352              		.global	XPD_pxTimeService
+ 353              		.syntax unified
+ 354              		.thumb
+ 355              		.thumb_func
+ 356              		.fpu fpv4-sp-d16
+ 358              	XPD_pxTimeService:
+ 359              	.LFB177:
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @} */
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** static const XPD_TimeServiceType xpd_xTimeService = {
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         .Init           = prvInitTimer,
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         .Block_ms       = prvDelay_ms,
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         .MatchBlock_ms  = prvWaitForMatch,
+ 138:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         .DiffBlock_ms   = prvWaitForDiff,
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 140:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }, *xpd_pxTimeService   = &xpd_xTimeService;
+ 141:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 142:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @defgroup XPD_Exported_Functions XPD Exported Functions
+ 143:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{ */
+ 144:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 145:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @defgroup XPD_Exported_Functions_Timer XPD Timer Handling Functions
+ 146:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *  @brief    XPD Utilities time service functions
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 149:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief  Returns the currently used time service.
+ 152:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @return Reference of the current time service
+ 153:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** const XPD_TimeServiceType* XPD_pxTimeService(void)
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 360              		.loc 1 155 1 is_stmt 1 view -0
+ 361              		.cfi_startproc
+ 362              		@ args = 0, pretend = 0, frame = 0
+ 363              		@ frame_needed = 0, uses_anonymous_args = 0
+ 364              		@ link register save eliminated.
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     return xpd_pxTimeService;
+ 365              		.loc 1 156 5 view .LVU89
+ 366              		.loc 1 156 12 is_stmt 0 view .LVU90
+ 367 0000 014B     		ldr	r3, .L36
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ARM GAS  /tmp/ccrHk5l1.s 			page 12
+
+
+ 368              		.loc 1 157 1 view .LVU91
+ 369 0002 1868     		ldr	r0, [r3]
+ 370 0004 7047     		bx	lr
+ 371              	.L37:
+ 372 0006 00BF     		.align	2
+ 373              	.L36:
+ 374 0008 00000000 		.word	.LANCHOR0
+ 375              		.cfi_endproc
+ 376              	.LFE177:
+ 378              		.section	.text.XPD_vSetTimeService,"ax",%progbits
+ 379              		.align	1
+ 380              		.p2align 2,,3
+ 381              		.global	XPD_vSetTimeService
+ 382              		.syntax unified
+ 383              		.thumb
+ 384              		.thumb_func
+ 385              		.fpu fpv4-sp-d16
+ 387              	XPD_vSetTimeService:
+ 388              	.LVL19:
+ 389              	.LFB178:
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Sets the new system time service.
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pxTimeService: reference to the time service implementation
+ 162:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 163:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vSetTimeService(const XPD_TimeServiceType* pxTimeService)
+ 164:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 390              		.loc 1 164 1 is_stmt 1 view -0
+ 391              		.cfi_startproc
+ 392              		@ args = 0, pretend = 0, frame = 0
+ 393              		@ frame_needed = 0, uses_anonymous_args = 0
+ 394              		@ link register save eliminated.
+ 165:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     xpd_pxTimeService = pxTimeService;
+ 395              		.loc 1 165 5 view .LVU93
+ 396              		.loc 1 165 23 is_stmt 0 view .LVU94
+ 397 0000 014B     		ldr	r3, .L39
+ 398 0002 1860     		str	r0, [r3]
+ 166:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 399              		.loc 1 166 1 view .LVU95
+ 400 0004 7047     		bx	lr
+ 401              	.L40:
+ 402 0006 00BF     		.align	2
+ 403              	.L39:
+ 404 0008 00000000 		.word	.LANCHOR0
+ 405              		.cfi_endproc
+ 406              	.LFE178:
+ 408              		.section	.text.XPD_vResetTimeService,"ax",%progbits
+ 409              		.align	1
+ 410              		.p2align 2,,3
+ 411              		.global	XPD_vResetTimeService
+ 412              		.syntax unified
+ 413              		.thumb
+ 414              		.thumb_func
+ 415              		.fpu fpv4-sp-d16
+ 417              	XPD_vResetTimeService:
+ 418              	.LFB179:
+ 167:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ARM GAS  /tmp/ccrHk5l1.s 			page 13
+
+
+ 168:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 169:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Resets the system time service to the XPD default and initializes it.
+ 170:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 171:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vResetTimeService(void)
+ 172:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 419              		.loc 1 172 1 is_stmt 1 view -0
+ 420              		.cfi_startproc
+ 421              		@ args = 0, pretend = 0, frame = 0
+ 422              		@ frame_needed = 0, uses_anonymous_args = 0
+ 423              		@ link register save eliminated.
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     xpd_pxTimeService = &xpd_xTimeService;
+ 424              		.loc 1 173 5 view .LVU97
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     prvInitTimer(SystemCoreClock);
+ 425              		.loc 1 174 5 is_stmt 0 view .LVU98
+ 426 0000 0D4B     		ldr	r3, .L43
+ 427              	.LBB30:
+ 428              	.LBB31:
+  42:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStart();
+ 429              		.loc 1 42 11 view .LVU99
+ 430 0002 0E49     		ldr	r1, .L43+4
+ 431 0004 1B68     		ldr	r3, [r3]
+ 432              	.LBE31:
+ 433              	.LBE30:
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     xpd_pxTimeService = &xpd_xTimeService;
+ 434              		.loc 1 173 23 view .LVU100
+ 435 0006 0E4A     		ldr	r2, .L43+8
+ 436              	.LBB39:
+ 437              	.LBB36:
+  42:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStart();
+ 438              		.loc 1 42 11 view .LVU101
+ 439 0008 A1FB0313 		umull	r1, r3, r1, r3
+ 440              	.LBE36:
+ 441              	.LBE39:
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     xpd_pxTimeService = &xpd_xTimeService;
+ 442              		.loc 1 173 23 view .LVU102
+ 443 000c 0D49     		ldr	r1, .L43+12
+ 444              	.LBB40:
+ 445              	.LBB37:
+  42:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStart();
+ 446              		.loc 1 42 11 view .LVU103
+ 447 000e 9B09     		lsrs	r3, r3, #6
+ 448              	.LBE37:
+ 449              	.LBE40:
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     xpd_pxTimeService = &xpd_xTimeService;
+ 450              		.loc 1 173 23 view .LVU104
+ 451 0010 1160     		str	r1, [r2]
+ 452              		.loc 1 174 5 is_stmt 1 view .LVU105
+ 453              	.LVL20:
+ 454              	.LBB41:
+ 455              	.LBI30:
+  39:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 456              		.loc 1 39 13 view .LVU106
+ 457              	.LBB38:
+  42:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStart();
+ 458              		.loc 1 42 5 view .LVU107
+ 459              	.LBB32:
+ 460              	.LBI32:
+ARM GAS  /tmp/ccrHk5l1.s 			page 14
+
+
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         SysTick_ClockSourceType eClockSource,
+ 461              		.loc 2 58 32 view .LVU108
+ 462              	.LBB33:
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     {
+ 463              		.loc 2 63 5 view .LVU109
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     {
+ 464              		.loc 2 63 8 is_stmt 0 view .LVU110
+ 465 0012 013B     		subs	r3, r3, #1
+ 466              	.LVL21:
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     {
+ 467              		.loc 2 63 8 view .LVU111
+ 468 0014 B3F1807F 		cmp	r3, #16777216
+ 469 0018 07D2     		bcs	.L42
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 470              		.loc 2 70 9 is_stmt 1 view .LVU112
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 471              		.loc 2 70 23 is_stmt 0 view .LVU113
+ 472 001a 0B4A     		ldr	r2, .L43+16
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 473              		.loc 2 73 23 view .LVU114
+ 474 001c 0021     		movs	r1, #0
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 475              		.loc 2 70 23 view .LVU115
+ 476 001e 5360     		str	r3, [r2, #4]
+ 477              	.LVL22:
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 478              		.loc 2 73 9 is_stmt 1 view .LVU116
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 479              		.loc 2 73 23 is_stmt 0 view .LVU117
+ 480 0020 9160     		str	r1, [r2, #8]
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****           SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
+ 481              		.loc 2 76 9 is_stmt 1 view .LVU118
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         } else {
+ 482              		.loc 2 77 11 view .LVU119
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         } else {
+ 483              		.loc 2 77 25 is_stmt 0 view .LVU120
+ 484 0022 1368     		ldr	r3, [r2]
+ 485              	.LVL23:
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         } else {
+ 486              		.loc 2 77 25 view .LVU121
+ 487 0024 43F00403 		orr	r3, r3, #4
+ 488 0028 1360     		str	r3, [r2]
+ 489              	.L42:
+ 490              	.LVL24:
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****         } else {
+ 491              		.loc 2 77 25 view .LVU122
+ 492              	.LBE33:
+ 493              	.LBE32:
+  43:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 494              		.loc 1 43 5 is_stmt 1 view .LVU123
+ 495              	.LBB34:
+ 496              	.LBI34:
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+ 497              		.loc 2 89 22 view .LVU124
+ 498              	.LBB35:
+ 499              		.loc 2 91 5 view .LVU125
+ 500              		.loc 2 91 19 is_stmt 0 view .LVU126
+ARM GAS  /tmp/ccrHk5l1.s 			page 15
+
+
+ 501 002a 074A     		ldr	r2, .L43+16
+ 502 002c 1368     		ldr	r3, [r2]
+ 503 002e 43F00103 		orr	r3, r3, #1
+ 504 0032 1360     		str	r3, [r2]
+ 505              		.loc 2 91 19 view .LVU127
+ 506              	.LBE35:
+ 507              	.LBE34:
+ 508              	.LBE38:
+ 509              	.LBE41:
+ 175:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 510              		.loc 1 175 1 view .LVU128
+ 511 0034 7047     		bx	lr
+ 512              	.L44:
+ 513 0036 00BF     		.align	2
+ 514              	.L43:
+ 515 0038 00000000 		.word	SystemCoreClock
+ 516 003c D34D6210 		.word	274877907
+ 517 0040 00000000 		.word	.LANCHOR0
+ 518 0044 00000000 		.word	.LANCHOR1
+ 519 0048 10E000E0 		.word	-536813552
+ 520              		.cfi_endproc
+ 521              	.LFE179:
+ 523              		.section	.text.XPD_vDelay_us,"ax",%progbits
+ 524              		.align	1
+ 525              		.p2align 2,,3
+ 526              		.weak	XPD_vDelay_us
+ 527              		.syntax unified
+ 528              		.thumb
+ 529              		.thumb_func
+ 530              		.fpu fpv4-sp-d16
+ 532              	XPD_vDelay_us:
+ 533              	.LVL25:
+ 534              	.LFB180:
+ 176:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 178:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Inserts code delay of the specified time in microseconds.
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param ulMicroseconds: the desired delay in us
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 181:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** __weak void XPD_vDelay_us(uint32_t ulMicroseconds)
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 535              		.loc 1 182 1 is_stmt 1 view -0
+ 536              		.cfi_startproc
+ 537              		@ args = 0, pretend = 0, frame = 0
+ 538              		@ frame_needed = 0, uses_anonymous_args = 0
+ 539              		@ link register save eliminated.
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     ulMicroseconds *= SystemCoreClock / 1000000;
+ 540              		.loc 1 183 5 view .LVU130
+ 184:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     while (ulMicroseconds != 0)
+ 541              		.loc 1 184 5 view .LVU131
+ 542              		.loc 1 184 11 view .LVU132
+ 185:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         ulMicroseconds--;
+ 187:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+ 188:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 543              		.loc 1 188 1 is_stmt 0 view .LVU133
+ 544 0000 7047     		bx	lr
+ 545              		.cfi_endproc
+ARM GAS  /tmp/ccrHk5l1.s 			page 16
+
+
+ 546              	.LFE180:
+ 548 0002 00BF     		.section	.text.XPD_vReadToStream,"ax",%progbits
+ 549              		.align	1
+ 550              		.p2align 2,,3
+ 551              		.global	XPD_vReadToStream
+ 552              		.syntax unified
+ 553              		.thumb
+ 554              		.thumb_func
+ 555              		.fpu fpv4-sp-d16
+ 557              	XPD_vReadToStream:
+ 558              	.LVL26:
+ 559              	.LFB181:
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 190:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @} */
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 192:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @defgroup XPD_Exported_Functions_Stream XPD Data Stream Handling Functions
+ 193:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *  @brief    XPD Utilities data stream handlers
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{
+ 195:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 197:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 198:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Reads new register data to the stream and updates its context.
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulReg: pointer to the register to read from
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pxStream: pointer to the destination stream
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vReadToStream(const uint32_t * pulReg, DataStreamType * pxStream)
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 560              		.loc 1 203 1 is_stmt 1 view -0
+ 561              		.cfi_startproc
+ 562              		@ args = 0, pretend = 0, frame = 0
+ 563              		@ frame_needed = 0, uses_anonymous_args = 0
+ 564              		@ link register save eliminated.
+ 204:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Different size of data transferred */
+ 205:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     switch (pxStream->size)
+ 565              		.loc 1 205 5 view .LVU135
+ 566              		.loc 1 205 21 is_stmt 0 view .LVU136
+ 567 0000 CA88     		ldrh	r2, [r1, #6]
+ 568 0002 0B68     		ldr	r3, [r1]
+ 569              		.loc 1 205 5 view .LVU137
+ 570 0004 012A     		cmp	r2, #1
+ 571 0006 09D0     		beq	.L47
+ 572 0008 022A     		cmp	r2, #2
+ 573 000a 0CD0     		beq	.L48
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 1:
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint8_t*) pxStream->buffer) = *((const uint8_t  *)pulReg);
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 210:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 2:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint16_t*)pxStream->buffer) = *((const uint16_t *)pulReg);
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 213:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         default:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint32_t*)pxStream->buffer) = *((const uint32_t *)pulReg);
+ 574              		.loc 1 214 13 is_stmt 1 view .LVU138
+ 575              		.loc 1 214 46 is_stmt 0 view .LVU139
+ 576 000c 0068     		ldr	r0, [r0]
+ 577              	.LVL27:
+ 578              		.loc 1 214 44 view .LVU140
+ARM GAS  /tmp/ccrHk5l1.s 			page 17
+
+
+ 579 000e 1860     		str	r0, [r3]
+ 215:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 580              		.loc 1 215 13 is_stmt 1 view .LVU141
+ 581              	.L50:
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Stream context update */
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->buffer += pxStream->size;
+ 582              		.loc 1 218 5 view .LVU142
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 583              		.loc 1 219 21 is_stmt 0 view .LVU143
+ 584 0010 8888     		ldrh	r0, [r1, #4]
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 585              		.loc 1 218 22 view .LVU144
+ 586 0012 1344     		add	r3, r3, r2
+ 587              		.loc 1 219 21 view .LVU145
+ 588 0014 421E     		subs	r2, r0, #1
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 589              		.loc 1 218 22 view .LVU146
+ 590 0016 0B60     		str	r3, [r1]
+ 591              		.loc 1 219 5 is_stmt 1 view .LVU147
+ 592              		.loc 1 219 21 is_stmt 0 view .LVU148
+ 593 0018 8A80     		strh	r2, [r1, #4]	@ movhi
+ 220:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 594              		.loc 1 220 1 view .LVU149
+ 595 001a 7047     		bx	lr
+ 596              	.LVL28:
+ 597              	.L47:
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 598              		.loc 1 208 13 is_stmt 1 view .LVU150
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 599              		.loc 1 208 46 is_stmt 0 view .LVU151
+ 600 001c 0278     		ldrb	r2, [r0]	@ zero_extendqisi2
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 601              		.loc 1 208 44 view .LVU152
+ 602 001e 1A70     		strb	r2, [r3]
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 2:
+ 603              		.loc 1 209 13 is_stmt 1 view .LVU153
+ 604 0020 0B68     		ldr	r3, [r1]
+ 605 0022 CA88     		ldrh	r2, [r1, #6]
+ 606 0024 F4E7     		b	.L50
+ 607              	.L48:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 608              		.loc 1 211 13 view .LVU154
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 609              		.loc 1 211 46 is_stmt 0 view .LVU155
+ 610 0026 0288     		ldrh	r2, [r0]
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 611              		.loc 1 211 44 view .LVU156
+ 612 0028 1A80     		strh	r2, [r3]	@ movhi
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         default:
+ 613              		.loc 1 212 13 is_stmt 1 view .LVU157
+ 614 002a CA88     		ldrh	r2, [r1, #6]
+ 615 002c F0E7     		b	.L50
+ 616              		.cfi_endproc
+ 617              	.LFE181:
+ 619 002e 00BF     		.section	.text.XPD_vWriteFromStream,"ax",%progbits
+ 620              		.align	1
+ARM GAS  /tmp/ccrHk5l1.s 			page 18
+
+
+ 621              		.p2align 2,,3
+ 622              		.global	XPD_vWriteFromStream
+ 623              		.syntax unified
+ 624              		.thumb
+ 625              		.thumb_func
+ 626              		.fpu fpv4-sp-d16
+ 628              	XPD_vWriteFromStream:
+ 629              	.LVL29:
+ 630              	.LFB182:
+ 221:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 223:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Writes a new stream data element to the register and updates the stream context.
+ 224:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pulReg: pointer to the register to write to
+ 225:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pxStream: pointer to the source stream
+ 226:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 227:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vWriteFromStream(uint32_t * pulReg, DataStreamType * pxStream)
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 631              		.loc 1 228 1 view -0
+ 632              		.cfi_startproc
+ 633              		@ args = 0, pretend = 0, frame = 0
+ 634              		@ frame_needed = 0, uses_anonymous_args = 0
+ 635              		@ link register save eliminated.
+ 229:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Different size of data transferred */
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     switch (pxStream->size)
+ 636              		.loc 1 230 5 view .LVU159
+ 637              		.loc 1 230 21 is_stmt 0 view .LVU160
+ 638 0000 CA88     		ldrh	r2, [r1, #6]
+ 639 0002 0B68     		ldr	r3, [r1]
+ 640              		.loc 1 230 5 view .LVU161
+ 641 0004 012A     		cmp	r2, #1
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Different size of data transferred */
+ 642              		.loc 1 228 1 view .LVU162
+ 643 0006 10B4     		push	{r4}
+ 644              	.LCFI8:
+ 645              		.cfi_def_cfa_offset 4
+ 646              		.cfi_offset 4, -4
+ 647              		.loc 1 230 5 view .LVU163
+ 648 0008 0BD0     		beq	.L53
+ 649 000a 022A     		cmp	r2, #2
+ 650 000c 0ED0     		beq	.L54
+ 231:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     {
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 1:
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint8_t  *)pulReg) = *((uint8_t*) pxStream->buffer);
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 2:
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint16_t *)pulReg) = *((uint16_t*)pxStream->buffer);
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 238:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         default:
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             *((uint32_t *)pulReg) = *((uint32_t*)pxStream->buffer);
+ 651              		.loc 1 239 13 is_stmt 1 view .LVU164
+ 652              		.loc 1 239 37 is_stmt 0 view .LVU165
+ 653 000e 1C68     		ldr	r4, [r3]
+ 654              		.loc 1 239 35 view .LVU166
+ 655 0010 0460     		str	r4, [r0]
+ 240:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 656              		.loc 1 240 13 is_stmt 1 view .LVU167
+ 657              	.L56:
+ARM GAS  /tmp/ccrHk5l1.s 			page 19
+
+
+ 241:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     }
+ 242:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Stream context update */
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->buffer += pxStream->size;
+ 658              		.loc 1 243 5 view .LVU168
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 659              		.loc 1 244 21 is_stmt 0 view .LVU169
+ 660 0012 8888     		ldrh	r0, [r1, #4]
+ 661              	.LVL30:
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 662              		.loc 1 243 22 view .LVU170
+ 663 0014 1344     		add	r3, r3, r2
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 664              		.loc 1 245 1 view .LVU171
+ 665 0016 5DF8044B 		ldr	r4, [sp], #4
+ 666              	.LCFI9:
+ 667              		.cfi_remember_state
+ 668              		.cfi_restore 4
+ 669              		.cfi_def_cfa_offset 0
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 670              		.loc 1 244 21 view .LVU172
+ 671 001a 421E     		subs	r2, r0, #1
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 672              		.loc 1 243 22 view .LVU173
+ 673 001c 0B60     		str	r3, [r1]
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 674              		.loc 1 244 5 is_stmt 1 view .LVU174
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStream->length--;
+ 675              		.loc 1 244 21 is_stmt 0 view .LVU175
+ 676 001e 8A80     		strh	r2, [r1, #4]	@ movhi
+ 677              		.loc 1 245 1 view .LVU176
+ 678 0020 7047     		bx	lr
+ 679              	.LVL31:
+ 680              	.L53:
+ 681              	.LCFI10:
+ 682              		.cfi_restore_state
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 683              		.loc 1 233 13 is_stmt 1 view .LVU177
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 684              		.loc 1 233 37 is_stmt 0 view .LVU178
+ 685 0022 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 686              		.loc 1 233 35 view .LVU179
+ 687 0024 0370     		strb	r3, [r0]
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         case 2:
+ 688              		.loc 1 234 13 is_stmt 1 view .LVU180
+ 689 0026 0B68     		ldr	r3, [r1]
+ 690 0028 CA88     		ldrh	r2, [r1, #6]
+ 691 002a F2E7     		b	.L56
+ 692              	.L54:
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 693              		.loc 1 236 13 view .LVU181
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 694              		.loc 1 236 37 is_stmt 0 view .LVU182
+ 695 002c 1A88     		ldrh	r2, [r3]
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****             break;
+ 696              		.loc 1 236 35 view .LVU183
+ 697 002e 0280     		strh	r2, [r0]	@ movhi
+ARM GAS  /tmp/ccrHk5l1.s 			page 20
+
+
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****         default:
+ 698              		.loc 1 237 13 is_stmt 1 view .LVU184
+ 699 0030 CA88     		ldrh	r2, [r1, #6]
+ 700 0032 EEE7     		b	.L56
+ 701              		.cfi_endproc
+ 702              	.LFE182:
+ 704              		.section	.text.XPD_vInit,"ax",%progbits
+ 705              		.align	1
+ 706              		.p2align 2,,3
+ 707              		.global	XPD_vInit
+ 708              		.syntax unified
+ 709              		.thumb
+ 710              		.thumb_func
+ 711              		.fpu fpv4-sp-d16
+ 713              	XPD_vInit:
+ 714              	.LFB183:
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @} */
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 249:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /** @defgroup XPD_Exported_Functions_Init XPD Startup and Shutdown Functions
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *  @brief    XPD Utilities startup and shutdown functions
+ 251:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @{
+ 252:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Initializes the necessary utilities used by XPD drivers:
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        @arg System Timer utility
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        @arg Enable PWR and SYSCFG clocks
+ 258:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vInit(void)
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 715              		.loc 1 260 1 view -0
+ 716              		.cfi_startproc
+ 717              		@ args = 0, pretend = 0, frame = 0
+ 718              		@ frame_needed = 0, uses_anonymous_args = 0
+ 261:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Configure systick timer */
+ 262:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_vInitTimer(SystemCoreClock);
+ 719              		.loc 1 262 5 view .LVU186
+ 720              	.LVL32:
+ 721              	.LBB42:
+ 722              	.LBI42:
+ 723              		.file 3 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @file    xpd_utils.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @brief   STM32 eXtensible Peripheral Drivers Utilities
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+ARM GAS  /tmp/ccrHk5l1.s 			page 21
+
+
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef __XPD_UTILS_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define __XPD_UTILS_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Utils XPD Utilities
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Types XPD Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @brief Time service functions structure */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** typedef struct
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Init)         (uint32_t ulCoreFreq_Hz);
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Prepares the time service for operation */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Block_ms)     (uint32_t ulBlocktime_ms);
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks the thread for the specified time */
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*MatchBlock_ms)(volatile uint32_t* pulVarAddress,
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address matches the input ulMatch, or until times 
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*DiffBlock_ms) (volatile uint32_t* pulVarAddress,
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address differs from the input ulMatch, or until t
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }XPD_TimeServiceType;
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Macros XPD Exported Macros
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_ENTER_CRITICAL
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Enters a critical section by disabling interrupts.
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_ENTER_CRITICAL(HANDLE)
+ARM GAS  /tmp/ccrHk5l1.s 			page 22
+
+
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_EXIT_CRITICAL
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Leaves a critical section by enabling interrupts.
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_EXIT_CRITICAL(HANDLE)
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions_Timer
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** const XPD_TimeServiceType* XPD_pxTimeService(void);
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vSetTimeService     (const XPD_TimeServiceType* pxTimeService);
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vResetTimeService   (void);
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vDelay_us           (uint32_t ulMicroseconds);
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Initialize the timer of the XPD time service.
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulCoreFreq_Hz: the new core frequency in Hz
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vInitTimer(uint32_t ulCoreFreq_Hz)
+ 724              		.loc 3 100 22 view .LVU187
+ 725              	.LBB43:
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Init(ulCoreFreq_Hz);
+ 726              		.loc 3 102 5 view .LVU188
+ 727              	.LBB44:
+ 728              	.LBI44:
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 729              		.loc 1 154 28 view .LVU189
+ 730              	.LBB45:
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 731              		.loc 1 156 5 view .LVU190
+ 732              	.LBE45:
+ 733              	.LBE44:
+ 734              	.LBE43:
+ 735              	.LBE42:
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Configure systick timer */
+ 736              		.loc 1 260 1 is_stmt 0 view .LVU191
+ 737 0000 08B5     		push	{r3, lr}
+ 738              	.LCFI11:
+ 739              		.cfi_def_cfa_offset 8
+ 740              		.cfi_offset 3, -8
+ 741              		.cfi_offset 14, -4
+ 742              	.LBB50:
+ 743              	.LBB48:
+ 744              	.LBB47:
+ 745              	.LBB46:
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 746              		.loc 1 156 12 view .LVU192
+ARM GAS  /tmp/ccrHk5l1.s 			page 23
+
+
+ 747 0002 074B     		ldr	r3, .L61
+ 748              	.LBE46:
+ 749              	.LBE47:
+ 750              	.LBE48:
+ 751              	.LBE50:
+ 752              		.loc 1 262 5 view .LVU193
+ 753 0004 074A     		ldr	r2, .L61+4
+ 754              	.LVL33:
+ 755              	.LBB51:
+ 756              	.LBB49:
+ 757              		.loc 3 102 24 view .LVU194
+ 758 0006 1B68     		ldr	r3, [r3]
+ 759              		.loc 3 102 5 view .LVU195
+ 760 0008 1068     		ldr	r0, [r2]
+ 761 000a 1B68     		ldr	r3, [r3]
+ 762 000c 9847     		blx	r3
+ 763              	.LVL34:
+ 764              		.loc 3 102 5 view .LVU196
+ 765              	.LBE49:
+ 766              	.LBE51:
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 264:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Enable clock for PWR */
+ 265:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vClockEnable(RCC_POS_PWR);
+ 767              		.loc 1 265 5 is_stmt 1 view .LVU197
+ 768 000e 9C20     		movs	r0, #156
+ 769 0010 FFF7FEFF 		bl	RCC_vClockEnable
+ 770              	.LVL35:
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 267:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Enable SYSCFG clock  */
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vClockEnable(RCC_POS_SYSCFG);
+ 771              		.loc 1 268 5 view .LVU198
+ 772 0014 AE20     		movs	r0, #174
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 773              		.loc 1 269 1 is_stmt 0 view .LVU199
+ 774 0016 BDE80840 		pop	{r3, lr}
+ 775              	.LCFI12:
+ 776              		.cfi_restore 14
+ 777              		.cfi_restore 3
+ 778              		.cfi_def_cfa_offset 0
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 779              		.loc 1 268 5 view .LVU200
+ 780 001a FFF7FEBF 		b	RCC_vClockEnable
+ 781              	.LVL36:
+ 782              	.L62:
+ 783 001e 00BF     		.align	2
+ 784              	.L61:
+ 785 0020 00000000 		.word	.LANCHOR0
+ 786 0024 00000000 		.word	SystemCoreClock
+ 787              		.cfi_endproc
+ 788              	.LFE183:
+ 790              		.section	.text.XPD_vDeinit,"ax",%progbits
+ 791              		.align	1
+ 792              		.p2align 2,,3
+ 793              		.global	XPD_vDeinit
+ 794              		.syntax unified
+ 795              		.thumb
+ 796              		.thumb_func
+ARM GAS  /tmp/ccrHk5l1.s 			page 24
+
+
+ 797              		.fpu fpv4-sp-d16
+ 799              	XPD_vDeinit:
+ 800              	.LFB184:
+ 270:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 271:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Deinitializes the basic services of the device:
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        @arg Resets all peripherals
+ 274:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vDeinit(void)
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 801              		.loc 1 276 1 is_stmt 1 view -0
+ 802              		.cfi_startproc
+ 803              		@ args = 0, pretend = 0, frame = 0
+ 804              		@ frame_needed = 0, uses_anonymous_args = 0
+ 277:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Reset of all peripherals */
+ 278:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(AHBPERIPH_BASE) || defined(RCC_AHBRSTR_GPIOARST)
+ 279:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAHB();
+ 280:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #else
+ 281:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(AHB1PERIPH_BASE)
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAHB1();
+ 805              		.loc 1 282 5 view .LVU202
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Reset of all peripherals */
+ 806              		.loc 1 276 1 is_stmt 0 view .LVU203
+ 807 0000 08B5     		push	{r3, lr}
+ 808              	.LCFI13:
+ 809              		.cfi_def_cfa_offset 8
+ 810              		.cfi_offset 3, -8
+ 811              		.cfi_offset 14, -4
+ 812              		.loc 1 282 5 view .LVU204
+ 813 0002 FFF7FEFF 		bl	RCC_vResetAHB1
+ 814              	.LVL37:
+ 283:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 284:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(AHB2PERIPH_BASE)
+ 285:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAHB2();
+ 815              		.loc 1 285 5 is_stmt 1 view .LVU205
+ 816 0006 FFF7FEFF 		bl	RCC_vResetAHB2
+ 817              	.LVL38:
+ 286:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 287:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(AHB3PERIPH_BASE) || defined(RCC_AHB3RSTR_FSMCRST) || defined(RCC_AHB3RSTR_FMCRST)
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAHB3();
+ 818              		.loc 1 288 5 view .LVU206
+ 819 000a FFF7FEFF 		bl	RCC_vResetAHB3
+ 820              	.LVL39:
+ 289:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 290:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 291:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 292:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(APBPERIPH_BASE)
+ 293:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAPB();
+ 294:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #else
+ 295:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(APB1PERIPH_BASE)
+ 296:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAPB1();
+ 821              		.loc 1 296 5 view .LVU207
+ 822 000e FFF7FEFF 		bl	RCC_vResetAPB1
+ 823              	.LVL40:
+ 297:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 298:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #if defined(APB2PERIPH_BASE)
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vResetAPB2();
+ARM GAS  /tmp/ccrHk5l1.s 			page 25
+
+
+ 824              		.loc 1 299 5 view .LVU208
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 825              		.loc 1 302 1 is_stmt 0 view .LVU209
+ 826 0012 BDE80840 		pop	{r3, lr}
+ 827              	.LCFI14:
+ 828              		.cfi_restore 14
+ 829              		.cfi_restore 3
+ 830              		.cfi_def_cfa_offset 0
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 831              		.loc 1 299 5 view .LVU210
+ 832 0016 FFF7FEBF 		b	RCC_vResetAPB2
+ 833              	.LVL41:
+ 834              		.cfi_endproc
+ 835              	.LFE184:
+ 837 001a 00BF     		.section	.text.XPD_vBootTo,"ax",%progbits
+ 838              		.align	1
+ 839              		.p2align 2,,3
+ 840              		.global	XPD_vBootTo
+ 841              		.syntax unified
+ 842              		.thumb
+ 843              		.thumb_func
+ 844              		.fpu fpv4-sp-d16
+ 846              	XPD_vBootTo:
+ 847              	.LVL42:
+ 848              	.LFB185:
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 304:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** /**
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @brief Resets the MCU peripherals to their startup state and
+ 306:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        boots to the application at the specified address
+ 307:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @param pvStartAddress: The address of the application to be started
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  * @note  Before starting the new application the user shall ensure
+ 309:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        the integrity of the program. This should include:
+ 310:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        @arg Checking address for valid RAM pointer
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  *        @arg Checking address+4 (first PC value) for odd value
+ 312:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****  */
+ 313:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** void XPD_vBootTo(void * pvStartAddress)
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 849              		.loc 1 314 1 is_stmt 1 view -0
+ 850              		.cfi_startproc
+ 851              		@ args = 0, pretend = 0, frame = 0
+ 852              		@ frame_needed = 0, uses_anonymous_args = 0
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     void (*pxStartApplication)(void) = *((const void **)(pvStartAddress + 4));
+ 853              		.loc 1 315 5 view .LVU212
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     void (*pxStartApplication)(void) = *((const void **)(pvStartAddress + 4));
+ 854              		.loc 1 314 1 is_stmt 0 view .LVU213
+ 855 0000 70B5     		push	{r4, r5, r6, lr}
+ 856              	.LCFI15:
+ 857              		.cfi_def_cfa_offset 16
+ 858              		.cfi_offset 4, -16
+ 859              		.cfi_offset 5, -12
+ 860              		.cfi_offset 6, -8
+ 861              		.cfi_offset 14, -4
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     void (*pxStartApplication)(void) = *((const void **)(pvStartAddress + 4));
+ 862              		.loc 1 314 1 view .LVU214
+ 863 0002 0446     		mov	r4, r0
+ARM GAS  /tmp/ccrHk5l1.s 			page 26
+
+
+ 864              		.loc 1 315 12 view .LVU215
+ 865 0004 4568     		ldr	r5, [r0, #4]
+ 866              	.LVL43:
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Reset clock configuration */
+ 318:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     RCC_vDeinit();
+ 867              		.loc 1 318 5 is_stmt 1 view .LVU216
+ 868 0006 FFF7FEFF 		bl	RCC_vDeinit
+ 869              	.LVL44:
+ 319:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Reset all peripherals */
+ 320:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     XPD_vDeinit();
+ 870              		.loc 1 320 5 view .LVU217
+ 871              	.LBB58:
+ 872              	.LBI58:
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** {
+ 873              		.loc 1 275 6 view .LVU218
+ 874              	.LBB59:
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 875              		.loc 1 282 5 view .LVU219
+ 876 000a FFF7FEFF 		bl	RCC_vResetAHB1
+ 877              	.LVL45:
+ 285:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 878              		.loc 1 285 5 view .LVU220
+ 879 000e FFF7FEFF 		bl	RCC_vResetAHB2
+ 880              	.LVL46:
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 881              		.loc 1 288 5 view .LVU221
+ 882 0012 FFF7FEFF 		bl	RCC_vResetAHB3
+ 883              	.LVL47:
+ 296:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 884              		.loc 1 296 5 view .LVU222
+ 885 0016 FFF7FEFF 		bl	RCC_vResetAPB1
+ 886              	.LVL48:
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** #endif
+ 887              		.loc 1 299 5 view .LVU223
+ 888 001a FFF7FEFF 		bl	RCC_vResetAPB2
+ 889              	.LVL49:
+ 890              	.LBE59:
+ 891              	.LBE58:
+ 321:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Disable SysTick interrupt as well */
+ 322:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     SysTick_vStop_IT();
+ 892              		.loc 1 322 5 view .LVU224
+ 893              	.LBB60:
+ 894              	.LBI60:
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** }
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @brief Disables the SysTick timer
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  */
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** __STATIC_INLINE void SysTick_vStop(void)
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SysTick->CTRL &= ~SysTick_CTRL_ENABLE_Msk;
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** }
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+ 103:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @brief Starts the SysTick timer with interrupt generation
+ 104:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  */
+ARM GAS  /tmp/ccrHk5l1.s 			page 27
+
+
+ 105:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** __STATIC_INLINE void SysTick_vStart_IT(void)
+ 106:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+ 107:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SysTick->VAL = 0;
+ 108:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+ 109:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** }
+ 110:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** 
+ 111:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** /**
+ 112:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  * @brief Stops the SysTick timer with interrupt generation
+ 113:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****  */
+ 114:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** __STATIC_INLINE void SysTick_vStop_IT(void)
+ 895              		.loc 2 114 22 view .LVU225
+ 896              	.LBB61:
+ 115:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h **** {
+ 116:STM32_XPD/STM32H7_XPD/inc/xpd_systick.h ****     SysTick->CTRL &= ~(SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk);
+ 897              		.loc 2 116 5 view .LVU226
+ 898              		.loc 2 116 19 is_stmt 0 view .LVU227
+ 899 001e 064A     		ldr	r2, .L67
+ 900 0020 1368     		ldr	r3, [r2]
+ 901 0022 23F00303 		bic	r3, r3, #3
+ 902 0026 1360     		str	r3, [r2]
+ 903              	.LBE61:
+ 904              	.LBE60:
+ 323:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 324:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Set the main stack pointer */
+ 325:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     __set_MSP(*((const uint32_t *)pvStartAddress));
+ 905              		.loc 1 325 5 is_stmt 1 view .LVU228
+ 906              	.LVL50:
+ 907              	.LBB62:
+ 908              	.LBI62:
+ 909              		.file 4 "STM32_XPD/CMSIS/Include/cmsis_gcc.h"
+   1:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*
+   8:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  10:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  12:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  16:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  18:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+  24:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  25:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccrHk5l1.s 			page 28
+
+
+  28:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  34:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  39:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+ARM GAS  /tmp/ccrHk5l1.s 			page 29
+
+
+  85:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 117:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 118:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 124:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 131:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 133:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 134:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 135:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 141:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ARM GAS  /tmp/ccrHk5l1.s 			page 30
+
+
+ 142:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 143:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 144:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 145:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 146:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 147:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
+ 148:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
+ 149:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Control Register value
+ 150:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 151:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_CONTROL(void)
+ 152:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 153:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 154:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 155:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 156:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 157:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 158:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 159:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 160:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 161:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 162:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
+ 163:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
+ 164:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               non-secure Control Register value
+ 165:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 166:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_CONTROL_NS(void)
+ 167:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 168:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 169:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 170:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control_ns" : "=r" (result) );
+ 171:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 172:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 173:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 174:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 175:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 176:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 177:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register
+ 178:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the Control Register.
+ 179:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 180:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 181:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
+ 182:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 183:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
+ 184:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 185:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 186:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 187:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 188:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 189:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register (non-secure)
+ 190:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the non-secure Control Register when in secure state.
+ 191:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 192:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 193:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_CONTROL_NS(uint32_t control)
+ 194:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 195:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control_ns, %0" : : "r" (control) : "memory");
+ 196:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 197:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 198:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccrHk5l1.s 			page 31
+
+
+ 199:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 200:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 201:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get IPSR Register
+ 202:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
+ 203:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
+ 204:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 205:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
+ 206:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 207:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 208:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 209:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 210:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 211:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 212:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 213:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 214:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 215:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get APSR Register
+ 216:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the APSR Register.
+ 217:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
+ 218:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 219:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
+ 220:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 221:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 222:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 223:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 224:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 225:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 226:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 227:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 228:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 229:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get xPSR Register
+ 230:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the xPSR Register.
+ 231:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               xPSR Register value
+ 232:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 233:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_xPSR(void)
+ 234:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 235:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 236:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 237:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 238:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 239:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 240:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 241:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 242:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 243:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer
+ 244:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer (PSP).
+ 245:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 246:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 247:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSP(void)
+ 248:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 249:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 250:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 251:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+ 252:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 253:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 254:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 255:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccrHk5l1.s 			page 32
+
+
+ 256:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 257:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 258:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer (non-secure)
+ 259:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
+ 260:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 261:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 262:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
+ 263:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 264:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 265:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 266:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp_ns"  : "=r" (result) );
+ 267:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 268:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 269:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 270:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 271:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 272:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 273:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer
+ 274:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
+ 275:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 276:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 277:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
+ 278:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 279:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
+ 280:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 281:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 282:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 283:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 284:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 285:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 286:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer (PSP) when in secure sta
+ 287:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 288:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 289:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSP_NS(uint32_t topOfProcStack)
+ 290:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 291:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp_ns, %0" : : "r" (topOfProcStack) : );
+ 292:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 293:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 294:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 295:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 296:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 297:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer
+ 298:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer (MSP).
+ 299:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 300:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 301:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSP(void)
+ 302:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 303:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 304:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 305:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp" : "=r" (result) );
+ 306:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 307:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 308:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 309:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 310:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 311:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 312:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer (non-secure)
+ARM GAS  /tmp/ccrHk5l1.s 			page 33
+
+
+ 313:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer (MSP) when in secure stat
+ 314:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 315:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 316:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
+ 317:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 318:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 319:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 320:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
+ 321:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 322:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 323:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 324:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 325:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 326:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 327:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer
+ 328:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer (MSP).
+ 329:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 330:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 331:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
+ 910              		.loc 4 331 27 view .LVU229
+ 911              	.LBB63:
+ 332:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 333:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
+ 912              		.loc 4 333 3 view .LVU230
+ 913 0028 2368     		ldr	r3, [r4]
+ 914              		.syntax unified
+ 915              	@ 333 "STM32_XPD/CMSIS/Include/cmsis_gcc.h" 1
+ 916 002a 83F30888 		MSR msp, r3
+ 917              	@ 0 "" 2
+ 918              	.LVL51:
+ 919              		.loc 4 333 3 is_stmt 0 view .LVU231
+ 920              		.thumb
+ 921              		.syntax unified
+ 922              	.LBE63:
+ 923              	.LBE62:
+ 326:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** 
+ 327:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     /* Jump to application */
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_utils.c ****     pxStartApplication();
+ 924              		.loc 1 328 5 is_stmt 1 view .LVU232
+ 925 002e 2B46     		mov	r3, r5
+ 329:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 926              		.loc 1 329 1 is_stmt 0 view .LVU233
+ 927 0030 BDE87040 		pop	{r4, r5, r6, lr}
+ 928              	.LCFI16:
+ 929              		.cfi_restore 14
+ 930              		.cfi_restore 6
+ 931              		.cfi_restore 5
+ 932              		.cfi_restore 4
+ 933              		.cfi_def_cfa_offset 0
+ 934              	.LVL52:
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 935              		.loc 1 328 5 view .LVU234
+ 936 0034 1847     		bx	r3	@ indirect register sibling call
+ 937              	.LVL53:
+ 938              	.L68:
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_utils.c **** }
+ 939              		.loc 1 328 5 view .LVU235
+ARM GAS  /tmp/ccrHk5l1.s 			page 34
+
+
+ 940 0036 00BF     		.align	2
+ 941              	.L67:
+ 942 0038 10E000E0 		.word	-536813552
+ 943              		.cfi_endproc
+ 944              	.LFE185:
+ 946              		.section	.data.xpd_pxTimeService,"aw"
+ 947              		.align	2
+ 948              		.set	.LANCHOR0,. + 0
+ 951              	xpd_pxTimeService:
+ 952 0000 00000000 		.word	xpd_xTimeService
+ 953              		.section	.rodata.xpd_xTimeService,"a"
+ 954              		.align	2
+ 955              		.set	.LANCHOR1,. + 0
+ 958              	xpd_xTimeService:
+ 959 0000 00000000 		.word	prvInitTimer
+ 960 0004 00000000 		.word	prvDelay_ms
+ 961 0008 00000000 		.word	prvWaitForMatch
+ 962 000c 00000000 		.word	prvWaitForDiff
+ 963              		.text
+ 964              	.Letext0:
+ 965              		.file 5 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 966              		.file 6 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 967              		.file 7 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 968              		.file 8 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 969              		.file 9 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 970              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ 971              		.file 11 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ 972              		.file 12 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc.h"
+ARM GAS  /tmp/ccrHk5l1.s 			page 35
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_utils.c
+     /tmp/ccrHk5l1.s:18     .text.prvInitTimer:0000000000000000 $t
+     /tmp/ccrHk5l1.s:26     .text.prvInitTimer:0000000000000000 prvInitTimer
+     /tmp/ccrHk5l1.s:101    .text.prvInitTimer:000000000000002c $d
+     /tmp/ccrHk5l1.s:107    .text.prvDelay_ms:0000000000000000 $t
+     /tmp/ccrHk5l1.s:114    .text.prvDelay_ms:0000000000000000 prvDelay_ms
+     /tmp/ccrHk5l1.s:151    .text.prvDelay_ms:0000000000000018 $d
+     /tmp/ccrHk5l1.s:156    .text.prvWaitForMatch:0000000000000000 $t
+     /tmp/ccrHk5l1.s:163    .text.prvWaitForMatch:0000000000000000 prvWaitForMatch
+     /tmp/ccrHk5l1.s:248    .text.prvWaitForMatch:0000000000000038 $d
+     /tmp/ccrHk5l1.s:253    .text.prvWaitForDiff:0000000000000000 $t
+     /tmp/ccrHk5l1.s:260    .text.prvWaitForDiff:0000000000000000 prvWaitForDiff
+     /tmp/ccrHk5l1.s:345    .text.prvWaitForDiff:0000000000000038 $d
+     /tmp/ccrHk5l1.s:350    .text.XPD_pxTimeService:0000000000000000 $t
+     /tmp/ccrHk5l1.s:358    .text.XPD_pxTimeService:0000000000000000 XPD_pxTimeService
+     /tmp/ccrHk5l1.s:374    .text.XPD_pxTimeService:0000000000000008 $d
+     /tmp/ccrHk5l1.s:379    .text.XPD_vSetTimeService:0000000000000000 $t
+     /tmp/ccrHk5l1.s:387    .text.XPD_vSetTimeService:0000000000000000 XPD_vSetTimeService
+     /tmp/ccrHk5l1.s:404    .text.XPD_vSetTimeService:0000000000000008 $d
+     /tmp/ccrHk5l1.s:409    .text.XPD_vResetTimeService:0000000000000000 $t
+     /tmp/ccrHk5l1.s:417    .text.XPD_vResetTimeService:0000000000000000 XPD_vResetTimeService
+     /tmp/ccrHk5l1.s:515    .text.XPD_vResetTimeService:0000000000000038 $d
+     /tmp/ccrHk5l1.s:524    .text.XPD_vDelay_us:0000000000000000 $t
+     /tmp/ccrHk5l1.s:532    .text.XPD_vDelay_us:0000000000000000 XPD_vDelay_us
+     /tmp/ccrHk5l1.s:549    .text.XPD_vReadToStream:0000000000000000 $t
+     /tmp/ccrHk5l1.s:557    .text.XPD_vReadToStream:0000000000000000 XPD_vReadToStream
+     /tmp/ccrHk5l1.s:620    .text.XPD_vWriteFromStream:0000000000000000 $t
+     /tmp/ccrHk5l1.s:628    .text.XPD_vWriteFromStream:0000000000000000 XPD_vWriteFromStream
+     /tmp/ccrHk5l1.s:705    .text.XPD_vInit:0000000000000000 $t
+     /tmp/ccrHk5l1.s:713    .text.XPD_vInit:0000000000000000 XPD_vInit
+     /tmp/ccrHk5l1.s:785    .text.XPD_vInit:0000000000000020 $d
+     /tmp/ccrHk5l1.s:791    .text.XPD_vDeinit:0000000000000000 $t
+     /tmp/ccrHk5l1.s:799    .text.XPD_vDeinit:0000000000000000 XPD_vDeinit
+     /tmp/ccrHk5l1.s:838    .text.XPD_vBootTo:0000000000000000 $t
+     /tmp/ccrHk5l1.s:846    .text.XPD_vBootTo:0000000000000000 XPD_vBootTo
+     /tmp/ccrHk5l1.s:942    .text.XPD_vBootTo:0000000000000038 $d
+     /tmp/ccrHk5l1.s:947    .data.xpd_pxTimeService:0000000000000000 $d
+     /tmp/ccrHk5l1.s:951    .data.xpd_pxTimeService:0000000000000000 xpd_pxTimeService
+     /tmp/ccrHk5l1.s:958    .rodata.xpd_xTimeService:0000000000000000 xpd_xTimeService
+     /tmp/ccrHk5l1.s:954    .rodata.xpd_xTimeService:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+SystemCoreClock
+RCC_vClockEnable
+RCC_vResetAHB1
+RCC_vResetAHB2
+RCC_vResetAHB3
+RCC_vResetAPB1
+RCC_vResetAPB2
+RCC_vDeinit

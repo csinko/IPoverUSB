@@ -1,0 +1,3612 @@
+ARM GAS  /tmp/ccmY8wUW.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_flash.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.FLASH_vUnlock,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	FLASH_vUnlock
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	FLASH_vUnlock:
+  28              	.LFB151:
+  29              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_flash.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * @file    xpd_flash.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * @brief   STM32 eXtensible Peripheral Drivers Flash Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #include <xpd_flash.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #include <xpd_utils.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  26:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /** @addtogroup FLASH
+  27:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @{ */
+  28:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  29:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_TIMEOUT_MS        50000 /* 50 s */
+ARM GAS  /tmp/ccmY8wUW.s 			page 2
+
+
+  30:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  31:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_CR_MER1
+  32:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_OPERATIONS        \
+  33:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     (FLASH_OPERATION_ERASE_BLOCK | FLASH_OPERATION_ERASE_BANK1 \
+  34:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****    | FLASH_OPERATION_ERASE_BANK2 | FLASH_OPERATION_PROGRAM)
+  35:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #else
+  36:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_OPERATIONS        \
+  37:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     (FLASH_OPERATION_ERASE_BLOCK | FLASH_OPERATION_ERASE_BANK1 | FLASH_OPERATION_PROGRAM)
+  38:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+  39:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  40:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_BANK1_ADDRESS     ((void*)FLASH_BASE)
+  41:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Bank2 start address is at half of the range */
+  42:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_BANK2_ADDRESS     ((void*)(FLASH_BASE + (DEVICE_FLASH_SIZE_kB << (10 - 1))))
+  43:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  44:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_BLOCK_SIZE_KB     (flash_xHandle.SectorSize)
+  45:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  46:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* The size of a single programming operation */
+  47:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #if defined(FLASH_CR_PSIZE)
+  48:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* is configurable, adjust based on VDD voltage level */
+  49:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #if   (VDD_VALUE_mV > 2700)
+  50:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_PSIZE_CONFIG()    (FLASH->CR1 = (FLASH->CR1 & ~FLASH_CR_PSIZE) | FLASH_CR_PSIZE_1)
+  51:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_MEMSTREAM_SIZE    (sizeof(uint32_t))
+  52:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #elif (VDD_VALUE_mV > 2100)
+  53:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_PSIZE_CONFIG()    (FLASH->CR.b.PSIZE = 1)
+  54:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_MEMSTREAM_SIZE    (sizeof(uint16_t))
+  55:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #else
+  56:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_PSIZE_CONFIG()    (FLASH->CR.b.PSIZE = 0)
+  57:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_MEMSTREAM_SIZE    (sizeof(uint8_t))
+  58:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif /* VDD_VALUE_mV */
+  59:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #else
+  60:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_PSIZE_CONFIG()    ((void)0)
+  61:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_MEMSTREAM_SIZE    (sizeof(uint16_t))
+  62:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+  63:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  64:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Keys for FLASH operations unlocking */
+  65:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifndef FLASH_KEY1
+  66:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_KEY1              0x45670123
+  67:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+  68:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifndef FLASH_KEY2
+  69:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #define FLASH_KEY2              0xCDEF89AB
+  70:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+  71:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  72:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Internal variable for context storage */
+  73:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** static struct
+  74:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+  75:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     void * Address;
+  76:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     DataStreamType MemStream;
+  77:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint16_t SectorSize;
+  78:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint8_t BkpACR;
+  79:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     volatile FLASH_ErrorType Errors;
+  80:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** } flash_xHandle =
+  81:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+  82:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     .Errors         = FLASH_ERROR_NONE,
+  83:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     .MemStream.size = FLASH_MEMSTREAM_SIZE,
+  84:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** };
+  85:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  86:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** FLASH_CallbacksType FLASH_xCallbacks = { NULL, NULL, NULL };
+ARM GAS  /tmp/ccmY8wUW.s 			page 3
+
+
+  87:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  88:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Erase the next scheduled block */
+  89:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** static void FLASH_prvBlockErase(void)
+  90:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+  91:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint32_t ulSector = 0;
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint32_t ulAddr   =  (uint32_t)flash_xHandle.Address & 0x000FFFFF;
+  93:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+  94:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_CR_MER1
+  95:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Check that the address is in Bank2 */
+  96:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (((uint32_t)flash_xHandle.Address) >= (FLASH_BASE + (DEVICE_FLASH_SIZE_kB / 2)))
+  97:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+  98:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_OPTCR_DB1M
+  99:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         if ((DEVICE_FLASH_SIZE_kB != 1024) || (FLASH_REG_BIT(OPTCR,DB1M) != 0))
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Sector offset is 12, address offset by half */
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             ulSector = 12;
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             ulAddr  &= ~(DEVICE_FLASH_SIZE_kB / 2);
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (ulAddr < 0x10000)
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Sector 0-3:  16kB */
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.SectorSize = 16;
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         ulSector += ulAddr >> 14;
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     else
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Sector 4  :  64kB
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****          * Sector 5- : 128kB */
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         ulAddr >>= 17;
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.SectorSize = (ulAddr == 0) ? 64 : 128;
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         ulSector += 4 + ulAddr;
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Proceed to erase the sector */
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 &= ~FLASH_CR_SNB;
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Read errors to context, and clear them in register */
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** static FLASH_ErrorType FLASH_prvCheckErrors(void)
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Read error flags */
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     flash_xHandle.Errors = FLASH->SR1 &
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 138:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_SR_RDERR
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_RDERR |
+ 140:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 141:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_SR_SOP
+ 142:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_SOP |
+ 143:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ARM GAS  /tmp/ccmY8wUW.s 			page 4
+
+
+ 144:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_PGSERR);
+ 145:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 146:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Clear error flags */
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->SR1 = flash_xHandle.Errors;
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 149:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Disable the flash caches before erase */
+ 152:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** static void FLASH_prvDisableCaches(void)
+ 153:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Store backup of current cache settings, disable all */
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****   return;
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /* Flush the flash caches after erase */
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** static void FLASH_prvFlushCaches(void)
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 162:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 163:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /** @addtogroup FLASH_Exported_Functions
+ 164:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @{ */
+ 165:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 166:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 167:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Unlock the FLASH control register access.
+ 168:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 169:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** void FLASH_vUnlock(void)
+ 170:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+  30              		.loc 1 170 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+ 171:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->CR1 & FLASH_CR_LOCK) != 0)
+  35              		.loc 1 171 5 view .LVU1
+  36              		.loc 1 171 15 is_stmt 0 view .LVU2
+  37 0000 094B     		ldr	r3, .L7
+  38 0002 DA68     		ldr	r2, [r3, #12]
+  39              		.loc 1 171 8 view .LVU3
+  40 0004 D207     		lsls	r2, r2, #31
+  41 0006 0DD5     		bpl	.L1
+ 172:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Authorize the FLASH Registers access */
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->KEYR1 = FLASH_KEY1;
+  42              		.loc 1 174 9 is_stmt 1 view .LVU4
+ 175:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->KEYR1 = FLASH_KEY2;
+  43              		.loc 1 175 22 is_stmt 0 view .LVU5
+  44 0008 084A     		ldr	r2, .L7+4
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->KEYR1 = FLASH_KEY2;
+  45              		.loc 1 174 22 view .LVU6
+  46 000a 0949     		ldr	r1, .L7+8
+  47 000c 5960     		str	r1, [r3, #4]
+  48              		.loc 1 175 9 is_stmt 1 view .LVU7
+  49              		.loc 1 175 22 is_stmt 0 view .LVU8
+  50 000e 5A60     		str	r2, [r3, #4]
+ 176:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Clear any previous request bits */
+ 178:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_OPERATIONS;
+ARM GAS  /tmp/ccmY8wUW.s 			page 5
+
+
+  51              		.loc 1 178 9 is_stmt 1 view .LVU9
+  52              		.loc 1 178 20 is_stmt 0 view .LVU10
+  53 0010 DA68     		ldr	r2, [r3, #12]
+  54 0012 22F00E02 		bic	r2, r2, #14
+  55 0016 DA60     		str	r2, [r3, #12]
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Also set the default programming size
+ 181:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****          * (based on power voltage level) */
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_PSIZE_CONFIG();
+  56              		.loc 1 182 9 is_stmt 1 view .LVU11
+  57 0018 DA68     		ldr	r2, [r3, #12]
+  58 001a 22F03002 		bic	r2, r2, #48
+  59 001e 42F02002 		orr	r2, r2, #32
+  60 0022 DA60     		str	r2, [r3, #12]
+  61              	.L1:
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 184:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+  62              		.loc 1 184 1 is_stmt 0 view .LVU12
+  63 0024 7047     		bx	lr
+  64              	.L8:
+  65 0026 00BF     		.align	2
+  66              	.L7:
+  67 0028 00200052 		.word	1375739904
+  68 002c AB89EFCD 		.word	-839939669
+  69 0030 23016745 		.word	1164378403
+  70              		.cfi_endproc
+  71              	.LFE151:
+  73              		.section	.text.FLASH_vLock,"ax",%progbits
+  74              		.align	1
+  75              		.p2align 2,,3
+  76              		.global	FLASH_vLock
+  77              		.syntax unified
+  78              		.thumb
+  79              		.thumb_func
+  80              		.fpu fpv4-sp-d16
+  82              	FLASH_vLock:
+  83              	.LFB152:
+ 185:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 187:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Lock the FLASH control register access.
+ 188:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** void FLASH_vLock(void)
+ 190:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+  84              		.loc 1 190 1 is_stmt 1 view -0
+  85              		.cfi_startproc
+  86              		@ args = 0, pretend = 0, frame = 0
+  87              		@ frame_needed = 0, uses_anonymous_args = 0
+  88              		@ link register save eliminated.
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Set the LOCK Bit to lock the FLASH Registers access */
+ 192:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_LOCK;
+  89              		.loc 1 192 5 view .LVU14
+  90              		.loc 1 192 16 is_stmt 0 view .LVU15
+  91 0000 024A     		ldr	r2, .L10
+  92 0002 D368     		ldr	r3, [r2, #12]
+  93 0004 43F00103 		orr	r3, r3, #1
+  94 0008 D360     		str	r3, [r2, #12]
+ 193:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ARM GAS  /tmp/ccmY8wUW.s 			page 6
+
+
+  95              		.loc 1 193 1 view .LVU16
+  96 000a 7047     		bx	lr
+  97              	.L11:
+  98              		.align	2
+  99              	.L10:
+ 100 000c 00200052 		.word	1375739904
+ 101              		.cfi_endproc
+ 102              	.LFE152:
+ 104              		.section	.text.FLASH_ePollStatus,"ax",%progbits
+ 105              		.align	1
+ 106              		.p2align 2,,3
+ 107              		.global	FLASH_ePollStatus
+ 108              		.syntax unified
+ 109              		.thumb
+ 110              		.thumb_func
+ 111              		.fpu fpv4-sp-d16
+ 113              	FLASH_ePollStatus:
+ 114              	.LVL0:
+ 115              	.LFB153:
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 195:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Polls the status of the ongoing FLASH operation.
+ 197:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param ulTimeout: the timeout in ms for the polling.
+ 198:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return ERROR    if there were errors,
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         TIMEOUT  if timed out,
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if successful
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_ePollStatus(uint32_t ulTimeout)
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 116              		.loc 1 203 1 is_stmt 1 view -0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 8
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+ 204:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for the FLASH operation to complete by polling on BUSY flag to be reset.
+ 205:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****      Even if the FLASH operation fails, the BUSY flag will be reset and an error
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****      flag will be set */
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_eWaitForDiff(&FLASH->SR1,
+ 120              		.loc 1 207 5 view .LVU18
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for the FLASH operation to complete by polling on BUSY flag to be reset.
+ 121              		.loc 1 203 1 is_stmt 0 view .LVU19
+ 122 0000 10B5     		push	{r4, lr}
+ 123              	.LCFI0:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 4, -8
+ 126              		.cfi_offset 14, -4
+ 127 0002 82B0     		sub	sp, sp, #8
+ 128              	.LCFI1:
+ 129              		.cfi_def_cfa_offset 16
+ 130              	.LVL1:
+ 131              	.LBB33:
+ 132              	.LBI33:
+ 133              		.file 2 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @file    xpd_utils.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @version 0.3
+ARM GAS  /tmp/ccmY8wUW.s 			page 7
+
+
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @brief   STM32 eXtensible Peripheral Drivers Utilities
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef __XPD_UTILS_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define __XPD_UTILS_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Utils XPD Utilities
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Types XPD Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @brief Time service functions structure */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** typedef struct
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Init)         (uint32_t ulCoreFreq_Hz);
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Prepares the time service for operation */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Block_ms)     (uint32_t ulBlocktime_ms);
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks the thread for the specified time */
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*MatchBlock_ms)(volatile uint32_t* pulVarAddress,
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address matches the input ulMatch, or until times 
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*DiffBlock_ms) (volatile uint32_t* pulVarAddress,
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address differs from the input ulMatch, or until t
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }XPD_TimeServiceType;
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+ARM GAS  /tmp/ccmY8wUW.s 			page 8
+
+
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Macros XPD Exported Macros
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_ENTER_CRITICAL
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Enters a critical section by disabling interrupts.
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_ENTER_CRITICAL(HANDLE)
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_EXIT_CRITICAL
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Leaves a critical section by enabling interrupts.
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_EXIT_CRITICAL(HANDLE)
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions_Timer
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** const XPD_TimeServiceType* XPD_pxTimeService(void);
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vSetTimeService     (const XPD_TimeServiceType* pxTimeService);
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vResetTimeService   (void);
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vDelay_us           (uint32_t ulMicroseconds);
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Initialize the timer of the XPD time service.
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulCoreFreq_Hz: the new core frequency in Hz
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vInitTimer(uint32_t ulCoreFreq_Hz)
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Init(ulCoreFreq_Hz);
+ 103:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 104:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 105:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 106:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Insert a delay of a specified time in the execution.
+ 107:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBlocktime_ms: the amount of delay in ms
+ 108:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 109:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vDelay_ms(uint32_t ulBlocktime_ms)
+ 110:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 111:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Block_ms(ulBlocktime_ms);
+ 112:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 113:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 114:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 115:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Waits until the masked value at address matches the input, or until timeout.
+ 116:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulVarAddress: the word address that needs to be monitored
+ 117:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 118:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulMatch: the expected value to wait for
+ 119:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulTimeout: pointer to the timeout in ms
+ARM GAS  /tmp/ccmY8wUW.s 			page 9
+
+
+ 120:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 121:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 122:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE XPD_ReturnType XPD_eWaitForMatch(
+ 123:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 124:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulBitSelector,
+ 125:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulMatch,
+ 126:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t *          pulTimeout)
+ 127:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 128:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     return XPD_pxTimeService()->MatchBlock_ms(pulVarAddress, ulBitSelector,
+ 129:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****             ulMatch, pulTimeout);
+ 130:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 131:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 132:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 133:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Waits until the masked value at address differs from the input, or until timeout.
+ 134:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulVarAddress: the word address that needs to be monitored
+ 135:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 136:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulMatch: the expected value to wait for
+ 137:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulTimeout: pointer to the timeout in ms
+ 138:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 139:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE XPD_ReturnType XPD_eWaitForDiff(
+ 134              		.loc 2 140 32 is_stmt 1 view .LVU20
+ 135              	.LBB34:
+ 141:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 142:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulBitSelector,
+ 143:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulMatch,
+ 144:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t *          pulTimeout)
+ 145:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 146:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     return XPD_pxTimeService()->DiffBlock_ms(pulVarAddress, ulBitSelector,
+ 136              		.loc 2 146 5 view .LVU21
+ 137              	.LBE34:
+ 138              	.LBE33:
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for the FLASH operation to complete by polling on BUSY flag to be reset.
+ 139              		.loc 1 203 1 is_stmt 0 view .LVU22
+ 140 0004 0190     		str	r0, [sp, #4]
+ 141              	.LBB36:
+ 142              	.LBB35:
+ 143              		.loc 2 146 12 view .LVU23
+ 144 0006 FFF7FEFF 		bl	XPD_pxTimeService
+ 145              	.LVL2:
+ 146              		.loc 2 146 12 view .LVU24
+ 147 000a 0122     		movs	r2, #1
+ 148 000c 0146     		mov	r1, r0
+ 149 000e 01AB     		add	r3, sp, #4
+ 150              	.LVL3:
+ 151              		.loc 2 146 12 view .LVU25
+ 152 0010 0C48     		ldr	r0, .L21
+ 153 0012 CC68     		ldr	r4, [r1, #12]
+ 154 0014 1146     		mov	r1, r2
+ 155 0016 A047     		blx	r4
+ 156              	.LVL4:
+ 157              		.loc 2 146 12 view .LVU26
+ 158              	.LBE35:
+ 159              	.LBE36:
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 210:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Check FLASH End of Operation flag  */
+ARM GAS  /tmp/ccmY8wUW.s 			page 10
+
+
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->SR1 & FLASH_SR_EOP) != 0)
+ 160              		.loc 1 211 15 view .LVU27
+ 161 0018 0B4B     		ldr	r3, .L21+4
+ 162              	.LVL5:
+ 163              		.loc 1 211 5 is_stmt 1 view .LVU28
+ 164              		.loc 1 211 15 is_stmt 0 view .LVU29
+ 165 001a 1A69     		ldr	r2, [r3, #16]
+ 166              		.loc 1 211 8 view .LVU30
+ 167 001c D203     		lsls	r2, r2, #15
+ 168 001e 03D5     		bpl	.L13
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 213:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Clear FLASH End of Operation pending bit */
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->SR1 &= ~FLASH_SR_EOP;
+ 169              		.loc 1 214 9 is_stmt 1 view .LVU31
+ 170              		.loc 1 214 20 is_stmt 0 view .LVU32
+ 171 0020 1A69     		ldr	r2, [r3, #16]
+ 172 0022 22F48032 		bic	r2, r2, #65536
+ 173 0026 1A61     		str	r2, [r3, #16]
+ 174              	.L13:
+ 215:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (FLASH_prvCheckErrors() != FLASH_ERROR_NONE)
+ 175              		.loc 1 217 5 is_stmt 1 view .LVU33
+ 176              	.LBB37:
+ 177              	.LBI37:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 178              		.loc 1 133 24 view .LVU34
+ 179              	.LBB38:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 180              		.loc 1 136 5 view .LVU35
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 181              		.loc 1 136 33 is_stmt 0 view .LVU36
+ 182 0028 0749     		ldr	r1, .L21+4
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 183              		.loc 1 136 26 view .LVU37
+ 184 002a 084B     		ldr	r3, .L21+8
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 185              		.loc 1 136 33 view .LVU38
+ 186 002c 0A69     		ldr	r2, [r1, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 187              		.loc 1 136 39 view .LVU39
+ 188 002e 02F4C022 		and	r2, r2, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 189              		.loc 1 136 26 view .LVU40
+ 190 0032 1A61     		str	r2, [r3, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 191              		.loc 1 147 5 is_stmt 1 view .LVU41
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 192              		.loc 1 147 31 is_stmt 0 view .LVU42
+ 193 0034 1A69     		ldr	r2, [r3, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 194              		.loc 1 147 16 view .LVU43
+ 195 0036 0A61     		str	r2, [r1, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 196              		.loc 1 148 5 is_stmt 1 view .LVU44
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 197              		.loc 1 148 25 is_stmt 0 view .LVU45
+ARM GAS  /tmp/ccmY8wUW.s 			page 11
+
+
+ 198 0038 1B69     		ldr	r3, [r3, #16]
+ 199              	.LBE38:
+ 200              	.LBE37:
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         eResult = XPD_ERROR;
+ 201              		.loc 1 219 17 view .LVU46
+ 202 003a 002B     		cmp	r3, #0
+ 203              	.LVL6:
+ 220:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 221:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 204              		.loc 1 222 5 is_stmt 1 view .LVU47
+ 223:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 205              		.loc 1 223 1 is_stmt 0 view .LVU48
+ 206 003c 18BF     		it	ne
+ 207 003e 0120     		movne	r0, #1
+ 208              	.LVL7:
+ 209              		.loc 1 223 1 view .LVU49
+ 210 0040 02B0     		add	sp, sp, #8
+ 211              	.LCFI2:
+ 212              		.cfi_def_cfa_offset 8
+ 213              		@ sp needed
+ 214 0042 10BD     		pop	{r4, pc}
+ 215              	.L22:
+ 216              		.align	2
+ 217              	.L21:
+ 218 0044 10200052 		.word	1375739920
+ 219 0048 00200052 		.word	1375739904
+ 220 004c 00000000 		.word	.LANCHOR0
+ 221              		.cfi_endproc
+ 222              	.LFE153:
+ 224              		.section	.text.FLASH_eProgram,"ax",%progbits
+ 225              		.align	1
+ 226              		.p2align 2,,3
+ 227              		.global	FLASH_eProgram
+ 228              		.syntax unified
+ 229              		.thumb
+ 230              		.thumb_func
+ 231              		.fpu fpv4-sp-d16
+ 233              	FLASH_eProgram:
+ 234              	.LVL8:
+ 235              	.LFB154:
+ 224:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 225:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 226:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Programs the input data to the specified flash address.
+ 227:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  If flash memory is not erased before programming,
+ 229:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****           only 1 -> 0 bit transitions will be written.
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pvAddress: the start flash address to write
+ 231:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pucData: input data to program
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param usLength: amount of bytes to program
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         ERROR    if there were errors,
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         TIMEOUT  if timed out,
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if successful
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 238:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eProgram(void * pvAddress, const uint8_t * pucData, uint16_t usLength)
+ARM GAS  /tmp/ccmY8wUW.s 			page 12
+
+
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 236              		.loc 1 239 1 is_stmt 1 view -0
+ 237              		.cfi_startproc
+ 238              		@ args = 0, pretend = 0, frame = 8
+ 239              		@ frame_needed = 0, uses_anonymous_args = 0
+ 240:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 241:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 240              		.loc 1 241 5 view .LVU51
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 241              		.loc 1 239 1 is_stmt 0 view .LVU52
+ 242 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 243              	.LCFI3:
+ 244              		.cfi_def_cfa_offset 28
+ 245              		.cfi_offset 4, -28
+ 246              		.cfi_offset 5, -24
+ 247              		.cfi_offset 6, -20
+ 248              		.cfi_offset 7, -16
+ 249              		.cfi_offset 8, -12
+ 250              		.cfi_offset 9, -8
+ 251              		.cfi_offset 14, -4
+ 252 0004 4CF25033 		movw	r3, #50000
+ 253 0008 83B0     		sub	sp, sp, #12
+ 254              	.LCFI4:
+ 255              		.cfi_def_cfa_offset 40
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 256              		.loc 1 239 1 view .LVU53
+ 257 000a 8946     		mov	r9, r1
+ 258 000c 9046     		mov	r8, r2
+ 259 000e 0193     		str	r3, [sp, #4]
+ 260              	.LVL9:
+ 261              	.LBB53:
+ 262              	.LBI53:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 263              		.loc 1 202 16 is_stmt 1 view .LVU54
+ 264              	.LBB54:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 265              		.loc 1 207 5 view .LVU55
+ 266              	.LBB55:
+ 267              	.LBI55:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 268              		.loc 2 140 32 view .LVU56
+ 269              	.LBB56:
+ 270              		.loc 2 146 5 view .LVU57
+ 271              	.LBE56:
+ 272              	.LBE55:
+ 273              	.LBE54:
+ 274              	.LBE53:
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 275              		.loc 1 239 1 is_stmt 0 view .LVU58
+ 276 0010 0546     		mov	r5, r0
+ 277              	.LBB66:
+ 278              	.LBB63:
+ 279              	.LBB59:
+ 280              	.LBB57:
+ 281              		.loc 2 146 12 view .LVU59
+ 282 0012 FFF7FEFF 		bl	XPD_pxTimeService
+ 283              	.LVL10:
+ARM GAS  /tmp/ccmY8wUW.s 			page 13
+
+
+ 284              		.loc 2 146 12 view .LVU60
+ 285 0016 0122     		movs	r2, #1
+ 286 0018 0146     		mov	r1, r0
+ 287 001a 01AB     		add	r3, sp, #4
+ 288              	.LVL11:
+ 289              		.loc 2 146 12 view .LVU61
+ 290 001c 3348     		ldr	r0, .L43
+ 291 001e CC68     		ldr	r4, [r1, #12]
+ 292 0020 1146     		mov	r1, r2
+ 293 0022 A047     		blx	r4
+ 294              	.LVL12:
+ 295              		.loc 2 146 12 view .LVU62
+ 296              	.LBE57:
+ 297              	.LBE59:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 298              		.loc 1 211 15 view .LVU63
+ 299 0024 324B     		ldr	r3, .L43+4
+ 300              	.LBB60:
+ 301              	.LBB58:
+ 302              		.loc 2 146 12 view .LVU64
+ 303 0026 0746     		mov	r7, r0
+ 304              	.LVL13:
+ 305              		.loc 2 146 12 view .LVU65
+ 306              	.LBE58:
+ 307              	.LBE60:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 308              		.loc 1 211 5 is_stmt 1 view .LVU66
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 309              		.loc 1 211 15 is_stmt 0 view .LVU67
+ 310 0028 1A69     		ldr	r2, [r3, #16]
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 311              		.loc 1 211 8 view .LVU68
+ 312 002a D203     		lsls	r2, r2, #15
+ 313 002c 03D5     		bpl	.L24
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 314              		.loc 1 214 9 is_stmt 1 view .LVU69
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 315              		.loc 1 214 20 is_stmt 0 view .LVU70
+ 316 002e 1A69     		ldr	r2, [r3, #16]
+ 317 0030 22F48032 		bic	r2, r2, #65536
+ 318 0034 1A61     		str	r2, [r3, #16]
+ 319              	.L24:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 320              		.loc 1 217 5 is_stmt 1 view .LVU71
+ 321              	.LBB61:
+ 322              	.LBI61:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 323              		.loc 1 133 24 view .LVU72
+ 324              	.LBB62:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 325              		.loc 1 136 5 view .LVU73
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 326              		.loc 1 136 33 is_stmt 0 view .LVU74
+ 327 0036 2E4E     		ldr	r6, .L43+4
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 328              		.loc 1 136 26 view .LVU75
+ 329 0038 2E4C     		ldr	r4, .L43+8
+ARM GAS  /tmp/ccmY8wUW.s 			page 14
+
+
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 330              		.loc 1 136 33 view .LVU76
+ 331 003a 3369     		ldr	r3, [r6, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 332              		.loc 1 136 39 view .LVU77
+ 333 003c 03F4C023 		and	r3, r3, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 334              		.loc 1 136 26 view .LVU78
+ 335 0040 2361     		str	r3, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 336              		.loc 1 147 5 is_stmt 1 view .LVU79
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 337              		.loc 1 147 31 is_stmt 0 view .LVU80
+ 338 0042 2369     		ldr	r3, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 339              		.loc 1 147 16 view .LVU81
+ 340 0044 3361     		str	r3, [r6, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 341              		.loc 1 148 5 is_stmt 1 view .LVU82
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 342              		.loc 1 148 25 is_stmt 0 view .LVU83
+ 343 0046 2369     		ldr	r3, [r4, #16]
+ 344              	.LBE62:
+ 345              	.LBE61:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 346              		.loc 1 217 8 view .LVU84
+ 347 0048 23B1     		cbz	r3, .L25
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 348              		.loc 1 219 9 is_stmt 1 view .LVU85
+ 349              	.LVL14:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 350              		.loc 1 222 5 view .LVU86
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 351              		.loc 1 222 5 is_stmt 0 view .LVU87
+ 352              	.LBE63:
+ 353              	.LBE66:
+ 242:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (eResult == XPD_OK)
+ 354              		.loc 1 243 5 is_stmt 1 view .LVU88
+ 355              	.LBB67:
+ 356              	.LBB64:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 357              		.loc 1 219 17 is_stmt 0 view .LVU89
+ 358 004a 0127     		movs	r7, #1
+ 359              	.LVL15:
+ 360              	.L26:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 361              		.loc 1 219 17 view .LVU90
+ 362              	.LBE64:
+ 363              	.LBE67:
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.buffer = (void*)pucData;
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 249:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ARM GAS  /tmp/ccmY8wUW.s 			page 15
+
+
+ 251:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 252:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Enable flash programming */
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= FLASH_CR_PG;
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         while (flash_xHandle.MemStream.length > 0)
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             XPD_vWriteFromStream(flash_xHandle.Address, &flash_xHandle.MemStream);
+ 258:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Wait for last operation to be completed */
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 261:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 262:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* In case of error, stop flash programming */
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             if (eResult != XPD_OK)
+ 264:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 265:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 267:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Increment flash address */
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.Address += flash_xHandle.MemStream.size;
+ 270:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 271:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable flash programming */
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_CR_PG;
+ 274:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Flush the caches to be sure of the data consistency */
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvFlushCaches();
+ 277:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 278:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 279:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 364              		.loc 1 279 5 is_stmt 1 view .LVU91
+ 280:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 365              		.loc 1 280 1 is_stmt 0 view .LVU92
+ 366 004c 3846     		mov	r0, r7
+ 367 004e 03B0     		add	sp, sp, #12
+ 368              	.LCFI5:
+ 369              		.cfi_remember_state
+ 370              		.cfi_def_cfa_offset 28
+ 371              		@ sp needed
+ 372 0050 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 373              	.LVL16:
+ 374              	.L25:
+ 375              	.LCFI6:
+ 376              		.cfi_restore_state
+ 377              	.LBB68:
+ 378              	.LBB65:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 379              		.loc 1 222 5 is_stmt 1 view .LVU93
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 380              		.loc 1 222 5 is_stmt 0 view .LVU94
+ 381              	.LBE65:
+ 382              	.LBE68:
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 383              		.loc 1 243 5 is_stmt 1 view .LVU95
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 384              		.loc 1 243 8 is_stmt 0 view .LVU96
+ 385 0054 002F     		cmp	r7, #0
+ 386 0056 F9D1     		bne	.L26
+ARM GAS  /tmp/ccmY8wUW.s 			page 16
+
+
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 387              		.loc 1 245 9 is_stmt 1 view .LVU97
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 388              		.loc 1 246 76 is_stmt 0 view .LVU98
+ 389 0058 6289     		ldrh	r2, [r4, #10]
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 390              		.loc 1 253 20 view .LVU99
+ 391 005a F368     		ldr	r3, [r6, #12]
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 392              		.loc 1 255 15 view .LVU100
+ 393 005c 4245     		cmp	r2, r8
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 394              		.loc 1 247 31 view .LVU101
+ 395 005e 2560     		str	r5, [r4]
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 396              		.loc 1 253 20 view .LVU102
+ 397 0060 43F00203 		orr	r3, r3, #2
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 398              		.loc 1 245 40 view .LVU103
+ 399 0064 C4F80490 		str	r9, [r4, #4]
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 400              		.loc 1 246 9 is_stmt 1 view .LVU104
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 401              		.loc 1 246 40 is_stmt 0 view .LVU105
+ 402 0068 B8FBF2F1 		udiv	r1, r8, r2
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 403              		.loc 1 253 20 view .LVU106
+ 404 006c F360     		str	r3, [r6, #12]
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 405              		.loc 1 246 40 view .LVU107
+ 406 006e 2181     		strh	r1, [r4, #8]	@ movhi
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 407              		.loc 1 247 9 is_stmt 1 view .LVU108
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 408              		.loc 1 250 9 view .LVU109
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 409              		.loc 1 155 3 view .LVU110
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 410              		.loc 1 253 9 view .LVU111
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 411              		.loc 1 255 9 view .LVU112
+ 412              	.LVL17:
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 413              		.loc 1 255 15 view .LVU113
+ 414 0070 23D8     		bhi	.L28
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 415              		.loc 1 257 13 is_stmt 0 view .LVU114
+ 416 0072 04F10409 		add	r9, r4, #4
+ 417              	.LVL18:
+ 418              	.LBB69:
+ 419              	.LBB70:
+ 420              	.LBB71:
+ 421              	.LBB72:
+ 422              		.loc 2 146 12 view .LVU115
+ 423 0076 DFF87480 		ldr	r8, .L43
+ 424              	.LVL19:
+ 425              	.L27:
+ARM GAS  /tmp/ccmY8wUW.s 			page 17
+
+
+ 426              		.loc 2 146 12 view .LVU116
+ 427              	.LBE72:
+ 428              	.LBE71:
+ 429              	.LBE70:
+ 430              	.LBE69:
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 431              		.loc 1 257 13 is_stmt 1 view .LVU117
+ 432 007a 2846     		mov	r0, r5
+ 433 007c 4946     		mov	r1, r9
+ 434 007e FFF7FEFF 		bl	XPD_vWriteFromStream
+ 435              	.LVL20:
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 436              		.loc 1 260 13 view .LVU118
+ 437 0082 4CF25033 		movw	r3, #50000
+ 438 0086 0193     		str	r3, [sp, #4]
+ 439              	.LVL21:
+ 440              	.LBB86:
+ 441              	.LBI69:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 442              		.loc 1 202 16 view .LVU119
+ 443              	.LBB81:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 444              		.loc 1 207 5 view .LVU120
+ 445              	.LBB75:
+ 446              	.LBI71:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 447              		.loc 2 140 32 view .LVU121
+ 448              	.LBB73:
+ 449              		.loc 2 146 5 view .LVU122
+ 450              		.loc 2 146 12 is_stmt 0 view .LVU123
+ 451 0088 FFF7FEFF 		bl	XPD_pxTimeService
+ 452              	.LVL22:
+ 453              		.loc 2 146 12 view .LVU124
+ 454 008c 0122     		movs	r2, #1
+ 455 008e 0146     		mov	r1, r0
+ 456 0090 01AB     		add	r3, sp, #4
+ 457              	.LVL23:
+ 458              		.loc 2 146 12 view .LVU125
+ 459 0092 4046     		mov	r0, r8
+ 460 0094 CD68     		ldr	r5, [r1, #12]
+ 461 0096 1146     		mov	r1, r2
+ 462 0098 A847     		blx	r5
+ 463              	.LVL24:
+ 464              		.loc 2 146 12 view .LVU126
+ 465              	.LBE73:
+ 466              	.LBE75:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 467              		.loc 1 214 9 is_stmt 1 view .LVU127
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 468              		.loc 1 217 5 view .LVU128
+ 469              	.LBB76:
+ 470              	.LBI76:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 471              		.loc 1 133 24 view .LVU129
+ 472              	.LBB77:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 473              		.loc 1 136 5 view .LVU130
+ARM GAS  /tmp/ccmY8wUW.s 			page 18
+
+
+ 474              	.LBE77:
+ 475              	.LBE76:
+ 476              	.LBE81:
+ 477              	.LBE86:
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 478              		.loc 1 269 13 view .LVU131
+ 479              	.LBB87:
+ 480              	.LBB82:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 481              		.loc 1 211 15 is_stmt 0 view .LVU132
+ 482 009a 3369     		ldr	r3, [r6, #16]
+ 483              	.LVL25:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 484              		.loc 1 211 5 is_stmt 1 view .LVU133
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 485              		.loc 1 222 5 view .LVU134
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 486              		.loc 1 222 5 is_stmt 0 view .LVU135
+ 487              	.LBE82:
+ 488              	.LBE87:
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 489              		.loc 1 263 13 is_stmt 1 view .LVU136
+ 490              	.LBB88:
+ 491              	.LBB83:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 492              		.loc 1 211 8 is_stmt 0 view .LVU137
+ 493 009c DB03     		lsls	r3, r3, #15
+ 494 009e 03D5     		bpl	.L29
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 495              		.loc 1 214 20 view .LVU138
+ 496 00a0 3369     		ldr	r3, [r6, #16]
+ 497 00a2 23F48033 		bic	r3, r3, #65536
+ 498 00a6 3361     		str	r3, [r6, #16]
+ 499              	.L29:
+ 500              	.LBB79:
+ 501              	.LBB78:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 502              		.loc 1 136 33 view .LVU139
+ 503 00a8 3369     		ldr	r3, [r6, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 504              		.loc 1 136 39 view .LVU140
+ 505 00aa 03F4C023 		and	r3, r3, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 506              		.loc 1 136 26 view .LVU141
+ 507 00ae 2361     		str	r3, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 508              		.loc 1 147 5 is_stmt 1 view .LVU142
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 509              		.loc 1 147 31 is_stmt 0 view .LVU143
+ 510 00b0 2369     		ldr	r3, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 511              		.loc 1 147 16 view .LVU144
+ 512 00b2 3361     		str	r3, [r6, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 513              		.loc 1 148 5 is_stmt 1 view .LVU145
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 514              		.loc 1 148 25 is_stmt 0 view .LVU146
+ARM GAS  /tmp/ccmY8wUW.s 			page 19
+
+
+ 515 00b4 2369     		ldr	r3, [r4, #16]
+ 516              	.LBE78:
+ 517              	.LBE79:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 518              		.loc 1 217 8 view .LVU147
+ 519 00b6 4BB1     		cbz	r3, .L30
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 520              		.loc 1 219 9 is_stmt 1 view .LVU148
+ 521              	.LVL26:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 522              		.loc 1 222 5 view .LVU149
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 523              		.loc 1 222 5 is_stmt 0 view .LVU150
+ 524              	.LBE83:
+ 525              	.LBE88:
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 526              		.loc 1 263 13 is_stmt 1 view .LVU151
+ 527              	.LBB89:
+ 528              	.LBB84:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 529              		.loc 1 219 17 is_stmt 0 view .LVU152
+ 530 00b8 0127     		movs	r7, #1
+ 531              	.LVL27:
+ 532              	.L28:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 533              		.loc 1 219 17 view .LVU153
+ 534              	.LBE84:
+ 535              	.LBE89:
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 536              		.loc 1 273 9 is_stmt 1 view .LVU154
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 537              		.loc 1 273 20 is_stmt 0 view .LVU155
+ 538 00ba 0D4A     		ldr	r2, .L43+4
+ 539 00bc D368     		ldr	r3, [r2, #12]
+ 540 00be 23F00203 		bic	r3, r3, #2
+ 541 00c2 D360     		str	r3, [r2, #12]
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 542              		.loc 1 276 9 is_stmt 1 view .LVU156
+ 543              	.LBB90:
+ 544              	.LBI90:
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 545              		.loc 1 159 13 view .LVU157
+ 546              	.LBB91:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 547              		.loc 1 161 1 view .LVU158
+ 548              	.L42:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 549              		.loc 1 161 1 is_stmt 0 view .LVU159
+ 550              	.LBE91:
+ 551              	.LBE90:
+ 279:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 552              		.loc 1 279 5 is_stmt 1 view .LVU160
+ 553              		.loc 1 280 1 is_stmt 0 view .LVU161
+ 554 00c4 3846     		mov	r0, r7
+ 555 00c6 03B0     		add	sp, sp, #12
+ 556              	.LCFI7:
+ 557              		.cfi_remember_state
+ARM GAS  /tmp/ccmY8wUW.s 			page 20
+
+
+ 558              		.cfi_def_cfa_offset 28
+ 559              		@ sp needed
+ 560 00c8 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 561              	.LVL28:
+ 562              	.L30:
+ 563              	.LCFI8:
+ 564              		.cfi_restore_state
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 565              		.loc 1 263 16 view .LVU162
+ 566 00cc 60B9     		cbnz	r0, .L32
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 567              		.loc 1 269 35 view .LVU163
+ 568 00ce 2568     		ldr	r5, [r4]
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 569              		.loc 1 269 61 view .LVU164
+ 570 00d0 6089     		ldrh	r0, [r4, #10]
+ 571              	.LVL29:
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 572              		.loc 1 255 15 view .LVU165
+ 573 00d2 2389     		ldrh	r3, [r4, #8]
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 574              		.loc 1 269 35 view .LVU166
+ 575 00d4 0544     		add	r5, r5, r0
+ 576 00d6 2560     		str	r5, [r4]
+ 577              	.LVL30:
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 578              		.loc 1 255 15 is_stmt 1 view .LVU167
+ 579 00d8 002B     		cmp	r3, #0
+ 580 00da CED1     		bne	.L27
+ 581              	.LVL31:
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 582              		.loc 1 273 9 view .LVU168
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 583              		.loc 1 273 20 is_stmt 0 view .LVU169
+ 584 00dc 044A     		ldr	r2, .L43+4
+ 585 00de D368     		ldr	r3, [r2, #12]
+ 586 00e0 23F00203 		bic	r3, r3, #2
+ 587 00e4 D360     		str	r3, [r2, #12]
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 588              		.loc 1 276 9 is_stmt 1 view .LVU170
+ 589              	.LBB93:
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 590              		.loc 1 159 13 view .LVU171
+ 591              	.LBB92:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 592              		.loc 1 161 1 view .LVU172
+ 593 00e6 EDE7     		b	.L42
+ 594              	.LVL32:
+ 595              	.L32:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 596              		.loc 1 161 1 is_stmt 0 view .LVU173
+ 597              	.LBE92:
+ 598              	.LBE93:
+ 599              	.LBB94:
+ 600              	.LBB85:
+ 601              	.LBB80:
+ 602              	.LBB74:
+ARM GAS  /tmp/ccmY8wUW.s 			page 21
+
+
+ 603              		.loc 2 146 12 view .LVU174
+ 604 00e8 0746     		mov	r7, r0
+ 605 00ea E6E7     		b	.L28
+ 606              	.L44:
+ 607              		.align	2
+ 608              	.L43:
+ 609 00ec 10200052 		.word	1375739920
+ 610 00f0 00200052 		.word	1375739904
+ 611 00f4 00000000 		.word	.LANCHOR0
+ 612              	.LBE74:
+ 613              	.LBE80:
+ 614              	.LBE85:
+ 615              	.LBE94:
+ 616              		.cfi_endproc
+ 617              	.LFE154:
+ 619              		.section	.text.FLASH_eProgram_IT,"ax",%progbits
+ 620              		.align	1
+ 621              		.p2align 2,,3
+ 622              		.global	FLASH_eProgram_IT
+ 623              		.syntax unified
+ 624              		.thumb
+ 625              		.thumb_func
+ 626              		.fpu fpv4-sp-d16
+ 628              	FLASH_eProgram_IT:
+ 629              	.LVL33:
+ 630              	.LFB155:
+ 281:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 283:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Programs the input data to the specified flash address in interrupt (non-blocking) mode.
+ 284:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 285:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  If flash memory is not erased before programming,
+ 286:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****           only 1 -> 0 bit transitions will be written.
+ 287:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pvAddress: the start flash address to write
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pucData: input data to program
+ 289:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param usLength: amount of bytes to program
+ 290:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ 291:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if programming started
+ 292:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 293:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eProgram_IT(void * pvAddress, const uint8_t * pucData, uint16_t usLength)
+ 294:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 631              		.loc 1 294 1 is_stmt 1 view -0
+ 632              		.cfi_startproc
+ 633              		@ args = 0, pretend = 0, frame = 0
+ 634              		@ frame_needed = 0, uses_anonymous_args = 0
+ 295:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 635              		.loc 1 295 5 view .LVU176
+ 296:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 297:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Only start if no ongoing operations are present */
+ 298:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->SR1 & FLASH_SR_BSY_Msk) == 0)
+ 636              		.loc 1 298 5 view .LVU177
+ 294:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 637              		.loc 1 294 1 is_stmt 0 view .LVU178
+ 638 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 639              	.LCFI9:
+ 640              		.cfi_def_cfa_offset 24
+ 641              		.cfi_offset 3, -24
+ 642              		.cfi_offset 4, -20
+ARM GAS  /tmp/ccmY8wUW.s 			page 22
+
+
+ 643              		.cfi_offset 5, -16
+ 644              		.cfi_offset 6, -12
+ 645              		.cfi_offset 7, -8
+ 646              		.cfi_offset 14, -4
+ 647              		.loc 1 298 15 view .LVU179
+ 648 0002 0F4D     		ldr	r5, .L50
+ 649 0004 2C69     		ldr	r4, [r5, #16]
+ 650              		.loc 1 298 8 view .LVU180
+ 651 0006 14F00104 		ands	r4, r4, #1
+ 652 000a 01D0     		beq	.L49
+ 295:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 653              		.loc 1 295 20 view .LVU181
+ 654 000c 0220     		movs	r0, #2
+ 655              	.LVL34:
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.buffer = (void*)pucData;
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 304:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ 306:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 307:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Enable interrupts */
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= (FLASH_CR_EOPIE | FLASH_CR_ERRIE);
+ 309:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 310:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Enable flash programming */
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= FLASH_CR_PG;
+ 312:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 313:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         XPD_vWriteFromStream(flash_xHandle.Address, &flash_xHandle.MemStream);
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         eResult = XPD_OK;
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 656              		.loc 1 317 5 is_stmt 1 view .LVU182
+ 318:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 657              		.loc 1 318 1 is_stmt 0 view .LVU183
+ 658 000e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 659              	.LVL35:
+ 660              	.L49:
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 661              		.loc 1 300 9 is_stmt 1 view .LVU184
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 662              		.loc 1 308 20 is_stmt 0 view .LVU185
+ 663 0010 D5F80CC0 		ldr	ip, [r5, #12]
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 664              		.loc 1 300 40 view .LVU186
+ 665 0014 0B4E     		ldr	r6, .L50+4
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 666              		.loc 1 308 20 view .LVU187
+ 667 0016 0C4F     		ldr	r7, .L50+8
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usLength / flash_xHandle.MemStream.size;
+ 668              		.loc 1 300 40 view .LVU188
+ 669 0018 7160     		str	r1, [r6, #4]
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 670              		.loc 1 301 9 is_stmt 1 view .LVU189
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 671              		.loc 1 302 31 is_stmt 0 view .LVU190
+ARM GAS  /tmp/ccmY8wUW.s 			page 23
+
+
+ 672 001a 3146     		mov	r1, r6
+ 673              	.LVL36:
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 674              		.loc 1 308 20 view .LVU191
+ 675 001c 4CEA0707 		orr	r7, ip, r7
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 676              		.loc 1 301 40 view .LVU192
+ 677 0020 B6F80AC0 		ldrh	ip, [r6, #10]
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 678              		.loc 1 302 31 view .LVU193
+ 679 0024 41F8040B 		str	r0, [r1], #4
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 680              		.loc 1 308 20 view .LVU194
+ 681 0028 EF60     		str	r7, [r5, #12]
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 682              		.loc 1 311 20 view .LVU195
+ 683 002a EB68     		ldr	r3, [r5, #12]
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 684              		.loc 1 301 40 view .LVU196
+ 685 002c B2FBFCF2 		udiv	r2, r2, ip
+ 686              	.LVL37:
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 687              		.loc 1 311 20 view .LVU197
+ 688 0030 43F00203 		orr	r3, r3, #2
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 689              		.loc 1 301 40 view .LVU198
+ 690 0034 3281     		strh	r2, [r6, #8]	@ movhi
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 691              		.loc 1 302 9 is_stmt 1 view .LVU199
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 692              		.loc 1 305 9 view .LVU200
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 693              		.loc 1 155 3 view .LVU201
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 694              		.loc 1 308 9 view .LVU202
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 695              		.loc 1 311 9 view .LVU203
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 696              		.loc 1 311 20 is_stmt 0 view .LVU204
+ 697 0036 EB60     		str	r3, [r5, #12]
+ 313:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 698              		.loc 1 313 9 is_stmt 1 view .LVU205
+ 699 0038 FFF7FEFF 		bl	XPD_vWriteFromStream
+ 700              	.LVL38:
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 701              		.loc 1 315 9 view .LVU206
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 702              		.loc 1 315 17 is_stmt 0 view .LVU207
+ 703 003c 2046     		mov	r0, r4
+ 704              	.LVL39:
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 705              		.loc 1 317 5 is_stmt 1 view .LVU208
+ 706              		.loc 1 318 1 is_stmt 0 view .LVU209
+ 707 003e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 708              	.L51:
+ 709              		.align	2
+ 710              	.L50:
+ARM GAS  /tmp/ccmY8wUW.s 			page 24
+
+
+ 711 0040 00200052 		.word	1375739904
+ 712 0044 00000000 		.word	.LANCHOR0
+ 713 0048 00000102 		.word	33619968
+ 714              		.cfi_endproc
+ 715              	.LFE155:
+ 717              		.section	.text.FLASH_eEraseBank,"ax",%progbits
+ 718              		.align	1
+ 719              		.p2align 2,,3
+ 720              		.global	FLASH_eEraseBank
+ 721              		.syntax unified
+ 722              		.thumb
+ 723              		.thumb_func
+ 724              		.fpu fpv4-sp-d16
+ 726              	FLASH_eEraseBank:
+ 727              	.LVL40:
+ 728              	.LFB156:
+ 319:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 320:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 321:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Performs a mass erase on a flash memory bank.
+ 322:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 323:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param Bank: The selected memory bank (1 or 2)
+ 324:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ 325:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         ERROR    if there were errors,
+ 326:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         TIMEOUT  if timed out,
+ 327:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if successful
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 329:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eEraseBank(uint8_t ucBank)
+ 330:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 729              		.loc 1 330 1 is_stmt 1 view -0
+ 730              		.cfi_startproc
+ 731              		@ args = 0, pretend = 0, frame = 8
+ 732              		@ frame_needed = 0, uses_anonymous_args = 0
+ 331:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 332:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 733              		.loc 1 332 5 view .LVU211
+ 330:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 734              		.loc 1 330 1 is_stmt 0 view .LVU212
+ 735 0000 70B5     		push	{r4, r5, r6, lr}
+ 736              	.LCFI10:
+ 737              		.cfi_def_cfa_offset 16
+ 738              		.cfi_offset 4, -16
+ 739              		.cfi_offset 5, -12
+ 740              		.cfi_offset 6, -8
+ 741              		.cfi_offset 14, -4
+ 742 0002 4CF25033 		movw	r3, #50000
+ 743 0006 82B0     		sub	sp, sp, #8
+ 744              	.LCFI11:
+ 745              		.cfi_def_cfa_offset 24
+ 746 0008 0193     		str	r3, [sp, #4]
+ 747              	.LVL41:
+ 748              	.LBB107:
+ 749              	.LBI107:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 750              		.loc 1 202 16 is_stmt 1 view .LVU213
+ 751              	.LBB108:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 752              		.loc 1 207 5 view .LVU214
+ARM GAS  /tmp/ccmY8wUW.s 			page 25
+
+
+ 753              	.LBB109:
+ 754              	.LBI109:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 755              		.loc 2 140 32 view .LVU215
+ 756              	.LBB110:
+ 757              		.loc 2 146 5 view .LVU216
+ 758              		.loc 2 146 12 is_stmt 0 view .LVU217
+ 759 000a FFF7FEFF 		bl	XPD_pxTimeService
+ 760              	.LVL42:
+ 761              		.loc 2 146 12 view .LVU218
+ 762 000e 0122     		movs	r2, #1
+ 763 0010 0146     		mov	r1, r0
+ 764 0012 01AB     		add	r3, sp, #4
+ 765              	.LVL43:
+ 766              		.loc 2 146 12 view .LVU219
+ 767 0014 2448     		ldr	r0, .L67
+ 768 0016 CC68     		ldr	r4, [r1, #12]
+ 769 0018 1146     		mov	r1, r2
+ 770 001a A047     		blx	r4
+ 771              	.LVL44:
+ 772              		.loc 2 146 12 view .LVU220
+ 773              	.LBE110:
+ 774              	.LBE109:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 775              		.loc 1 211 15 view .LVU221
+ 776 001c 234B     		ldr	r3, .L67+4
+ 777              	.LVL45:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 778              		.loc 1 211 5 is_stmt 1 view .LVU222
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 779              		.loc 1 211 15 is_stmt 0 view .LVU223
+ 780 001e 1A69     		ldr	r2, [r3, #16]
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 781              		.loc 1 211 8 view .LVU224
+ 782 0020 D203     		lsls	r2, r2, #15
+ 783 0022 03D5     		bpl	.L53
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 784              		.loc 1 214 9 is_stmt 1 view .LVU225
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 785              		.loc 1 214 20 is_stmt 0 view .LVU226
+ 786 0024 1A69     		ldr	r2, [r3, #16]
+ 787 0026 22F48032 		bic	r2, r2, #65536
+ 788 002a 1A61     		str	r2, [r3, #16]
+ 789              	.L53:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 790              		.loc 1 217 5 is_stmt 1 view .LVU227
+ 791              	.LBB111:
+ 792              	.LBI111:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 793              		.loc 1 133 24 view .LVU228
+ 794              	.LBB112:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 795              		.loc 1 136 5 view .LVU229
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 796              		.loc 1 136 33 is_stmt 0 view .LVU230
+ 797 002c 1F4C     		ldr	r4, .L67+4
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ARM GAS  /tmp/ccmY8wUW.s 			page 26
+
+
+ 798              		.loc 1 136 26 view .LVU231
+ 799 002e 204D     		ldr	r5, .L67+8
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 800              		.loc 1 136 33 view .LVU232
+ 801 0030 2369     		ldr	r3, [r4, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 802              		.loc 1 136 39 view .LVU233
+ 803 0032 03F4C023 		and	r3, r3, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 804              		.loc 1 136 26 view .LVU234
+ 805 0036 2B61     		str	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 806              		.loc 1 147 5 is_stmt 1 view .LVU235
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 807              		.loc 1 147 31 is_stmt 0 view .LVU236
+ 808 0038 2B69     		ldr	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 809              		.loc 1 147 16 view .LVU237
+ 810 003a 2361     		str	r3, [r4, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 811              		.loc 1 148 5 is_stmt 1 view .LVU238
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 812              		.loc 1 148 25 is_stmt 0 view .LVU239
+ 813 003c 2B69     		ldr	r3, [r5, #16]
+ 814              	.LBE112:
+ 815              	.LBE111:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 816              		.loc 1 217 8 view .LVU240
+ 817 003e 13B1     		cbz	r3, .L54
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 818              		.loc 1 219 9 is_stmt 1 view .LVU241
+ 819              	.LVL46:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 820              		.loc 1 222 5 view .LVU242
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 821              		.loc 1 222 5 is_stmt 0 view .LVU243
+ 822              	.LBE108:
+ 823              	.LBE107:
+ 333:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 334:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (eResult == XPD_OK)
+ 824              		.loc 1 334 5 is_stmt 1 view .LVU244
+ 825              	.LBB115:
+ 826              	.LBB113:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 827              		.loc 1 219 17 is_stmt 0 view .LVU245
+ 828 0040 0120     		movs	r0, #1
+ 829              	.LVL47:
+ 830              	.L55:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 831              		.loc 1 219 17 view .LVU246
+ 832              	.LBE113:
+ 833              	.LBE115:
+ 335:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 336:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 337:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ 338:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 339:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_CR_MER1
+ARM GAS  /tmp/ccmY8wUW.s 			page 27
+
+
+ 340:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         if (ucBank == 2)
+ 341:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 342:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_OPTCR_DB1M
+ 343:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Check if device flash size is 1MB, bank2 is only used when DB1M is set */
+ 344:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             if ((DEVICE_FLASH_SIZE_kB == 1024) && ((FLASH->OPTCR & FLASH_OPTCR_DB1M) == 0))
+ 345:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 346:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 eResult = XPD_ERROR;
+ 347:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 348:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             else
+ 349:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 350:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 351:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* Bank2 is selected */
+ 352:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 FLASH->CR1 |= FLASH_CR_START;
+ 353:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 354:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* Bank2 start address is at half of the range */
+ 355:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 flash_xHandle.Address = FLASH_BANK2_ADDRESS;
+ 356:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 357:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 358:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 FLASH_REG_BIT(CR,MER1) = 0;
+ 359:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 360:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 361:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         else
+ 362:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 363:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 364:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Bank1 is selected */
+ 365:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->OPTCR |= FLASH_OPTCR_MER;
+ 366:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 367:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 368:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.Address = FLASH_BANK1_ADDRESS;
+ 369:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 370:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->OPTCR &= ~FLASH_OPTCR_MER;
+ 372:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 373:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 374:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Flush the caches to be sure of the data consistency */
+ 375:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvFlushCaches();
+ 376:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 378:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 834              		.loc 1 378 5 is_stmt 1 view .LVU247
+ 379:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 835              		.loc 1 379 1 is_stmt 0 view .LVU248
+ 836 0042 02B0     		add	sp, sp, #8
+ 837              	.LCFI12:
+ 838              		.cfi_remember_state
+ 839              		.cfi_def_cfa_offset 16
+ 840              		@ sp needed
+ 841 0044 70BD     		pop	{r4, r5, r6, pc}
+ 842              	.LVL48:
+ 843              	.L54:
+ 844              	.LCFI13:
+ 845              		.cfi_restore_state
+ 846              	.LBB116:
+ 847              	.LBB114:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 848              		.loc 1 222 5 is_stmt 1 view .LVU249
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ARM GAS  /tmp/ccmY8wUW.s 			page 28
+
+
+ 849              		.loc 1 222 5 is_stmt 0 view .LVU250
+ 850              	.LBE114:
+ 851              	.LBE116:
+ 334:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 852              		.loc 1 334 5 is_stmt 1 view .LVU251
+ 334:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 853              		.loc 1 334 8 is_stmt 0 view .LVU252
+ 854 0046 0028     		cmp	r0, #0
+ 855 0048 FBD1     		bne	.L55
+ 337:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 856              		.loc 1 337 9 is_stmt 1 view .LVU253
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 857              		.loc 1 155 3 view .LVU254
+ 365:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 858              		.loc 1 365 13 view .LVU255
+ 365:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 859              		.loc 1 365 26 is_stmt 0 view .LVU256
+ 860 004a A369     		ldr	r3, [r4, #24]
+ 368:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 861              		.loc 1 368 35 view .LVU257
+ 862 004c 4FF00061 		mov	r1, #134217728
+ 863 0050 4CF25032 		movw	r2, #50000
+ 365:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 864              		.loc 1 365 26 view .LVU258
+ 865 0054 43F01003 		orr	r3, r3, #16
+ 866 0058 A361     		str	r3, [r4, #24]
+ 366:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 867              		.loc 1 366 13 is_stmt 1 view .LVU259
+ 366:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 868              		.loc 1 366 24 is_stmt 0 view .LVU260
+ 869 005a E368     		ldr	r3, [r4, #12]
+ 870 005c 43F08003 		orr	r3, r3, #128
+ 871 0060 E360     		str	r3, [r4, #12]
+ 368:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 872              		.loc 1 368 13 is_stmt 1 view .LVU261
+ 368:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 873              		.loc 1 368 35 is_stmt 0 view .LVU262
+ 874 0062 2960     		str	r1, [r5]
+ 369:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 875              		.loc 1 369 13 is_stmt 1 view .LVU263
+ 876 0064 0192     		str	r2, [sp, #4]
+ 877              	.LVL49:
+ 878              	.LBB117:
+ 879              	.LBI117:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 880              		.loc 1 202 16 view .LVU264
+ 881              	.LBB118:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 882              		.loc 1 207 5 view .LVU265
+ 883              	.LBB119:
+ 884              	.LBI119:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 885              		.loc 2 140 32 view .LVU266
+ 886              	.LBB120:
+ 887              		.loc 2 146 5 view .LVU267
+ 888              		.loc 2 146 12 is_stmt 0 view .LVU268
+ 889 0066 FFF7FEFF 		bl	XPD_pxTimeService
+ARM GAS  /tmp/ccmY8wUW.s 			page 29
+
+
+ 890              	.LVL50:
+ 891              		.loc 2 146 12 view .LVU269
+ 892 006a 0122     		movs	r2, #1
+ 893 006c 0146     		mov	r1, r0
+ 894 006e 01AB     		add	r3, sp, #4
+ 895              	.LVL51:
+ 896              		.loc 2 146 12 view .LVU270
+ 897 0070 0D48     		ldr	r0, .L67
+ 898 0072 CE68     		ldr	r6, [r1, #12]
+ 899 0074 1146     		mov	r1, r2
+ 900 0076 B047     		blx	r6
+ 901              	.LVL52:
+ 902              		.loc 2 146 12 view .LVU271
+ 903              	.LBE120:
+ 904              	.LBE119:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 905              		.loc 1 211 15 view .LVU272
+ 906 0078 2369     		ldr	r3, [r4, #16]
+ 907              	.LVL53:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 908              		.loc 1 211 5 is_stmt 1 view .LVU273
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 909              		.loc 1 211 8 is_stmt 0 view .LVU274
+ 910 007a DB03     		lsls	r3, r3, #15
+ 911 007c 03D5     		bpl	.L56
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 912              		.loc 1 214 9 is_stmt 1 view .LVU275
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 913              		.loc 1 214 20 is_stmt 0 view .LVU276
+ 914 007e 2369     		ldr	r3, [r4, #16]
+ 915 0080 23F48033 		bic	r3, r3, #65536
+ 916 0084 2361     		str	r3, [r4, #16]
+ 917              	.L56:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 918              		.loc 1 217 5 is_stmt 1 view .LVU277
+ 919              	.LBB121:
+ 920              	.LBI121:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 921              		.loc 1 133 24 view .LVU278
+ 922              	.LBB122:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 923              		.loc 1 136 5 view .LVU279
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 924              		.loc 1 136 33 is_stmt 0 view .LVU280
+ 925 0086 094B     		ldr	r3, .L67+4
+ 926 0088 1A69     		ldr	r2, [r3, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 927              		.loc 1 136 39 view .LVU281
+ 928 008a 02F4C022 		and	r2, r2, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 929              		.loc 1 136 26 view .LVU282
+ 930 008e 2A61     		str	r2, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 931              		.loc 1 147 5 is_stmt 1 view .LVU283
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 932              		.loc 1 147 31 is_stmt 0 view .LVU284
+ 933 0090 2A69     		ldr	r2, [r5, #16]
+ARM GAS  /tmp/ccmY8wUW.s 			page 30
+
+
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 934              		.loc 1 147 16 view .LVU285
+ 935 0092 1A61     		str	r2, [r3, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 936              		.loc 1 148 5 is_stmt 1 view .LVU286
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 937              		.loc 1 148 25 is_stmt 0 view .LVU287
+ 938 0094 2969     		ldr	r1, [r5, #16]
+ 939              	.LBE122:
+ 940              	.LBE121:
+ 941              	.LBE118:
+ 942              	.LBE117:
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 943              		.loc 1 371 26 view .LVU288
+ 944 0096 9A69     		ldr	r2, [r3, #24]
+ 945              	.LBB125:
+ 946              	.LBB123:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 947              		.loc 1 219 17 view .LVU289
+ 948 0098 0029     		cmp	r1, #0
+ 949              	.LBE123:
+ 950              	.LBE125:
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 951              		.loc 1 371 26 view .LVU290
+ 952 009a 22F01002 		bic	r2, r2, #16
+ 953              	.LBB126:
+ 954              	.LBB124:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 955              		.loc 1 219 17 view .LVU291
+ 956 009e 18BF     		it	ne
+ 957 00a0 0120     		movne	r0, #1
+ 958              	.LVL54:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 959              		.loc 1 222 5 is_stmt 1 view .LVU292
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 960              		.loc 1 222 5 is_stmt 0 view .LVU293
+ 961              	.LBE124:
+ 962              	.LBE126:
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 963              		.loc 1 371 13 is_stmt 1 view .LVU294
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 964              		.loc 1 371 26 is_stmt 0 view .LVU295
+ 965 00a2 9A61     		str	r2, [r3, #24]
+ 375:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 966              		.loc 1 375 9 is_stmt 1 view .LVU296
+ 378:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 967              		.loc 1 378 5 view .LVU297
+ 968              		.loc 1 379 1 is_stmt 0 view .LVU298
+ 969 00a4 02B0     		add	sp, sp, #8
+ 970              	.LCFI14:
+ 971              		.cfi_def_cfa_offset 16
+ 972              		@ sp needed
+ 973 00a6 70BD     		pop	{r4, r5, r6, pc}
+ 974              	.L68:
+ 975              		.align	2
+ 976              	.L67:
+ 977 00a8 10200052 		.word	1375739920
+ARM GAS  /tmp/ccmY8wUW.s 			page 31
+
+
+ 978 00ac 00200052 		.word	1375739904
+ 979 00b0 00000000 		.word	.LANCHOR0
+ 980              		.cfi_endproc
+ 981              	.LFE156:
+ 983              		.section	.text.FLASH_eEraseBank_IT,"ax",%progbits
+ 984              		.align	1
+ 985              		.p2align 2,,3
+ 986              		.global	FLASH_eEraseBank_IT
+ 987              		.syntax unified
+ 988              		.thumb
+ 989              		.thumb_func
+ 990              		.fpu fpv4-sp-d16
+ 992              	FLASH_eEraseBank_IT:
+ 993              	.LVL55:
+ 994              	.LFB157:
+ 380:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 381:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 382:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Performs a mass erase on a flash memory bank in interrupt (non-blocking) mode.
+ 383:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 384:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param Bank: The selected memory bank (1 or 2)
+ 385:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ 386:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if mass erase started
+ 387:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 388:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eEraseBank_IT(uint8_t ucBank)
+ 389:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 995              		.loc 1 389 1 is_stmt 1 view -0
+ 996              		.cfi_startproc
+ 997              		@ args = 0, pretend = 0, frame = 0
+ 998              		@ frame_needed = 0, uses_anonymous_args = 0
+ 999              		@ link register save eliminated.
+ 390:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 1000              		.loc 1 390 5 view .LVU300
+ 391:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 392:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Only start if no ongoing operations are present */
+ 393:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->SR1 & FLASH_SR_BSY_Msk) == 0)
+ 1001              		.loc 1 393 5 view .LVU301
+ 1002              		.loc 1 393 15 is_stmt 0 view .LVU302
+ 1003 0000 0C4B     		ldr	r3, .L76
+ 1004 0002 1869     		ldr	r0, [r3, #16]
+ 1005              	.LVL56:
+ 1006              		.loc 1 393 8 view .LVU303
+ 1007 0004 10F00100 		ands	r0, r0, #1
+ 1008 0008 12D1     		bne	.L71
+ 394:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 395:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 396:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ 1009              		.loc 1 396 9 is_stmt 1 view .LVU304
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1010              		.loc 1 155 3 view .LVU305
+ 397:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 398:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Enable interrupts */
+ 399:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= FLASH_CR_EOPIE | FLASH_CR_ERRIE;
+ 1011              		.loc 1 399 9 view .LVU306
+ 1012              		.loc 1 399 20 is_stmt 0 view .LVU307
+ 1013 000a 0B4A     		ldr	r2, .L76+4
+ 400:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 401:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_CR_MER1
+ARM GAS  /tmp/ccmY8wUW.s 			page 32
+
+
+ 402:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         if (ucBank == 2)
+ 403:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 404:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #ifdef FLASH_OPTCR_DB1M
+ 405:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Check if device flash size is 1MB, bank2 is only used when DB1M is set */
+ 406:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             if ((DEVICE_FLASH_SIZE_kB == 1024) && (FLASH_REG_BIT(OPTCR,DB1M) == 0))
+ 407:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 408:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 eResult = XPD_ERROR;
+ 409:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 410:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             else
+ 411:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 412:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 413:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* Bank2 is selected */
+ 414:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 FLASH_REG_BIT(CR,MER1) = 1;
+ 415:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 FLASH_REG_BIT(CR,STRT) = 1;
+ 416:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 417:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* Bank2 start address is at half of the range */
+ 418:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 flash_xHandle.Address = FLASH_BANK2_ADDRESS;
+ 419:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 420:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 421:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         else
+ 422:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** #endif
+ 423:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 424:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Bank1 is selected */
+ 425:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->OPTCR |= FLASH_OPTCR_MER;
+ 426:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 427:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 428:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.Address = FLASH_BANK1_ADDRESS;
+ 1014              		.loc 1 428 35 view .LVU308
+ 1015 000c 0B49     		ldr	r1, .L76+8
+ 389:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 1016              		.loc 1 389 1 view .LVU309
+ 1017 000e 30B4     		push	{r4, r5}
+ 1018              	.LCFI15:
+ 1019              		.cfi_def_cfa_offset 8
+ 1020              		.cfi_offset 4, -8
+ 1021              		.cfi_offset 5, -4
+ 399:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1022              		.loc 1 399 20 view .LVU310
+ 1023 0010 DD68     		ldr	r5, [r3, #12]
+ 1024              		.loc 1 428 35 view .LVU311
+ 1025 0012 4FF00064 		mov	r4, #134217728
+ 399:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1026              		.loc 1 399 20 view .LVU312
+ 1027 0016 2A43     		orrs	r2, r2, r5
+ 1028 0018 DA60     		str	r2, [r3, #12]
+ 425:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 1029              		.loc 1 425 13 is_stmt 1 view .LVU313
+ 425:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH->CR1 |= FLASH_CR_START;
+ 1030              		.loc 1 425 26 is_stmt 0 view .LVU314
+ 1031 001a 9A69     		ldr	r2, [r3, #24]
+ 1032 001c 42F01002 		orr	r2, r2, #16
+ 1033 0020 9A61     		str	r2, [r3, #24]
+ 426:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1034              		.loc 1 426 13 is_stmt 1 view .LVU315
+ 426:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1035              		.loc 1 426 24 is_stmt 0 view .LVU316
+ 1036 0022 DA68     		ldr	r2, [r3, #12]
+ARM GAS  /tmp/ccmY8wUW.s 			page 33
+
+
+ 1037 0024 42F08002 		orr	r2, r2, #128
+ 1038 0028 DA60     		str	r2, [r3, #12]
+ 1039              		.loc 1 428 13 is_stmt 1 view .LVU317
+ 1040              		.loc 1 428 35 is_stmt 0 view .LVU318
+ 1041 002a 0C60     		str	r4, [r1]
+ 429:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 430:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         eResult = XPD_OK;
+ 1042              		.loc 1 430 9 is_stmt 1 view .LVU319
+ 1043              	.LVL57:
+ 431:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 432:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 433:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 1044              		.loc 1 433 5 view .LVU320
+ 434:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1045              		.loc 1 434 1 is_stmt 0 view .LVU321
+ 1046 002c 30BC     		pop	{r4, r5}
+ 1047              	.LCFI16:
+ 1048              		.cfi_restore 5
+ 1049              		.cfi_restore 4
+ 1050              		.cfi_def_cfa_offset 0
+ 1051 002e 7047     		bx	lr
+ 1052              	.LVL58:
+ 1053              	.L71:
+ 390:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1054              		.loc 1 390 20 view .LVU322
+ 1055 0030 0220     		movs	r0, #2
+ 1056              	.LVL59:
+ 433:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1057              		.loc 1 433 5 is_stmt 1 view .LVU323
+ 1058              		.loc 1 434 1 is_stmt 0 view .LVU324
+ 1059 0032 7047     		bx	lr
+ 1060              	.L77:
+ 1061              		.align	2
+ 1062              	.L76:
+ 1063 0034 00200052 		.word	1375739904
+ 1064 0038 00000102 		.word	33619968
+ 1065 003c 00000000 		.word	.LANCHOR0
+ 1066              		.cfi_endproc
+ 1067              	.LFE157:
+ 1069              		.section	.text.FLASH_eErase,"ax",%progbits
+ 1070              		.align	1
+ 1071              		.p2align 2,,3
+ 1072              		.global	FLASH_eErase
+ 1073              		.syntax unified
+ 1074              		.thumb
+ 1075              		.thumb_func
+ 1076              		.fpu fpv4-sp-d16
+ 1078              	FLASH_eErase:
+ 1079              	.LVL60:
+ 1080              	.LFB158:
+ 435:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 436:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 437:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Performs consecutive page erases in flash.
+ 438:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 439:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pvAddress: start address of first page to be erased
+ 440:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param usKBytes: amount of flash memory to erase in kilobytes (one page is 2 kB)
+ 441:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ARM GAS  /tmp/ccmY8wUW.s 			page 34
+
+
+ 442:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         ERROR    if there were errors,
+ 443:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         TIMEOUT  if timed out,
+ 444:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if successful
+ 445:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 446:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eErase(void * pvAddress, uint16_t usKBytes)
+ 447:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1081              		.loc 1 447 1 is_stmt 1 view -0
+ 1082              		.cfi_startproc
+ 1083              		@ args = 0, pretend = 0, frame = 8
+ 1084              		@ frame_needed = 0, uses_anonymous_args = 0
+ 448:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 449:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 1085              		.loc 1 449 5 view .LVU326
+ 447:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 1086              		.loc 1 447 1 is_stmt 0 view .LVU327
+ 1087 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 1088              	.LCFI17:
+ 1089              		.cfi_def_cfa_offset 28
+ 1090              		.cfi_offset 4, -28
+ 1091              		.cfi_offset 5, -24
+ 1092              		.cfi_offset 6, -20
+ 1093              		.cfi_offset 7, -16
+ 1094              		.cfi_offset 8, -12
+ 1095              		.cfi_offset 9, -8
+ 1096              		.cfi_offset 14, -4
+ 1097 0004 4CF25033 		movw	r3, #50000
+ 1098 0008 83B0     		sub	sp, sp, #12
+ 1099              	.LCFI18:
+ 1100              		.cfi_def_cfa_offset 40
+ 447:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Wait for last operation to be completed */
+ 1101              		.loc 1 447 1 view .LVU328
+ 1102 000a 0F46     		mov	r7, r1
+ 1103 000c 8146     		mov	r9, r0
+ 1104 000e 0193     		str	r3, [sp, #4]
+ 1105              	.LVL61:
+ 1106              	.LBB143:
+ 1107              	.LBI143:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1108              		.loc 1 202 16 is_stmt 1 view .LVU329
+ 1109              	.LBB144:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 1110              		.loc 1 207 5 view .LVU330
+ 1111              	.LBB145:
+ 1112              	.LBI145:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 1113              		.loc 2 140 32 view .LVU331
+ 1114              	.LBB146:
+ 1115              		.loc 2 146 5 view .LVU332
+ 1116              		.loc 2 146 12 is_stmt 0 view .LVU333
+ 1117 0010 FFF7FEFF 		bl	XPD_pxTimeService
+ 1118              	.LVL62:
+ 1119              		.loc 2 146 12 view .LVU334
+ 1120 0014 0122     		movs	r2, #1
+ 1121 0016 0146     		mov	r1, r0
+ 1122 0018 01AB     		add	r3, sp, #4
+ 1123              	.LVL63:
+ 1124              		.loc 2 146 12 view .LVU335
+ARM GAS  /tmp/ccmY8wUW.s 			page 35
+
+
+ 1125 001a 4348     		ldr	r0, .L102
+ 1126 001c CC68     		ldr	r4, [r1, #12]
+ 1127 001e 1146     		mov	r1, r2
+ 1128 0020 A047     		blx	r4
+ 1129              	.LVL64:
+ 1130              		.loc 2 146 12 view .LVU336
+ 1131              	.LBE146:
+ 1132              	.LBE145:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1133              		.loc 1 211 15 view .LVU337
+ 1134 0022 424B     		ldr	r3, .L102+4
+ 1135              	.LBB148:
+ 1136              	.LBB147:
+ 1137              		.loc 2 146 12 view .LVU338
+ 1138 0024 0646     		mov	r6, r0
+ 1139              	.LVL65:
+ 1140              		.loc 2 146 12 view .LVU339
+ 1141              	.LBE147:
+ 1142              	.LBE148:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1143              		.loc 1 211 5 is_stmt 1 view .LVU340
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1144              		.loc 1 211 15 is_stmt 0 view .LVU341
+ 1145 0026 1A69     		ldr	r2, [r3, #16]
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1146              		.loc 1 211 8 view .LVU342
+ 1147 0028 D103     		lsls	r1, r2, #15
+ 1148 002a 03D5     		bpl	.L79
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1149              		.loc 1 214 9 is_stmt 1 view .LVU343
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1150              		.loc 1 214 20 is_stmt 0 view .LVU344
+ 1151 002c 1A69     		ldr	r2, [r3, #16]
+ 1152 002e 22F48032 		bic	r2, r2, #65536
+ 1153 0032 1A61     		str	r2, [r3, #16]
+ 1154              	.L79:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1155              		.loc 1 217 5 is_stmt 1 view .LVU345
+ 1156              	.LBB149:
+ 1157              	.LBI149:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1158              		.loc 1 133 24 view .LVU346
+ 1159              	.LBB150:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1160              		.loc 1 136 5 view .LVU347
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1161              		.loc 1 136 33 is_stmt 0 view .LVU348
+ 1162 0034 3D4C     		ldr	r4, .L102+4
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1163              		.loc 1 136 26 view .LVU349
+ 1164 0036 3E4D     		ldr	r5, .L102+8
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1165              		.loc 1 136 33 view .LVU350
+ 1166 0038 2369     		ldr	r3, [r4, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1167              		.loc 1 136 39 view .LVU351
+ 1168 003a 03F4C023 		and	r3, r3, #393216
+ARM GAS  /tmp/ccmY8wUW.s 			page 36
+
+
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1169              		.loc 1 136 26 view .LVU352
+ 1170 003e 2B61     		str	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1171              		.loc 1 147 5 is_stmt 1 view .LVU353
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1172              		.loc 1 147 31 is_stmt 0 view .LVU354
+ 1173 0040 2B69     		ldr	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1174              		.loc 1 147 16 view .LVU355
+ 1175 0042 2361     		str	r3, [r4, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1176              		.loc 1 148 5 is_stmt 1 view .LVU356
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1177              		.loc 1 148 25 is_stmt 0 view .LVU357
+ 1178 0044 2B69     		ldr	r3, [r5, #16]
+ 1179              	.LBE150:
+ 1180              	.LBE149:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1181              		.loc 1 217 8 view .LVU358
+ 1182 0046 23B1     		cbz	r3, .L80
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1183              		.loc 1 219 9 is_stmt 1 view .LVU359
+ 1184              	.LVL66:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1185              		.loc 1 222 5 view .LVU360
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1186              		.loc 1 222 5 is_stmt 0 view .LVU361
+ 1187              	.LBE144:
+ 1188              	.LBE143:
+ 450:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 451:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (eResult == XPD_OK)
+ 1189              		.loc 1 451 5 is_stmt 1 view .LVU362
+ 1190              	.LBB153:
+ 1191              	.LBB151:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1192              		.loc 1 219 17 is_stmt 0 view .LVU363
+ 1193 0048 0126     		movs	r6, #1
+ 1194              	.LVL67:
+ 1195              	.L81:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1196              		.loc 1 219 17 view .LVU364
+ 1197              	.LBE151:
+ 1198              	.LBE153:
+ 452:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 453:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 454:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 455:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 456:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 457:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ 458:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 459:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Set the sector erase control bit */
+ 460:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= FLASH_CR_SER;
+ 461:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 462:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Keep erasing blocks until at least the requested amount */
+ 463:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         while (flash_xHandle.MemStream.length > 0)
+ 464:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ARM GAS  /tmp/ccmY8wUW.s 			page 37
+
+
+ 465:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_prvBlockErase();
+ 466:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 467:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Wait for last operation to be completed */
+ 468:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             eResult = FLASH_ePollStatus(FLASH_TIMEOUT_MS);
+ 469:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 470:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* In case of error or length underflow, stop flash programming */
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             if ((eResult != XPD_OK) || (flash_xHandle.MemStream.length < FLASH_BLOCK_SIZE_KB))
+ 472:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 473:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 474:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 475:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 476:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* Increase flash address */
+ 477:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.Address += FLASH_BLOCK_SIZE_KB << 10;
+ 478:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 479:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 480:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 481:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* If the erase operation is completed, disable the SER Bit */
+ 482:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_CR_SER;
+ 483:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 484:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Flush the caches to be sure of the data consistency */
+ 485:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvFlushCaches();
+ 486:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 487:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 488:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 1199              		.loc 1 488 5 is_stmt 1 view .LVU365
+ 489:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1200              		.loc 1 489 1 is_stmt 0 view .LVU366
+ 1201 004a 3046     		mov	r0, r6
+ 1202 004c 03B0     		add	sp, sp, #12
+ 1203              	.LCFI19:
+ 1204              		.cfi_remember_state
+ 1205              		.cfi_def_cfa_offset 28
+ 1206              		@ sp needed
+ 1207 004e BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 1208              	.LVL68:
+ 1209              	.L80:
+ 1210              	.LCFI20:
+ 1211              		.cfi_restore_state
+ 1212              	.LBB154:
+ 1213              	.LBB152:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1214              		.loc 1 222 5 is_stmt 1 view .LVU367
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1215              		.loc 1 222 5 is_stmt 0 view .LVU368
+ 1216              	.LBE152:
+ 1217              	.LBE154:
+ 451:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1218              		.loc 1 451 5 is_stmt 1 view .LVU369
+ 451:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1219              		.loc 1 451 8 is_stmt 0 view .LVU370
+ 1220 0052 002E     		cmp	r6, #0
+ 1221 0054 F9D1     		bne	.L81
+ 453:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 1222              		.loc 1 453 9 is_stmt 1 view .LVU371
+ 460:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1223              		.loc 1 460 20 is_stmt 0 view .LVU372
+ 1224 0056 E368     		ldr	r3, [r4, #12]
+ARM GAS  /tmp/ccmY8wUW.s 			page 38
+
+
+ 453:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 1225              		.loc 1 453 31 view .LVU373
+ 1226 0058 C5F80090 		str	r9, [r5]
+ 454:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1227              		.loc 1 454 9 is_stmt 1 view .LVU374
+ 460:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1228              		.loc 1 460 20 is_stmt 0 view .LVU375
+ 1229 005c 43F00403 		orr	r3, r3, #4
+ 454:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1230              		.loc 1 454 40 view .LVU376
+ 1231 0060 2F81     		strh	r7, [r5, #8]	@ movhi
+ 457:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1232              		.loc 1 457 9 is_stmt 1 view .LVU377
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1233              		.loc 1 155 3 view .LVU378
+ 460:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1234              		.loc 1 460 9 view .LVU379
+ 460:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1235              		.loc 1 460 20 is_stmt 0 view .LVU380
+ 1236 0062 E360     		str	r3, [r4, #12]
+ 463:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 1237              		.loc 1 463 9 is_stmt 1 view .LVU381
+ 1238              	.LVL69:
+ 463:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 1239              		.loc 1 463 15 view .LVU382
+ 1240 0064 002F     		cmp	r7, #0
+ 1241 0066 35D0     		beq	.L83
+ 1242              	.LBB155:
+ 1243              	.LBB156:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1244              		.loc 1 112 34 is_stmt 0 view .LVU383
+ 1245 0068 4FF01008 		mov	r8, #16
+ 1246              	.LBE156:
+ 1247              	.LBE155:
+ 1248              	.LBB159:
+ 1249              	.LBB160:
+ 1250              	.LBB161:
+ 1251              	.LBB162:
+ 1252              		.loc 2 146 12 view .LVU384
+ 1253 006c 2E4F     		ldr	r7, .L102
+ 1254              	.LVL70:
+ 1255              	.L82:
+ 1256              		.loc 2 146 12 view .LVU385
+ 1257              	.LBE162:
+ 1258              	.LBE161:
+ 1259              	.LBE160:
+ 1260              	.LBE159:
+ 465:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1261              		.loc 1 465 13 is_stmt 1 view .LVU386
+ 1262              	.LBB176:
+ 1263              	.LBI155:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1264              		.loc 1 89 13 view .LVU387
+ 1265              	.LBB157:
+  91:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint32_t ulAddr   =  (uint32_t)flash_xHandle.Address & 0x000FFFFF;
+ 1266              		.loc 1 91 5 view .LVU388
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ARM GAS  /tmp/ccmY8wUW.s 			page 39
+
+
+ 1267              		.loc 1 92 5 view .LVU389
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1268              		.loc 1 112 9 view .LVU390
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.SectorSize = (ulAddr == 0) ? 64 : 128;
+ 1269              		.loc 1 120 9 view .LVU391
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1270              		.loc 1 109 8 is_stmt 0 view .LVU392
+ 1271 006e 19F4702F 		tst	r9, #983040
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1272              		.loc 1 92 14 view .LVU393
+ 1273 0072 C9F31303 		ubfx	r3, r9, #0, #20
+ 1274              	.LVL71:
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1275              		.loc 1 109 5 is_stmt 1 view .LVU394
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1276              		.loc 1 121 9 view .LVU395
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1277              		.loc 1 109 8 is_stmt 0 view .LVU396
+ 1278 0076 36D1     		bne	.L84
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1279              		.loc 1 114 28 view .LVU397
+ 1280 0078 9B0B     		lsrs	r3, r3, #14
+ 1281              	.LVL72:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1282              		.loc 1 112 34 view .LVU398
+ 1283 007a A5F80C80 		strh	r8, [r5, #12]	@ movhi
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1284              		.loc 1 114 9 is_stmt 1 view .LVU399
+ 1285              	.LVL73:
+ 1286              	.L85:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1287              		.loc 1 127 5 view .LVU400
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1288              		.loc 1 127 16 is_stmt 0 view .LVU401
+ 1289 007e E268     		ldr	r2, [r4, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1290              		.loc 1 128 30 view .LVU402
+ 1291 0080 1B02     		lsls	r3, r3, #8
+ 1292              	.LVL74:
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1293              		.loc 1 128 30 view .LVU403
+ 1294 0082 4CF25031 		movw	r1, #50000
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1295              		.loc 1 127 16 view .LVU404
+ 1296 0086 22F4E062 		bic	r2, r2, #1792
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1297              		.loc 1 128 51 view .LVU405
+ 1298 008a 03F4E063 		and	r3, r3, #1792
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1299              		.loc 1 127 16 view .LVU406
+ 1300 008e E260     		str	r2, [r4, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1301              		.loc 1 128 5 is_stmt 1 view .LVU407
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1302              		.loc 1 128 16 is_stmt 0 view .LVU408
+ 1303 0090 E268     		ldr	r2, [r4, #12]
+ 1304 0092 1343     		orrs	r3, r3, r2
+ARM GAS  /tmp/ccmY8wUW.s 			page 40
+
+
+ 1305 0094 E360     		str	r3, [r4, #12]
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1306              		.loc 1 129 5 is_stmt 1 view .LVU409
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1307              		.loc 1 129 16 is_stmt 0 view .LVU410
+ 1308 0096 E368     		ldr	r3, [r4, #12]
+ 1309 0098 43F08003 		orr	r3, r3, #128
+ 1310 009c E360     		str	r3, [r4, #12]
+ 1311              	.LVL75:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1312              		.loc 1 129 16 view .LVU411
+ 1313              	.LBE157:
+ 1314              	.LBE176:
+ 468:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1315              		.loc 1 468 13 is_stmt 1 view .LVU412
+ 1316 009e 0191     		str	r1, [sp, #4]
+ 1317              	.LVL76:
+ 1318              	.LBB177:
+ 1319              	.LBI159:
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1320              		.loc 1 202 16 view .LVU413
+ 1321              	.LBB171:
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             FLASH_SR_BSY, FLASH_SR_BSY, &ulTimeout);
+ 1322              		.loc 1 207 5 view .LVU414
+ 1323              	.LBB165:
+ 1324              	.LBI161:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 1325              		.loc 2 140 32 view .LVU415
+ 1326              	.LBB163:
+ 1327              		.loc 2 146 5 view .LVU416
+ 1328              		.loc 2 146 12 is_stmt 0 view .LVU417
+ 1329 00a0 FFF7FEFF 		bl	XPD_pxTimeService
+ 1330              	.LVL77:
+ 1331              		.loc 2 146 12 view .LVU418
+ 1332 00a4 0122     		movs	r2, #1
+ 1333 00a6 0146     		mov	r1, r0
+ 1334 00a8 01AB     		add	r3, sp, #4
+ 1335              	.LVL78:
+ 1336              		.loc 2 146 12 view .LVU419
+ 1337 00aa 3846     		mov	r0, r7
+ 1338 00ac D1F80C90 		ldr	r9, [r1, #12]
+ 1339 00b0 1146     		mov	r1, r2
+ 1340 00b2 C847     		blx	r9
+ 1341              	.LVL79:
+ 1342              		.loc 2 146 12 view .LVU420
+ 1343              	.LBE163:
+ 1344              	.LBE165:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1345              		.loc 1 214 9 is_stmt 1 view .LVU421
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1346              		.loc 1 217 5 view .LVU422
+ 1347              	.LBB166:
+ 1348              	.LBI166:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1349              		.loc 1 133 24 view .LVU423
+ 1350              	.LBB167:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ARM GAS  /tmp/ccmY8wUW.s 			page 41
+
+
+ 1351              		.loc 1 136 5 view .LVU424
+ 1352              	.LBE167:
+ 1353              	.LBE166:
+ 1354              	.LBE171:
+ 1355              	.LBE177:
+ 477:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1356              		.loc 1 477 13 view .LVU425
+ 1357              	.LBB178:
+ 1358              	.LBB172:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1359              		.loc 1 211 15 is_stmt 0 view .LVU426
+ 1360 00b4 2369     		ldr	r3, [r4, #16]
+ 1361              	.LVL80:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1362              		.loc 1 211 5 is_stmt 1 view .LVU427
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1363              		.loc 1 222 5 view .LVU428
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1364              		.loc 1 222 5 is_stmt 0 view .LVU429
+ 1365              	.LBE172:
+ 1366              	.LBE178:
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1367              		.loc 1 471 13 is_stmt 1 view .LVU430
+ 1368              	.LBB179:
+ 1369              	.LBB173:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1370              		.loc 1 211 8 is_stmt 0 view .LVU431
+ 1371 00b6 DB03     		lsls	r3, r3, #15
+ 1372 00b8 03D5     		bpl	.L87
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1373              		.loc 1 214 20 view .LVU432
+ 1374 00ba 2369     		ldr	r3, [r4, #16]
+ 1375 00bc 23F48033 		bic	r3, r3, #65536
+ 1376 00c0 2361     		str	r3, [r4, #16]
+ 1377              	.L87:
+ 1378              	.LBB169:
+ 1379              	.LBB168:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1380              		.loc 1 136 33 view .LVU433
+ 1381 00c2 2369     		ldr	r3, [r4, #16]
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1382              		.loc 1 136 39 view .LVU434
+ 1383 00c4 03F4C023 		and	r3, r3, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1384              		.loc 1 136 26 view .LVU435
+ 1385 00c8 2B61     		str	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1386              		.loc 1 147 5 is_stmt 1 view .LVU436
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1387              		.loc 1 147 31 is_stmt 0 view .LVU437
+ 1388 00ca 2B69     		ldr	r3, [r5, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1389              		.loc 1 147 16 view .LVU438
+ 1390 00cc 2361     		str	r3, [r4, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1391              		.loc 1 148 5 is_stmt 1 view .LVU439
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ARM GAS  /tmp/ccmY8wUW.s 			page 42
+
+
+ 1392              		.loc 1 148 25 is_stmt 0 view .LVU440
+ 1393 00ce 2B69     		ldr	r3, [r5, #16]
+ 1394              	.LBE168:
+ 1395              	.LBE169:
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1396              		.loc 1 217 8 view .LVU441
+ 1397 00d0 83B1     		cbz	r3, .L88
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1398              		.loc 1 219 9 is_stmt 1 view .LVU442
+ 1399              	.LVL81:
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1400              		.loc 1 222 5 view .LVU443
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1401              		.loc 1 222 5 is_stmt 0 view .LVU444
+ 1402              	.LBE173:
+ 1403              	.LBE179:
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1404              		.loc 1 471 13 is_stmt 1 view .LVU445
+ 1405              	.LBB180:
+ 1406              	.LBB174:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1407              		.loc 1 219 17 is_stmt 0 view .LVU446
+ 1408 00d2 0126     		movs	r6, #1
+ 1409              	.LVL82:
+ 1410              	.L83:
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1411              		.loc 1 219 17 view .LVU447
+ 1412              	.LBE174:
+ 1413              	.LBE180:
+ 482:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1414              		.loc 1 482 9 is_stmt 1 view .LVU448
+ 482:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1415              		.loc 1 482 20 is_stmt 0 view .LVU449
+ 1416 00d4 154A     		ldr	r2, .L102+4
+ 1417 00d6 D368     		ldr	r3, [r2, #12]
+ 1418 00d8 23F00403 		bic	r3, r3, #4
+ 1419 00dc D360     		str	r3, [r2, #12]
+ 485:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1420              		.loc 1 485 9 is_stmt 1 view .LVU450
+ 1421              	.LBB181:
+ 1422              	.LBI181:
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1423              		.loc 1 159 13 view .LVU451
+ 1424              	.LBB182:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1425              		.loc 1 161 1 view .LVU452
+ 1426              	.L101:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1427              		.loc 1 161 1 is_stmt 0 view .LVU453
+ 1428              	.LBE182:
+ 1429              	.LBE181:
+ 488:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1430              		.loc 1 488 5 is_stmt 1 view .LVU454
+ 1431              		.loc 1 489 1 is_stmt 0 view .LVU455
+ 1432 00de 3046     		mov	r0, r6
+ 1433 00e0 03B0     		add	sp, sp, #12
+ 1434              	.LCFI21:
+ARM GAS  /tmp/ccmY8wUW.s 			page 43
+
+
+ 1435              		.cfi_remember_state
+ 1436              		.cfi_def_cfa_offset 28
+ 1437              		@ sp needed
+ 1438 00e2 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 1439              	.LVL83:
+ 1440              	.L84:
+ 1441              	.LCFI22:
+ 1442              		.cfi_restore_state
+ 1443              	.LBB184:
+ 1444              	.LBB158:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1445              		.loc 1 121 34 view .LVU456
+ 1446 00e6 5B0C     		lsrs	r3, r3, #17
+ 1447              	.LVL84:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1448              		.loc 1 121 34 view .LVU457
+ 1449 00e8 0CBF     		ite	eq
+ 1450 00ea 4022     		moveq	r2, #64
+ 1451 00ec 8022     		movne	r2, #128
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1452              		.loc 1 123 18 view .LVU458
+ 1453 00ee 0433     		adds	r3, r3, #4
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1454              		.loc 1 121 34 view .LVU459
+ 1455 00f0 AA81     		strh	r2, [r5, #12]	@ movhi
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1456              		.loc 1 123 9 is_stmt 1 view .LVU460
+ 1457              	.LVL85:
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1458              		.loc 1 123 9 is_stmt 0 view .LVU461
+ 1459 00f2 C4E7     		b	.L85
+ 1460              	.LVL86:
+ 1461              	.L88:
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1462              		.loc 1 123 9 view .LVU462
+ 1463              	.LBE158:
+ 1464              	.LBE184:
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1465              		.loc 1 471 16 view .LVU463
+ 1466 00f4 A8B9     		cbnz	r0, .L91
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1467              		.loc 1 471 64 discriminator 1 view .LVU464
+ 1468 00f6 2A89     		ldrh	r2, [r5, #8]
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1469              		.loc 1 471 74 discriminator 1 view .LVU465
+ 1470 00f8 B5F80C90 		ldrh	r9, [r5, #12]
+ 478:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 1471              		.loc 1 478 44 discriminator 1 view .LVU466
+ 1472 00fc A2EB0903 		sub	r3, r2, r9
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1473              		.loc 1 471 37 discriminator 1 view .LVU467
+ 1474 0100 4A45     		cmp	r2, r9
+ 478:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 1475              		.loc 1 478 44 discriminator 1 view .LVU468
+ 1476 0102 9BB2     		uxth	r3, r3
+ 471:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 1477              		.loc 1 471 37 discriminator 1 view .LVU469
+ARM GAS  /tmp/ccmY8wUW.s 			page 44
+
+
+ 1478 0104 E6D3     		bcc	.L83
+ 477:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1479              		.loc 1 477 35 view .LVU470
+ 1480 0106 2868     		ldr	r0, [r5]
+ 1481              	.LVL87:
+ 478:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 1482              		.loc 1 478 44 view .LVU471
+ 1483 0108 2B81     		strh	r3, [r5, #8]	@ movhi
+ 477:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1484              		.loc 1 477 35 view .LVU472
+ 1485 010a 00EB8929 		add	r9, r0, r9, lsl #10
+ 1486 010e C5F80090 		str	r9, [r5]
+ 478:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 1487              		.loc 1 478 13 is_stmt 1 view .LVU473
+ 1488              	.LVL88:
+ 463:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 1489              		.loc 1 463 15 view .LVU474
+ 1490 0112 002B     		cmp	r3, #0
+ 1491 0114 ABD1     		bne	.L82
+ 1492              	.LVL89:
+ 482:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1493              		.loc 1 482 9 view .LVU475
+ 482:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1494              		.loc 1 482 20 is_stmt 0 view .LVU476
+ 1495 0116 054A     		ldr	r2, .L102+4
+ 1496 0118 D368     		ldr	r3, [r2, #12]
+ 1497 011a 23F00403 		bic	r3, r3, #4
+ 1498 011e D360     		str	r3, [r2, #12]
+ 485:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1499              		.loc 1 485 9 is_stmt 1 view .LVU477
+ 1500              	.LBB185:
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1501              		.loc 1 159 13 view .LVU478
+ 1502              	.LBB183:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1503              		.loc 1 161 1 view .LVU479
+ 1504 0120 DDE7     		b	.L101
+ 1505              	.LVL90:
+ 1506              	.L91:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1507              		.loc 1 161 1 is_stmt 0 view .LVU480
+ 1508              	.LBE183:
+ 1509              	.LBE185:
+ 1510              	.LBB186:
+ 1511              	.LBB175:
+ 1512              	.LBB170:
+ 1513              	.LBB164:
+ 1514              		.loc 2 146 12 view .LVU481
+ 1515 0122 0646     		mov	r6, r0
+ 1516 0124 D6E7     		b	.L83
+ 1517              	.L103:
+ 1518 0126 00BF     		.align	2
+ 1519              	.L102:
+ 1520 0128 10200052 		.word	1375739920
+ 1521 012c 00200052 		.word	1375739904
+ 1522 0130 00000000 		.word	.LANCHOR0
+ 1523              	.LBE164:
+ARM GAS  /tmp/ccmY8wUW.s 			page 45
+
+
+ 1524              	.LBE170:
+ 1525              	.LBE175:
+ 1526              	.LBE186:
+ 1527              		.cfi_endproc
+ 1528              	.LFE158:
+ 1530              		.section	.text.FLASH_eErase_IT,"ax",%progbits
+ 1531              		.align	1
+ 1532              		.p2align 2,,3
+ 1533              		.global	FLASH_eErase_IT
+ 1534              		.syntax unified
+ 1535              		.thumb
+ 1536              		.thumb_func
+ 1537              		.fpu fpv4-sp-d16
+ 1539              	FLASH_eErase_IT:
+ 1540              	.LVL91:
+ 1541              	.LFB159:
+ 490:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 491:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 492:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Performs consecutive page erases in flash in interrupt (non-blocking) mode.
+ 493:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @note  The FLASH interface should be unlocked beforehand, and locked afterwards.
+ 494:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param pvAddress: start address of first page to be erased
+ 495:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @param usKBytes: amount of flash memory to erase in kilobytes (one page is 2 kB)
+ 496:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return BUSY     if another operation is already ongoing,
+ 497:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *         OK       if page erase started
+ 498:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 499:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** XPD_ReturnType FLASH_eErase_IT(void * pvAddress, uint16_t usKBytes)
+ 500:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1542              		.loc 1 500 1 is_stmt 1 view -0
+ 1543              		.cfi_startproc
+ 1544              		@ args = 0, pretend = 0, frame = 0
+ 1545              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1546              		@ link register save eliminated.
+ 501:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 1547              		.loc 1 501 5 view .LVU483
+ 502:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 503:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Only start if no ongoing operations are present */
+ 504:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->SR1 & FLASH_SR_BSY_Msk) == 0)
+ 1548              		.loc 1 504 5 view .LVU484
+ 1549              		.loc 1 504 15 is_stmt 0 view .LVU485
+ 1550 0000 194A     		ldr	r2, .L116
+ 1551 0002 1369     		ldr	r3, [r2, #16]
+ 1552              		.loc 1 504 8 view .LVU486
+ 1553 0004 DB07     		lsls	r3, r3, #31
+ 1554 0006 01D5     		bpl	.L115
+ 501:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 1555              		.loc 1 501 20 view .LVU487
+ 1556 0008 0220     		movs	r0, #2
+ 1557              	.LVL92:
+ 505:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 506:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.Address = pvAddress;
+ 507:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 508:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 509:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Disable caches before start */
+ 510:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvDisableCaches();
+ 511:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 512:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Enable interrupts */
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= (FLASH_CR_EOPIE | FLASH_CR_ERRIE);
+ARM GAS  /tmp/ccmY8wUW.s 			page 46
+
+
+ 514:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 515:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Set the sector erase control bit */
+ 516:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 |= FLASH_CR_SER;
+ 517:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 518:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvBlockErase();
+ 519:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 520:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         eResult = XPD_OK;
+ 521:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 522:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 523:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return eResult;
+ 1558              		.loc 1 523 5 is_stmt 1 view .LVU488
+ 524:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1559              		.loc 1 524 1 is_stmt 0 view .LVU489
+ 1560 000a 7047     		bx	lr
+ 1561              	.LVL93:
+ 1562              	.L115:
+ 506:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 1563              		.loc 1 506 9 is_stmt 1 view .LVU490
+ 500:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     XPD_ReturnType eResult = XPD_BUSY;
+ 1564              		.loc 1 500 1 is_stmt 0 view .LVU491
+ 1565 000c 70B4     		push	{r4, r5, r6}
+ 1566              	.LCFI23:
+ 1567              		.cfi_def_cfa_offset 12
+ 1568              		.cfi_offset 4, -12
+ 1569              		.cfi_offset 5, -8
+ 1570              		.cfi_offset 6, -4
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1571              		.loc 1 513 20 view .LVU492
+ 1572 000e D668     		ldr	r6, [r2, #12]
+ 1573              	.LBB189:
+ 1574              	.LBB190:
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1575              		.loc 1 109 8 view .LVU493
+ 1576 0010 10F4702F 		tst	r0, #983040
+ 1577              	.LBE190:
+ 1578              	.LBE189:
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1579              		.loc 1 513 20 view .LVU494
+ 1580 0014 154C     		ldr	r4, .L116+4
+ 1581              	.LBB196:
+ 1582              	.LBB191:
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1583              		.loc 1 92 14 view .LVU495
+ 1584 0016 C0F31303 		ubfx	r3, r0, #0, #20
+ 1585              	.LBE191:
+ 1586              	.LBE196:
+ 506:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 1587              		.loc 1 506 31 view .LVU496
+ 1588 001a 154D     		ldr	r5, .L116+8
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1589              		.loc 1 513 20 view .LVU497
+ 1590 001c 44EA0604 		orr	r4, r4, r6
+ 507:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1591              		.loc 1 507 40 view .LVU498
+ 1592 0020 2981     		strh	r1, [r5, #8]	@ movhi
+ 506:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = usKBytes;
+ 1593              		.loc 1 506 31 view .LVU499
+ARM GAS  /tmp/ccmY8wUW.s 			page 47
+
+
+ 1594 0022 2860     		str	r0, [r5]
+ 507:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1595              		.loc 1 507 9 is_stmt 1 view .LVU500
+ 510:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1596              		.loc 1 510 9 view .LVU501
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1597              		.loc 1 155 3 view .LVU502
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1598              		.loc 1 513 9 view .LVU503
+ 513:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1599              		.loc 1 513 20 is_stmt 0 view .LVU504
+ 1600 0024 D460     		str	r4, [r2, #12]
+ 516:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1601              		.loc 1 516 9 is_stmt 1 view .LVU505
+ 516:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1602              		.loc 1 516 20 is_stmt 0 view .LVU506
+ 1603 0026 D168     		ldr	r1, [r2, #12]
+ 1604              	.LVL94:
+ 516:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1605              		.loc 1 516 20 view .LVU507
+ 1606 0028 41F00401 		orr	r1, r1, #4
+ 1607 002c D160     		str	r1, [r2, #12]
+ 518:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1608              		.loc 1 518 9 is_stmt 1 view .LVU508
+ 1609              	.LBB197:
+ 1610              	.LBI189:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1611              		.loc 1 89 13 view .LVU509
+ 1612              	.LBB192:
+  91:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint32_t ulAddr   =  (uint32_t)flash_xHandle.Address & 0x000FFFFF;
+ 1613              		.loc 1 91 5 view .LVU510
+ 1614              	.LVL95:
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1615              		.loc 1 92 5 view .LVU511
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1616              		.loc 1 109 5 view .LVU512
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1617              		.loc 1 109 8 is_stmt 0 view .LVU513
+ 1618 002e 14D1     		bne	.L106
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1619              		.loc 1 112 9 is_stmt 1 view .LVU514
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1620              		.loc 1 112 34 is_stmt 0 view .LVU515
+ 1621 0030 1022     		movs	r2, #16
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1622              		.loc 1 114 28 view .LVU516
+ 1623 0032 9B0B     		lsrs	r3, r3, #14
+ 1624              	.LVL96:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1625              		.loc 1 112 34 view .LVU517
+ 1626 0034 AA81     		strh	r2, [r5, #12]	@ movhi
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1627              		.loc 1 114 9 is_stmt 1 view .LVU518
+ 1628              	.LVL97:
+ 1629              	.L107:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1630              		.loc 1 127 5 view .LVU519
+ARM GAS  /tmp/ccmY8wUW.s 			page 48
+
+
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1631              		.loc 1 127 16 is_stmt 0 view .LVU520
+ 1632 0036 0C4A     		ldr	r2, .L116
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1633              		.loc 1 128 30 view .LVU521
+ 1634 0038 1B02     		lsls	r3, r3, #8
+ 1635              	.LVL98:
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1636              		.loc 1 128 30 view .LVU522
+ 1637              	.LBE192:
+ 1638              	.LBE197:
+ 520:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1639              		.loc 1 520 17 view .LVU523
+ 1640 003a 0020     		movs	r0, #0
+ 1641              	.LVL99:
+ 1642              	.LBB198:
+ 1643              	.LBB193:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1644              		.loc 1 127 16 view .LVU524
+ 1645 003c D168     		ldr	r1, [r2, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1646              		.loc 1 128 51 view .LVU525
+ 1647 003e 03F4E063 		and	r3, r3, #1792
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1648              		.loc 1 127 16 view .LVU526
+ 1649 0042 21F4E061 		bic	r1, r1, #1792
+ 1650 0046 D160     		str	r1, [r2, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1651              		.loc 1 128 5 is_stmt 1 view .LVU527
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1652              		.loc 1 128 16 is_stmt 0 view .LVU528
+ 1653 0048 D168     		ldr	r1, [r2, #12]
+ 1654 004a 0B43     		orrs	r3, r3, r1
+ 1655 004c D360     		str	r3, [r2, #12]
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1656              		.loc 1 129 5 is_stmt 1 view .LVU529
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1657              		.loc 1 129 16 is_stmt 0 view .LVU530
+ 1658 004e D368     		ldr	r3, [r2, #12]
+ 1659 0050 43F08003 		orr	r3, r3, #128
+ 1660              	.LBE193:
+ 1661              	.LBE198:
+ 1662              		.loc 1 524 1 view .LVU531
+ 1663 0054 70BC     		pop	{r4, r5, r6}
+ 1664              	.LCFI24:
+ 1665              		.cfi_remember_state
+ 1666              		.cfi_restore 6
+ 1667              		.cfi_restore 5
+ 1668              		.cfi_restore 4
+ 1669              		.cfi_def_cfa_offset 0
+ 1670              	.LBB199:
+ 1671              	.LBB194:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1672              		.loc 1 129 16 view .LVU532
+ 1673 0056 D360     		str	r3, [r2, #12]
+ 1674              	.LVL100:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ARM GAS  /tmp/ccmY8wUW.s 			page 49
+
+
+ 1675              		.loc 1 129 16 view .LVU533
+ 1676              	.LBE194:
+ 1677              	.LBE199:
+ 523:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1678              		.loc 1 523 5 is_stmt 1 view .LVU534
+ 1679              		.loc 1 524 1 is_stmt 0 view .LVU535
+ 1680 0058 7047     		bx	lr
+ 1681              	.LVL101:
+ 1682              	.L106:
+ 1683              	.LCFI25:
+ 1684              		.cfi_restore_state
+ 1685              	.LBB200:
+ 1686              	.LBB195:
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.SectorSize = (ulAddr == 0) ? 64 : 128;
+ 1687              		.loc 1 120 9 is_stmt 1 view .LVU536
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1688              		.loc 1 121 9 view .LVU537
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1689              		.loc 1 121 34 is_stmt 0 view .LVU538
+ 1690 005a 5B0C     		lsrs	r3, r3, #17
+ 1691              	.LVL102:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1692              		.loc 1 121 34 view .LVU539
+ 1693 005c 0CBF     		ite	eq
+ 1694 005e 4022     		moveq	r2, #64
+ 1695 0060 8022     		movne	r2, #128
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1696              		.loc 1 123 18 view .LVU540
+ 1697 0062 0433     		adds	r3, r3, #4
+ 1698              	.LVL103:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1699              		.loc 1 121 34 view .LVU541
+ 1700 0064 AA81     		strh	r2, [r5, #12]	@ movhi
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1701              		.loc 1 123 9 is_stmt 1 view .LVU542
+ 1702              	.LVL104:
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1703              		.loc 1 123 9 is_stmt 0 view .LVU543
+ 1704 0066 E6E7     		b	.L107
+ 1705              	.L117:
+ 1706              		.align	2
+ 1707              	.L116:
+ 1708 0068 00200052 		.word	1375739904
+ 1709 006c 00000102 		.word	33619968
+ 1710 0070 00000000 		.word	.LANCHOR0
+ 1711              	.LBE195:
+ 1712              	.LBE200:
+ 1713              		.cfi_endproc
+ 1714              	.LFE159:
+ 1716              		.section	.text.FLASH_vIRQHandler,"ax",%progbits
+ 1717              		.align	1
+ 1718              		.p2align 2,,3
+ 1719              		.global	FLASH_vIRQHandler
+ 1720              		.syntax unified
+ 1721              		.thumb
+ 1722              		.thumb_func
+ 1723              		.fpu fpv4-sp-d16
+ARM GAS  /tmp/ccmY8wUW.s 			page 50
+
+
+ 1725              	FLASH_vIRQHandler:
+ 1726              	.LFB160:
+ 525:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 526:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 527:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief FLASH interrupt handler that manages consecutive block erasing
+ 528:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  *        and programming, and provides completion and error callbacks.
+ 529:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 530:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** void FLASH_vIRQHandler(void)
+ 531:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1727              		.loc 1 531 1 is_stmt 1 view -0
+ 1728              		.cfi_startproc
+ 1729              		@ args = 0, pretend = 0, frame = 0
+ 1730              		@ frame_needed = 0, uses_anonymous_args = 0
+ 532:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Check FLASH error flags */
+ 533:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if (FLASH_prvCheckErrors() != FLASH_ERROR_NONE)
+ 1731              		.loc 1 533 5 view .LVU545
+ 1732              	.LBB208:
+ 1733              	.LBI208:
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1734              		.loc 1 133 24 view .LVU546
+ 1735              	.LBB209:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1736              		.loc 1 136 5 view .LVU547
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1737              		.loc 1 136 33 is_stmt 0 view .LVU548
+ 1738 0000 3E4B     		ldr	r3, .L154
+ 1739 0002 1A69     		ldr	r2, [r3, #16]
+ 1740              	.LBE209:
+ 1741              	.LBE208:
+ 531:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Check FLASH error flags */
+ 1742              		.loc 1 531 1 view .LVU549
+ 1743 0004 10B5     		push	{r4, lr}
+ 1744              	.LCFI26:
+ 1745              		.cfi_def_cfa_offset 8
+ 1746              		.cfi_offset 4, -8
+ 1747              		.cfi_offset 14, -4
+ 1748              	.LBB211:
+ 1749              	.LBB210:
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1750              		.loc 1 136 39 view .LVU550
+ 1751 0006 02F4C022 		and	r2, r2, #393216
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****            (FLASH_SR_WRPERR |
+ 1752              		.loc 1 136 26 view .LVU551
+ 1753 000a 3D4C     		ldr	r4, .L154+4
+ 1754 000c 2261     		str	r2, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1755              		.loc 1 147 5 is_stmt 1 view .LVU552
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1756              		.loc 1 147 31 is_stmt 0 view .LVU553
+ 1757 000e 2269     		ldr	r2, [r4, #16]
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 1758              		.loc 1 147 16 view .LVU554
+ 1759 0010 1A61     		str	r2, [r3, #16]
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1760              		.loc 1 148 5 is_stmt 1 view .LVU555
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1761              		.loc 1 148 25 is_stmt 0 view .LVU556
+ARM GAS  /tmp/ccmY8wUW.s 			page 51
+
+
+ 1762 0012 2269     		ldr	r2, [r4, #16]
+ 1763              	.LBE210:
+ 1764              	.LBE211:
+ 1765              		.loc 1 533 8 view .LVU557
+ 1766 0014 4AB1     		cbz	r2, .L120
+ 534:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 535:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Stop programming */
+ 536:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.MemStream.length = 0;
+ 1767              		.loc 1 536 9 is_stmt 1 view .LVU558
+ 537:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_OPERATIONS;
+ 1768              		.loc 1 537 20 is_stmt 0 view .LVU559
+ 1769 0016 DA68     		ldr	r2, [r3, #12]
+ 536:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_OPERATIONS;
+ 1770              		.loc 1 536 40 view .LVU560
+ 1771 0018 0020     		movs	r0, #0
+ 538:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 539:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Error callback */
+ 540:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         XPD_SAFE_CALLBACK(FLASH_xCallbacks.Error,);
+ 1772              		.loc 1 540 9 view .LVU561
+ 1773 001a 3A49     		ldr	r1, .L154+8
+ 537:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1774              		.loc 1 537 20 view .LVU562
+ 1775 001c 22F00E02 		bic	r2, r2, #14
+ 536:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~FLASH_OPERATIONS;
+ 1776              		.loc 1 536 40 view .LVU563
+ 1777 0020 2081     		strh	r0, [r4, #8]	@ movhi
+ 537:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1778              		.loc 1 537 9 is_stmt 1 view .LVU564
+ 1779              		.loc 1 540 9 is_stmt 0 view .LVU565
+ 1780 0022 8968     		ldr	r1, [r1, #8]
+ 537:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1781              		.loc 1 537 20 view .LVU566
+ 1782 0024 DA60     		str	r2, [r3, #12]
+ 1783              		.loc 1 540 9 is_stmt 1 view .LVU567
+ 1784              		.loc 1 540 9 view .LVU568
+ 1785 0026 01B1     		cbz	r1, .L120
+ 1786              		.loc 1 540 9 discriminator 1 view .LVU569
+ 1787 0028 8847     		blx	r1
+ 1788              	.LVL105:
+ 1789              	.L120:
+ 1790              		.loc 1 540 9 discriminator 3 view .LVU570
+ 541:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 542:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 543:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* Check FLASH End of Operation flag  */
+ 544:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->SR1 & FLASH_SR_EOP) != 0)
+ 1791              		.loc 1 544 5 discriminator 3 view .LVU571
+ 1792              		.loc 1 544 15 is_stmt 0 discriminator 3 view .LVU572
+ 1793 002a 344B     		ldr	r3, .L154
+ 1794 002c 1A69     		ldr	r2, [r3, #16]
+ 1795              		.loc 1 544 8 discriminator 3 view .LVU573
+ 1796 002e D203     		lsls	r2, r2, #15
+ 1797 0030 16D5     		bpl	.L123
+ 1798              	.LBB212:
+ 545:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 546:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_OperationType eOperation = (FLASH->CR1 & FLASH_OPERATIONS);
+ 1799              		.loc 1 546 9 is_stmt 1 view .LVU574
+ 1800              		.loc 1 546 48 is_stmt 0 view .LVU575
+ARM GAS  /tmp/ccmY8wUW.s 			page 52
+
+
+ 1801 0032 DA68     		ldr	r2, [r3, #12]
+ 547:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 548:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Clear FLASH End of Operation pending bit */
+ 549:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->SR1 &= ~FLASH_SR_EOP;
+ 1802              		.loc 1 549 20 view .LVU576
+ 1803 0034 1969     		ldr	r1, [r3, #16]
+ 546:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1804              		.loc 1 546 29 view .LVU577
+ 1805 0036 02F00E02 		and	r2, r2, #14
+ 1806              	.LVL106:
+ 1807              		.loc 1 549 9 is_stmt 1 view .LVU578
+ 1808              		.loc 1 549 20 is_stmt 0 view .LVU579
+ 1809 003a 21F48031 		bic	r1, r1, #65536
+ 550:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 551:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         switch (eOperation)
+ 1810              		.loc 1 551 9 view .LVU580
+ 1811 003e 022A     		cmp	r2, #2
+ 549:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1812              		.loc 1 549 20 view .LVU581
+ 1813 0040 1961     		str	r1, [r3, #16]
+ 1814              		.loc 1 551 9 is_stmt 1 view .LVU582
+ 1815 0042 20D0     		beq	.L124
+ 1816 0044 042A     		cmp	r2, #4
+ 1817 0046 15D1     		bne	.L150
+ 552:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         {
+ 553:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             case FLASH_OPERATION_PROGRAM:
+ 554:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 555:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* Check if there are still data to program */
+ 556:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 if (flash_xHandle.MemStream.length > 0)
+ 557:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 558:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* Continue with programming consecutive pages */
+ 559:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.Address += flash_xHandle.MemStream.size;
+ 560:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 561:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     XPD_vWriteFromStream(flash_xHandle.Address, &flash_xHandle.MemStream);
+ 562:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 563:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 else
+ 564:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 565:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* If the operation completed, disable its control bit */
+ 566:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH->CR1 &= ~FLASH_CR_PG;
+ 567:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 568:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* provide completion callback */
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     XPD_SAFE_CALLBACK(FLASH_xCallbacks.ProgramComplete,);
+ 570:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 571:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 572:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 573:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 574:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             case FLASH_OPERATION_ERASE_BLOCK:
+ 575:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 576:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 if (flash_xHandle.MemStream.length > FLASH_BLOCK_SIZE_KB)
+ 1818              		.loc 1 576 17 view .LVU583
+ 1819              		.loc 1 576 44 is_stmt 0 view .LVU584
+ 1820 0048 2289     		ldrh	r2, [r4, #8]
+ 1821              	.LVL107:
+ 1822              		.loc 1 576 54 view .LVU585
+ 1823 004a A189     		ldrh	r1, [r4, #12]
+ 1824              		.loc 1 576 20 view .LVU586
+ 1825 004c 8A42     		cmp	r2, r1
+ARM GAS  /tmp/ccmY8wUW.s 			page 53
+
+
+ 1826 004e 27D8     		bhi	.L151
+ 577:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 578:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* Continue with erasing consecutive blocks */
+ 579:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.Address += FLASH_BLOCK_SIZE_KB << 10;
+ 580:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 581:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH_prvBlockErase();
+ 582:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 583:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 else
+ 584:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 585:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* If the operation completed, disable its control bit */
+ 586:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH->CR1 &= ~FLASH_CR_SER;
+ 1827              		.loc 1 586 21 is_stmt 1 view .LVU587
+ 1828              		.loc 1 586 32 is_stmt 0 view .LVU588
+ 1829 0050 DA68     		ldr	r2, [r3, #12]
+ 587:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 588:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     /* provide completion callback */
+ 589:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     XPD_SAFE_CALLBACK(FLASH_xCallbacks.EraseComplete,);
+ 1830              		.loc 1 589 21 view .LVU589
+ 1831 0052 2C49     		ldr	r1, .L154+8
+ 586:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1832              		.loc 1 586 32 view .LVU590
+ 1833 0054 22F00402 		bic	r2, r2, #4
+ 1834 0058 DA60     		str	r2, [r3, #12]
+ 1835              		.loc 1 589 21 is_stmt 1 view .LVU591
+ 1836              		.loc 1 589 21 view .LVU592
+ 1837 005a 0B68     		ldr	r3, [r1]
+ 1838 005c 03B1     		cbz	r3, .L123
+ 1839              	.L149:
+ 590:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 591:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 592:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 593:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 594:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             /* FLASH_OPERATION_ERASE_BANK */
+ 595:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             default:
+ 596:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             {
+ 597:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* If the operation completed, disable its control bit */
+ 598:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 FLASH->CR1 &= ~eOperation;
+ 599:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 600:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 /* provide completion callback */
+ 601:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 XPD_SAFE_CALLBACK(FLASH_xCallbacks.EraseComplete,);
+ 1840              		.loc 1 601 17 discriminator 1 view .LVU593
+ 1841 005e 9847     		blx	r3
+ 1842              	.LVL108:
+ 1843              	.L123:
+ 1844              		.loc 1 601 17 is_stmt 0 discriminator 1 view .LVU594
+ 1845              	.LBE212:
+ 602:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 603:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****             }
+ 604:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         }
+ 605:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 606:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 607:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     /* No more pending operations, disable further interrupts */
+ 608:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     if ((FLASH->CR1 & FLASH_OPERATIONS) == FLASH_OPERATION_NONE)
+ 1846              		.loc 1 608 5 is_stmt 1 view .LVU595
+ 1847              		.loc 1 608 15 is_stmt 0 view .LVU596
+ 1848 0060 264B     		ldr	r3, .L154
+ 1849 0062 DA68     		ldr	r2, [r3, #12]
+ARM GAS  /tmp/ccmY8wUW.s 			page 54
+
+
+ 1850              		.loc 1 608 8 view .LVU597
+ 1851 0064 12F00E0F 		tst	r2, #14
+ 1852 0068 03D1     		bne	.L118
+ 609:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 610:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH->CR1 &= ~(FLASH_CR_EOPIE | FLASH_CR_ERRIE);
+ 1853              		.loc 1 610 9 is_stmt 1 view .LVU598
+ 1854              		.loc 1 610 20 is_stmt 0 view .LVU599
+ 1855 006a D968     		ldr	r1, [r3, #12]
+ 1856 006c 264A     		ldr	r2, .L154+12
+ 1857 006e 0A40     		ands	r2, r2, r1
+ 1858 0070 DA60     		str	r2, [r3, #12]
+ 611:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 612:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         /* Flush the caches to be sure of the data consistency */
+ 613:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         FLASH_prvFlushCaches();
+ 1859              		.loc 1 613 9 is_stmt 1 view .LVU600
+ 1860              	.LBB219:
+ 1861              	.LBI219:
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1862              		.loc 1 159 13 view .LVU601
+ 1863              	.LBB220:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1864              		.loc 1 161 1 view .LVU602
+ 1865              	.L118:
+ 1866              	.LBE220:
+ 1867              	.LBE219:
+ 614:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 615:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1868              		.loc 1 615 1 is_stmt 0 view .LVU603
+ 1869 0072 10BD     		pop	{r4, pc}
+ 1870              	.LVL109:
+ 1871              	.L150:
+ 1872              	.LBB221:
+ 598:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1873              		.loc 1 598 17 is_stmt 1 view .LVU604
+ 598:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1874              		.loc 1 598 28 is_stmt 0 view .LVU605
+ 1875 0074 D968     		ldr	r1, [r3, #12]
+ 601:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 1876              		.loc 1 601 17 view .LVU606
+ 1877 0076 2348     		ldr	r0, .L154+8
+ 598:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1878              		.loc 1 598 28 view .LVU607
+ 1879 0078 21EA0202 		bic	r2, r1, r2
+ 1880              	.LVL110:
+ 598:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1881              		.loc 1 598 28 view .LVU608
+ 1882 007c DA60     		str	r2, [r3, #12]
+ 601:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 1883              		.loc 1 601 17 is_stmt 1 view .LVU609
+ 601:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 break;
+ 1884              		.loc 1 601 17 view .LVU610
+ 1885 007e 0368     		ldr	r3, [r0]
+ 1886 0080 002B     		cmp	r3, #0
+ 1887 0082 ECD1     		bne	.L149
+ 1888 0084 ECE7     		b	.L123
+ 1889              	.LVL111:
+ 1890              	.L124:
+ARM GAS  /tmp/ccmY8wUW.s 			page 55
+
+
+ 556:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 1891              		.loc 1 556 17 view .LVU611
+ 556:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 1892              		.loc 1 556 20 is_stmt 0 view .LVU612
+ 1893 0086 2289     		ldrh	r2, [r4, #8]
+ 1894              	.LVL112:
+ 556:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 {
+ 1895              		.loc 1 556 20 view .LVU613
+ 1896 0088 002A     		cmp	r2, #0
+ 1897 008a 2AD1     		bne	.L152
+ 566:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1898              		.loc 1 566 21 is_stmt 1 view .LVU614
+ 566:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1899              		.loc 1 566 32 is_stmt 0 view .LVU615
+ 1900 008c DA68     		ldr	r2, [r3, #12]
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1901              		.loc 1 569 21 view .LVU616
+ 1902 008e 1D49     		ldr	r1, .L154+8
+ 566:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1903              		.loc 1 566 32 view .LVU617
+ 1904 0090 22F00202 		bic	r2, r2, #2
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1905              		.loc 1 569 21 view .LVU618
+ 1906 0094 4968     		ldr	r1, [r1, #4]
+ 566:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1907              		.loc 1 566 32 view .LVU619
+ 1908 0096 DA60     		str	r2, [r3, #12]
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1909              		.loc 1 569 21 is_stmt 1 view .LVU620
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1910              		.loc 1 569 21 view .LVU621
+ 1911 0098 0029     		cmp	r1, #0
+ 1912 009a E1D0     		beq	.L123
+ 569:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1913              		.loc 1 569 21 discriminator 1 view .LVU622
+ 1914 009c 8847     		blx	r1
+ 1915              	.LVL113:
+ 1916 009e DFE7     		b	.L123
+ 1917              	.L151:
+ 579:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1918              		.loc 1 579 21 view .LVU623
+ 579:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1919              		.loc 1 579 43 is_stmt 0 view .LVU624
+ 1920 00a0 2368     		ldr	r3, [r4]
+ 580:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH_prvBlockErase();
+ 1921              		.loc 1 580 52 view .LVU625
+ 1922 00a2 521A     		subs	r2, r2, r1
+ 579:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1923              		.loc 1 579 43 view .LVU626
+ 1924 00a4 03EB8121 		add	r1, r3, r1, lsl #10
+ 580:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH_prvBlockErase();
+ 1925              		.loc 1 580 52 view .LVU627
+ 1926 00a8 2281     		strh	r2, [r4, #8]	@ movhi
+ 1927              	.LBB213:
+ 1928              	.LBB214:
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1929              		.loc 1 109 8 view .LVU628
+ARM GAS  /tmp/ccmY8wUW.s 			page 56
+
+
+ 1930 00aa 11F4702F 		tst	r1, #983040
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1931              		.loc 1 92 14 view .LVU629
+ 1932 00ae C1F31303 		ubfx	r3, r1, #0, #20
+ 1933              	.LBE214:
+ 1934              	.LBE213:
+ 579:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     flash_xHandle.MemStream.length -= FLASH_BLOCK_SIZE_KB;
+ 1935              		.loc 1 579 43 view .LVU630
+ 1936 00b2 2160     		str	r1, [r4]
+ 580:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                     FLASH_prvBlockErase();
+ 1937              		.loc 1 580 21 is_stmt 1 view .LVU631
+ 581:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 1938              		.loc 1 581 21 view .LVU632
+ 1939              	.LBB217:
+ 1940              	.LBI213:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 1941              		.loc 1 89 13 view .LVU633
+ 1942              	.LBB215:
+  91:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     uint32_t ulAddr   =  (uint32_t)flash_xHandle.Address & 0x000FFFFF;
+ 1943              		.loc 1 91 5 view .LVU634
+ 1944              	.LVL114:
+  92:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1945              		.loc 1 92 5 view .LVU635
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1946              		.loc 1 109 5 view .LVU636
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     {
+ 1947              		.loc 1 109 8 is_stmt 0 view .LVU637
+ 1948 00b4 1DD0     		beq	.L153
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****         flash_xHandle.SectorSize = (ulAddr == 0) ? 64 : 128;
+ 1949              		.loc 1 120 9 is_stmt 1 view .LVU638
+ 1950              	.LVL115:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1951              		.loc 1 121 9 view .LVU639
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1952              		.loc 1 121 34 is_stmt 0 view .LVU640
+ 1953 00b6 5B0C     		lsrs	r3, r3, #17
+ 1954              	.LVL116:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1955              		.loc 1 121 34 view .LVU641
+ 1956 00b8 0CBF     		ite	eq
+ 1957 00ba 4022     		moveq	r2, #64
+ 1958 00bc 8022     		movne	r2, #128
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1959              		.loc 1 123 18 view .LVU642
+ 1960 00be 0433     		adds	r3, r3, #4
+ 1961              	.LVL117:
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1962              		.loc 1 121 34 view .LVU643
+ 1963 00c0 A281     		strh	r2, [r4, #12]	@ movhi
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 1964              		.loc 1 123 9 is_stmt 1 view .LVU644
+ 1965              	.LVL118:
+ 1966              	.L131:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1967              		.loc 1 127 5 view .LVU645
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1968              		.loc 1 127 16 is_stmt 0 view .LVU646
+ARM GAS  /tmp/ccmY8wUW.s 			page 57
+
+
+ 1969 00c2 0E4A     		ldr	r2, .L154
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1970              		.loc 1 128 30 view .LVU647
+ 1971 00c4 1B02     		lsls	r3, r3, #8
+ 1972              	.LVL119:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1973              		.loc 1 127 16 view .LVU648
+ 1974 00c6 D168     		ldr	r1, [r2, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1975              		.loc 1 128 51 view .LVU649
+ 1976 00c8 03F4E063 		and	r3, r3, #1792
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= ((ulSector << FLASH_CR_SNB_Pos) & FLASH_CR_SNB_Msk);
+ 1977              		.loc 1 127 16 view .LVU650
+ 1978 00cc 21F4E061 		bic	r1, r1, #1792
+ 1979 00d0 D160     		str	r1, [r2, #12]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1980              		.loc 1 128 5 is_stmt 1 view .LVU651
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     FLASH->CR1 |= FLASH_CR_START;
+ 1981              		.loc 1 128 16 is_stmt 0 view .LVU652
+ 1982 00d2 D168     		ldr	r1, [r2, #12]
+ 1983 00d4 0B43     		orrs	r3, r3, r1
+ 1984 00d6 D360     		str	r3, [r2, #12]
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1985              		.loc 1 129 5 is_stmt 1 view .LVU653
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 1986              		.loc 1 129 16 is_stmt 0 view .LVU654
+ 1987 00d8 D368     		ldr	r3, [r2, #12]
+ 1988 00da 43F08003 		orr	r3, r3, #128
+ 1989 00de D360     		str	r3, [r2, #12]
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1990              		.loc 1 130 1 view .LVU655
+ 1991 00e0 BEE7     		b	.L123
+ 1992              	.L152:
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1993              		.loc 1 130 1 view .LVU656
+ 1994              	.LBE215:
+ 1995              	.LBE217:
+ 559:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1996              		.loc 1 559 21 is_stmt 1 view .LVU657
+ 559:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1997              		.loc 1 559 43 is_stmt 0 view .LVU658
+ 1998 00e2 2068     		ldr	r0, [r4]
+ 559:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 1999              		.loc 1 559 69 view .LVU659
+ 2000 00e4 6389     		ldrh	r3, [r4, #10]
+ 561:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 2001              		.loc 1 561 21 view .LVU660
+ 2002 00e6 0949     		ldr	r1, .L154+16
+ 559:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 2003              		.loc 1 559 43 view .LVU661
+ 2004 00e8 1844     		add	r0, r0, r3
+ 2005 00ea 2060     		str	r0, [r4]
+ 561:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****                 }
+ 2006              		.loc 1 561 21 is_stmt 1 view .LVU662
+ 2007 00ec FFF7FEFF 		bl	XPD_vWriteFromStream
+ 2008              	.LVL120:
+ 2009 00f0 B6E7     		b	.L123
+ARM GAS  /tmp/ccmY8wUW.s 			page 58
+
+
+ 2010              	.LVL121:
+ 2011              	.L153:
+ 2012              	.LBB218:
+ 2013              	.LBB216:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 2014              		.loc 1 112 9 view .LVU663
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 2015              		.loc 1 112 34 is_stmt 0 view .LVU664
+ 2016 00f2 1022     		movs	r2, #16
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 2017              		.loc 1 114 28 view .LVU665
+ 2018 00f4 9B0B     		lsrs	r3, r3, #14
+ 2019              	.LVL122:
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 2020              		.loc 1 112 34 view .LVU666
+ 2021 00f6 A281     		strh	r2, [r4, #12]	@ movhi
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 2022              		.loc 1 114 9 is_stmt 1 view .LVU667
+ 2023              	.LVL123:
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     }
+ 2024              		.loc 1 114 9 is_stmt 0 view .LVU668
+ 2025 00f8 E3E7     		b	.L131
+ 2026              	.L155:
+ 2027 00fa 00BF     		.align	2
+ 2028              	.L154:
+ 2029 00fc 00200052 		.word	1375739904
+ 2030 0100 00000000 		.word	.LANCHOR0
+ 2031 0104 00000000 		.word	.LANCHOR1
+ 2032 0108 FFFFFEFD 		.word	-33619969
+ 2033 010c 04000000 		.word	.LANCHOR0+4
+ 2034              	.LBE216:
+ 2035              	.LBE218:
+ 2036              	.LBE221:
+ 2037              		.cfi_endproc
+ 2038              	.LFE160:
+ 2040              		.section	.text.FLASH_eGetError,"ax",%progbits
+ 2041              		.align	1
+ 2042              		.p2align 2,,3
+ 2043              		.global	FLASH_eGetError
+ 2044              		.syntax unified
+ 2045              		.thumb
+ 2046              		.thumb_func
+ 2047              		.fpu fpv4-sp-d16
+ 2049              	FLASH_eGetError:
+ 2050              	.LFB161:
+ 616:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 617:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 618:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Provides the errors which have occurred during the last operation.
+ 619:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return The occurred errors
+ 620:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 621:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** FLASH_ErrorType FLASH_eGetError(void)
+ 622:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 2051              		.loc 1 622 1 is_stmt 1 view -0
+ 2052              		.cfi_startproc
+ 2053              		@ args = 0, pretend = 0, frame = 0
+ 2054              		@ frame_needed = 0, uses_anonymous_args = 0
+ 2055              		@ link register save eliminated.
+ARM GAS  /tmp/ccmY8wUW.s 			page 59
+
+
+ 623:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Errors;
+ 2056              		.loc 1 623 5 view .LVU670
+ 2057              		.loc 1 623 25 is_stmt 0 view .LVU671
+ 2058 0000 014B     		ldr	r3, .L157
+ 2059 0002 1869     		ldr	r0, [r3, #16]
+ 624:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 2060              		.loc 1 624 1 view .LVU672
+ 2061 0004 7047     		bx	lr
+ 2062              	.L158:
+ 2063 0006 00BF     		.align	2
+ 2064              	.L157:
+ 2065 0008 00000000 		.word	.LANCHOR0
+ 2066              		.cfi_endproc
+ 2067              	.LFE161:
+ 2069              		.section	.text.FLASH_pvGetAddress,"ax",%progbits
+ 2070              		.align	1
+ 2071              		.p2align 2,,3
+ 2072              		.global	FLASH_pvGetAddress
+ 2073              		.syntax unified
+ 2074              		.thumb
+ 2075              		.thumb_func
+ 2076              		.fpu fpv4-sp-d16
+ 2078              	FLASH_pvGetAddress:
+ 2079              	.LFB162:
+ 625:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** 
+ 626:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** /**
+ 627:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @brief Provides the current address where the last flash operation was attempted.
+ 628:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  * @return The current address
+ 629:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****  */
+ 630:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** void * FLASH_pvGetAddress(void)
+ 631:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** {
+ 2080              		.loc 1 631 1 is_stmt 1 view -0
+ 2081              		.cfi_startproc
+ 2082              		@ args = 0, pretend = 0, frame = 0
+ 2083              		@ frame_needed = 0, uses_anonymous_args = 0
+ 2084              		@ link register save eliminated.
+ 632:STM32_XPD/STM32H7_XPD/src/xpd_flash.c ****     return flash_xHandle.Address;
+ 2085              		.loc 1 632 5 view .LVU674
+ 2086              		.loc 1 632 25 is_stmt 0 view .LVU675
+ 2087 0000 014B     		ldr	r3, .L160
+ 633:STM32_XPD/STM32H7_XPD/src/xpd_flash.c **** }
+ 2088              		.loc 1 633 1 view .LVU676
+ 2089 0002 1868     		ldr	r0, [r3]
+ 2090 0004 7047     		bx	lr
+ 2091              	.L161:
+ 2092 0006 00BF     		.align	2
+ 2093              	.L160:
+ 2094 0008 00000000 		.word	.LANCHOR0
+ 2095              		.cfi_endproc
+ 2096              	.LFE162:
+ 2098              		.global	FLASH_xCallbacks
+ 2099              		.section	.bss.FLASH_xCallbacks,"aw",%nobits
+ 2100              		.align	2
+ 2101              		.set	.LANCHOR1,. + 0
+ 2104              	FLASH_xCallbacks:
+ 2105 0000 00000000 		.space	12
+ 2105      00000000 
+ARM GAS  /tmp/ccmY8wUW.s 			page 60
+
+
+ 2105      00000000 
+ 2106              		.section	.data.flash_xHandle,"aw"
+ 2107              		.align	2
+ 2108              		.set	.LANCHOR0,. + 0
+ 2111              	flash_xHandle:
+ 2112 0000 00000000 		.space	4
+ 2113 0004 00000000 		.space	6
+ 2113      0000
+ 2114 000a 0400     		.short	4
+ 2115 000c 00000000 		.space	4
+ 2116 0010 00000000 		.word	0
+ 2117              		.text
+ 2118              	.Letext0:
+ 2119              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 2120              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 2121              		.file 5 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 2122              		.file 6 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 2123              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 2124              		.file 8 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 2125              		.file 9 "STM32_XPD/STM32H7_XPD/inc/xpd_flash.h"
+ARM GAS  /tmp/ccmY8wUW.s 			page 61
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_flash.c
+     /tmp/ccmY8wUW.s:18     .text.FLASH_vUnlock:0000000000000000 $t
+     /tmp/ccmY8wUW.s:27     .text.FLASH_vUnlock:0000000000000000 FLASH_vUnlock
+     /tmp/ccmY8wUW.s:67     .text.FLASH_vUnlock:0000000000000028 $d
+     /tmp/ccmY8wUW.s:74     .text.FLASH_vLock:0000000000000000 $t
+     /tmp/ccmY8wUW.s:82     .text.FLASH_vLock:0000000000000000 FLASH_vLock
+     /tmp/ccmY8wUW.s:100    .text.FLASH_vLock:000000000000000c $d
+     /tmp/ccmY8wUW.s:105    .text.FLASH_ePollStatus:0000000000000000 $t
+     /tmp/ccmY8wUW.s:113    .text.FLASH_ePollStatus:0000000000000000 FLASH_ePollStatus
+     /tmp/ccmY8wUW.s:218    .text.FLASH_ePollStatus:0000000000000044 $d
+     /tmp/ccmY8wUW.s:225    .text.FLASH_eProgram:0000000000000000 $t
+     /tmp/ccmY8wUW.s:233    .text.FLASH_eProgram:0000000000000000 FLASH_eProgram
+     /tmp/ccmY8wUW.s:609    .text.FLASH_eProgram:00000000000000ec $d
+     /tmp/ccmY8wUW.s:620    .text.FLASH_eProgram_IT:0000000000000000 $t
+     /tmp/ccmY8wUW.s:628    .text.FLASH_eProgram_IT:0000000000000000 FLASH_eProgram_IT
+     /tmp/ccmY8wUW.s:711    .text.FLASH_eProgram_IT:0000000000000040 $d
+     /tmp/ccmY8wUW.s:718    .text.FLASH_eEraseBank:0000000000000000 $t
+     /tmp/ccmY8wUW.s:726    .text.FLASH_eEraseBank:0000000000000000 FLASH_eEraseBank
+     /tmp/ccmY8wUW.s:977    .text.FLASH_eEraseBank:00000000000000a8 $d
+     /tmp/ccmY8wUW.s:984    .text.FLASH_eEraseBank_IT:0000000000000000 $t
+     /tmp/ccmY8wUW.s:992    .text.FLASH_eEraseBank_IT:0000000000000000 FLASH_eEraseBank_IT
+     /tmp/ccmY8wUW.s:1063   .text.FLASH_eEraseBank_IT:0000000000000034 $d
+     /tmp/ccmY8wUW.s:1070   .text.FLASH_eErase:0000000000000000 $t
+     /tmp/ccmY8wUW.s:1078   .text.FLASH_eErase:0000000000000000 FLASH_eErase
+     /tmp/ccmY8wUW.s:1520   .text.FLASH_eErase:0000000000000128 $d
+     /tmp/ccmY8wUW.s:1531   .text.FLASH_eErase_IT:0000000000000000 $t
+     /tmp/ccmY8wUW.s:1539   .text.FLASH_eErase_IT:0000000000000000 FLASH_eErase_IT
+     /tmp/ccmY8wUW.s:1708   .text.FLASH_eErase_IT:0000000000000068 $d
+     /tmp/ccmY8wUW.s:1717   .text.FLASH_vIRQHandler:0000000000000000 $t
+     /tmp/ccmY8wUW.s:1725   .text.FLASH_vIRQHandler:0000000000000000 FLASH_vIRQHandler
+     /tmp/ccmY8wUW.s:2029   .text.FLASH_vIRQHandler:00000000000000fc $d
+     /tmp/ccmY8wUW.s:2041   .text.FLASH_eGetError:0000000000000000 $t
+     /tmp/ccmY8wUW.s:2049   .text.FLASH_eGetError:0000000000000000 FLASH_eGetError
+     /tmp/ccmY8wUW.s:2065   .text.FLASH_eGetError:0000000000000008 $d
+     /tmp/ccmY8wUW.s:2070   .text.FLASH_pvGetAddress:0000000000000000 $t
+     /tmp/ccmY8wUW.s:2078   .text.FLASH_pvGetAddress:0000000000000000 FLASH_pvGetAddress
+     /tmp/ccmY8wUW.s:2094   .text.FLASH_pvGetAddress:0000000000000008 $d
+     /tmp/ccmY8wUW.s:2104   .bss.FLASH_xCallbacks:0000000000000000 FLASH_xCallbacks
+     /tmp/ccmY8wUW.s:2100   .bss.FLASH_xCallbacks:0000000000000000 $d
+     /tmp/ccmY8wUW.s:2107   .data.flash_xHandle:0000000000000000 $d
+     /tmp/ccmY8wUW.s:2111   .data.flash_xHandle:0000000000000000 flash_xHandle
+
+UNDEFINED SYMBOLS
+XPD_pxTimeService
+XPD_vWriteFromStream

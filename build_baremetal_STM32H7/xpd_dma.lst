@@ -1,0 +1,2493 @@
+ARM GAS  /tmp/ccOcJyPi.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_dma.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.DMA_vInit,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	DMA_vInit
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	DMA_vInit:
+  28              	.LVL0:
+  29              	.LFB168:
+  30              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_dma.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * @file    xpd_dma.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * @version 0.2
+   6:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * @brief   STM32 eXtensible Peripheral Drivers DMA Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #include <xpd_dma.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #include <xpd_rcc.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #include <xpd_utils.h>
+  26:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  27:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /** @addtogroup DMA
+  28:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @{ */
+ARM GAS  /tmp/ccOcJyPi.s 			page 2
+
+
+  29:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  30:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #define DMA_ABORT_TIMEOUT   1000
+  31:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  32:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #define DMA_BASE(STREAM)            ((((uint32_t)(STREAM) & 0xFF) < 0x70) ?     \
+  33:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                         (void*)( (uint32_t)(STREAM) & (~(uint32_t)0x3FF)) :     \
+  34:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                         (void*)(((uint32_t)(STREAM) & (~(uint32_t)0x3FF)) + 4))
+  35:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #define DMA_BASE_OFFSET(STREAM)     (((uint32_t)(STREAM) < (uint32_t)DMA2) ? 0 : 1)
+  36:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #define DMA_STREAM_NUMBER(STREAM)   ((((uint32_t)(STREAM) & 0xFF) - 16) / 24)
+  37:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  38:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** static uint8_t dma_aucUsers[] = {
+  39:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         0,
+  40:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef DMA2
+  41:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         0
+  42:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+  43:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** };
+  44:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  45:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** static void DMA_prvClockEnable(DMA_HandleType * pxDMA)
+  46:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  47:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulBO = DMA_BASE_OFFSET(pxDMA->Inst);
+  48:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  49:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (dma_aucUsers[ulBO] == 0)
+  50:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  51:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         RCC_vClockEnable(RCC_POS_DMA1 + ulBO);
+  52:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+  53:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     SET_BIT(dma_aucUsers[ulBO], 1 << DMA_STREAM_NUMBER(pxDMA->Inst));
+  55:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  56:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  57:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** static void DMA_prvClockDisable(DMA_HandleType * pxDMA)
+  58:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  59:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulBO = DMA_BASE_OFFSET(pxDMA->Inst);
+  60:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     CLEAR_BIT(dma_aucUsers[ulBO], 1 << DMA_STREAM_NUMBER(pxDMA->Inst));
+  62:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  63:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (dma_aucUsers[ulBO] == 0)
+  64:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  65:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         RCC_vClockDisable(RCC_POS_DMA1 + ulBO);
+  66:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+  67:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  68:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  69:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /*
+  70:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Enables the DMA stream.
+  71:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+  72:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+  73:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** __STATIC_INLINE void DMA_prvEnable(DMA_HandleType * pxDMA)
+  74:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->CR |= DMA_SxCR_EN;
+  76:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  77:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  78:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /*
+  79:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Disables the DMA stream.
+  80:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+  81:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** __STATIC_INLINE void DMA_prvDisable(DMA_HandleType * pxDMA)
+  83:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->CR &= ~DMA_SxCR_EN;
+  85:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ARM GAS  /tmp/ccOcJyPi.s 			page 3
+
+
+  86:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  87:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** __STATIC_INLINE void DMA_prvCalcBase(DMA_HandleType * pxDMA)
+  88:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  89:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint8_t ucStream = DMA_STREAM_NUMBER(pxDMA->Inst);
+  90:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  91:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Base = DMA_BASE(pxDMA->Inst);
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->StreamOffset = ((ucStream & 2) * 8) + ((ucStream & 1) * 6);
+  93:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  94:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  95:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /** @defgroup DMA_Exported_Functions DMA Exported Functions
+  96:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @{ */
+  97:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  98:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+  99:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Initializes the DMA stream using the setup configuration.
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxConfig: DMA stream setup configuration
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vInit(DMA_HandleType * pxDMA, const DMA_InitType * pxConfig)
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  31              		.loc 1 104 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulCR;
+  35              		.loc 1 105 5 view .LVU1
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* enable DMA clock */
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvClockEnable(pxDMA);
+  36              		.loc 1 108 5 view .LVU2
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulCR;
+  37              		.loc 1 104 1 is_stmt 0 view .LVU3
+  38 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+  39              	.LCFI0:
+  40              		.cfi_def_cfa_offset 32
+  41              		.cfi_offset 3, -32
+  42              		.cfi_offset 4, -28
+  43              		.cfi_offset 5, -24
+  44              		.cfi_offset 6, -20
+  45              		.cfi_offset 7, -16
+  46              		.cfi_offset 8, -12
+  47              		.cfi_offset 9, -8
+  48              		.cfi_offset 14, -4
+  49              	.LBB36:
+  50              	.LBB37:
+  47:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  51              		.loc 1 47 21 view .LVU4
+  52 0004 304B     		ldr	r3, .L14
+  53              	.LBE37:
+  54              	.LBE36:
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulCR;
+  55              		.loc 1 104 1 view .LVU5
+  56 0006 0546     		mov	r5, r0
+  57              	.LBB45:
+  58              	.LBI36:
+  45:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+  59              		.loc 1 45 13 is_stmt 1 view .LVU6
+  60              	.LVL1:
+ARM GAS  /tmp/ccOcJyPi.s 			page 4
+
+
+  61              	.LBB38:
+  47:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  62              		.loc 1 47 5 view .LVU7
+  47:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  63              		.loc 1 47 21 is_stmt 0 view .LVU8
+  64 0008 0468     		ldr	r4, [r0]
+  65              	.LBE38:
+  66              	.LBE45:
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulCR;
+  67              		.loc 1 104 1 view .LVU9
+  68 000a 0E46     		mov	r6, r1
+  69              	.LBB46:
+  70              	.LBB39:
+  49:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  71              		.loc 1 49 21 view .LVU10
+  72 000c 2F4F     		ldr	r7, .L14+4
+  47:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+  73              		.loc 1 47 21 view .LVU11
+  74 000e 9C42     		cmp	r4, r3
+  75 0010 94BF     		ite	ls
+  76 0012 4FF00008 		movls	r8, #0
+  77 0016 4FF00108 		movhi	r8, #1
+  78              	.LVL2:
+  49:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  79              		.loc 1 49 5 is_stmt 1 view .LVU12
+  49:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  80              		.loc 1 49 21 is_stmt 0 view .LVU13
+  81 001a 17F80890 		ldrb	r9, [r7, r8]	@ zero_extendqisi2
+  49:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+  82              		.loc 1 49 8 view .LVU14
+  83 001e B9F1000F 		cmp	r9, #0
+  84 0022 48D0     		beq	.L11
+  85              	.LVL3:
+  86              	.L2:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  87              		.loc 1 54 5 is_stmt 1 view .LVU15
+  88 0024 E1B2     		uxtb	r1, r4
+  89 0026 2A48     		ldr	r0, .L14+8
+  90 0028 0123     		movs	r3, #1
+  91              	.LBE39:
+  92              	.LBE46:
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* The memory and peripheral burst are forced to 0 when the FIFO is disabled */
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     ulCR = pxConfig->w & (DMA_SxCR_PFCTRL | DMA_SxCR_DIR | DMA_SxCR_MINC | DMA_SxCR_MSIZE
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PINC | DMA_SxCR_PSIZE| DMA_SxCR_PINCOS | DMA_SxCR_PL
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PBURST | DMA_SxCR_MBURST);
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Set the misplaced bits separately */
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (pxConfig->Mode == DMA_MODE_CIRCULAR)
+  93              		.loc 1 116 24 is_stmt 0 view .LVU16
+  94 002a 96F800E0 		ldrb	lr, [r6]	@ zero_extendqisi2
+  95              	.LBB47:
+  96              	.LBB40:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+  97              		.loc 1 54 5 view .LVU17
+  98 002e A1F11002 		sub	r2, r1, #16
+  99              	.LBE40:
+ARM GAS  /tmp/ccOcJyPi.s 			page 5
+
+
+ 100              	.LBE47:
+ 101              		.loc 1 116 24 view .LVU18
+ 102 0032 0EF0380E 		and	lr, lr, #56
+ 103              	.LBB48:
+ 104              	.LBB41:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 105              		.loc 1 54 5 view .LVU19
+ 106 0036 A0FB0202 		umull	r0, r2, r0, r2
+ 107              	.LBE41:
+ 108              	.LBE48:
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PINC | DMA_SxCR_PSIZE| DMA_SxCR_PINCOS | DMA_SxCR_PL
+ 109              		.loc 1 111 10 view .LVU20
+ 110 003a 2648     		ldr	r0, .L14+12
+ 111              		.loc 1 116 8 view .LVU21
+ 112 003c BEF1080F 		cmp	lr, #8
+ 113              	.LBB49:
+ 114              	.LBB42:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 115              		.loc 1 54 5 view .LVU22
+ 116 0040 4FEA1212 		lsr	r2, r2, #4
+ 117 0044 03FA02F3 		lsl	r3, r3, r2
+ 118 0048 43EA090C 		orr	ip, r3, r9
+ 119              	.LBE42:
+ 120              	.LBE49:
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PINC | DMA_SxCR_PSIZE| DMA_SxCR_PINCOS | DMA_SxCR_PL
+ 121              		.loc 1 111 10 view .LVU23
+ 122 004c 3368     		ldr	r3, [r6]
+ 123              	.LBB50:
+ 124              	.LBB43:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 125              		.loc 1 54 5 view .LVU24
+ 126 004e 07F808C0 		strb	ip, [r7, r8]
+ 127              	.LVL4:
+  54:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 128              		.loc 1 54 5 view .LVU25
+ 129              	.LBE43:
+ 130              	.LBE50:
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PINC | DMA_SxCR_PSIZE| DMA_SxCR_PINCOS | DMA_SxCR_PL
+ 131              		.loc 1 111 5 is_stmt 1 view .LVU26
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             | DMA_SxCR_PINC | DMA_SxCR_PSIZE| DMA_SxCR_PINCOS | DMA_SxCR_PL
+ 132              		.loc 1 111 10 is_stmt 0 view .LVU27
+ 133 0052 00EA0300 		and	r0, r0, r3
+ 134              	.LVL5:
+ 135              		.loc 1 116 5 is_stmt 1 view .LVU28
+ 136              		.loc 1 116 8 is_stmt 0 view .LVU29
+ 137 0056 25D0     		beq	.L9
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         ulCR |= DMA_SxCR_CIRC;
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     else if (pxConfig->Mode == DMA_MODE_DBUFFER)
+ 138              		.loc 1 120 10 is_stmt 1 view .LVU30
+ 139              		.loc 1 120 13 is_stmt 0 view .LVU31
+ 140 0058 BEF1180F 		cmp	lr, #24
+ 141 005c 20D0     		beq	.L12
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         ulCR |= DMA_SxCR_DBM | DMA_SxCR_CIRC;
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ARM GAS  /tmp/ccOcJyPi.s 			page 6
+
+
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     else {}
+ 142              		.loc 1 124 11 is_stmt 1 view .LVU32
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->CR = ulCR;
+ 143              		.loc 1 126 5 view .LVU33
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* FIFO configuration */
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (pxConfig->FifoThreshold > 0)
+ 144              		.loc 1 129 33 is_stmt 0 view .LVU34
+ 145 005e 3379     		ldrb	r3, [r6, #4]	@ zero_extendqisi2
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 146              		.loc 1 126 21 view .LVU35
+ 147 0060 2060     		str	r0, [r4]
+ 148              		.loc 1 129 5 is_stmt 1 view .LVU36
+ 149              		.loc 1 129 8 is_stmt 0 view .LVU37
+ 150 0062 13F00700 		ands	r0, r3, #7
+ 151              	.LVL6:
+ 152              		.loc 1 129 8 view .LVU38
+ 153 0066 24D0     		beq	.L5
+ 154              	.LVL7:
+ 155              	.L13:
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->FCR = DMA_SxFCR_DMDIS | ((pxConfig->FifoThreshold - 1) << DMA_SxFCR_FTH_Pos);
+ 156              		.loc 1 131 9 is_stmt 1 view .LVU39
+ 157              		.loc 1 131 77 is_stmt 0 view .LVU40
+ 158 0068 431E     		subs	r3, r0, #1
+ 159              		.loc 1 131 44 view .LVU41
+ 160 006a 43F00403 		orr	r3, r3, #4
+ 161              		.loc 1 131 26 view .LVU42
+ 162 006e 6361     		str	r3, [r4, #20]
+ 163              	.L6:
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     else
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->FCR = 0;
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 138:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->NDTR = 0;
+ 164              		.loc 1 138 5 is_stmt 1 view .LVU43
+ 165              		.loc 1 138 23 is_stmt 0 view .LVU44
+ 166 0070 0023     		movs	r3, #0
+ 167              	.LBB51:
+ 168              	.LBB52:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 169              		.loc 1 89 13 view .LVU45
+ 170 0072 D2B2     		uxtb	r2, r2
+  91:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->StreamOffset = ((ucStream & 2) * 8) + ((ucStream & 1) * 6);
+ 171              		.loc 1 91 19 view .LVU46
+ 172 0074 6F29     		cmp	r1, #111
+ 173 0076 1848     		ldr	r0, .L14+16
+ 174              	.LBE52:
+ 175              	.LBE51:
+ 176              		.loc 1 138 23 view .LVU47
+ 177 0078 6360     		str	r3, [r4, #4]
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->PAR = 0;
+ 178              		.loc 1 139 5 is_stmt 1 view .LVU48
+ 179              		.loc 1 139 22 is_stmt 0 view .LVU49
+ARM GAS  /tmp/ccOcJyPi.s 			page 7
+
+
+ 180 007a A360     		str	r3, [r4, #8]
+ 140:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 141:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* calculate DMA steam Base Address */
+ 142:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvCalcBase(pxDMA);
+ 181              		.loc 1 142 5 is_stmt 1 view .LVU50
+ 182              	.LVL8:
+ 183              	.LBB54:
+ 184              	.LBI51:
+  87:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 185              		.loc 1 87 22 view .LVU51
+ 186              	.LBB53:
+  89:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 187              		.loc 1 89 5 view .LVU52
+  91:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->StreamOffset = ((ucStream & 2) * 8) + ((ucStream & 1) * 6);
+ 188              		.loc 1 91 5 view .LVU53
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 189              		.loc 1 92 48 is_stmt 0 view .LVU54
+ 190 007c 02F00103 		and	r3, r2, #1
+ 191 0080 00EA0400 		and	r0, r0, r4
+ 192 0084 02F00202 		and	r2, r2, #2
+ 193              	.LVL9:
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 194              		.loc 1 92 48 view .LVU55
+ 195 0088 4FEA4301 		lsl	r1, r3, #1
+  91:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->StreamOffset = ((ucStream & 2) * 8) + ((ucStream & 1) * 6);
+ 196              		.loc 1 91 19 view .LVU56
+ 197 008c 88BF     		it	hi
+ 198 008e 0430     		addhi	r0, r0, #4
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 199              		.loc 1 92 48 view .LVU57
+ 200 0090 0B44     		add	r3, r3, r1
+  91:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->StreamOffset = ((ucStream & 2) * 8) + ((ucStream & 1) * 6);
+ 201              		.loc 1 91 17 view .LVU58
+ 202 0092 6860     		str	r0, [r5, #4]
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 203              		.loc 1 92 5 is_stmt 1 view .LVU59
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 204              		.loc 1 92 48 is_stmt 0 view .LVU60
+ 205 0094 5B00     		lsls	r3, r3, #1
+ 206 0096 03EBC203 		add	r3, r3, r2, lsl #3
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 207              		.loc 1 92 25 view .LVU61
+ 208 009a 2B72     		strb	r3, [r5, #8]
+ 209              	.LVL10:
+  92:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 210              		.loc 1 92 25 view .LVU62
+ 211              	.LBE53:
+ 212              	.LBE54:
+ 143:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 213              		.loc 1 143 1 view .LVU63
+ 214 009c BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 215              	.LVL11:
+ 216              	.L12:
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 217              		.loc 1 122 9 is_stmt 1 view .LVU64
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 218              		.loc 1 122 14 is_stmt 0 view .LVU65
+ARM GAS  /tmp/ccOcJyPi.s 			page 8
+
+
+ 219 00a0 40F48020 		orr	r0, r0, #262144
+ 220              	.LVL12:
+ 221              	.L9:
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 222              		.loc 1 122 14 view .LVU66
+ 223 00a4 40F48070 		orr	r0, r0, #256
+ 224              	.LVL13:
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 225              		.loc 1 124 11 is_stmt 1 view .LVU67
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 226              		.loc 1 126 5 view .LVU68
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 227              		.loc 1 129 33 is_stmt 0 view .LVU69
+ 228 00a8 3379     		ldrb	r3, [r6, #4]	@ zero_extendqisi2
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 229              		.loc 1 126 21 view .LVU70
+ 230 00aa 2060     		str	r0, [r4]
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 231              		.loc 1 129 5 is_stmt 1 view .LVU71
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 232              		.loc 1 129 8 is_stmt 0 view .LVU72
+ 233 00ac 13F00700 		ands	r0, r3, #7
+ 234              	.LVL14:
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 235              		.loc 1 129 8 view .LVU73
+ 236 00b0 DAD1     		bne	.L13
+ 237              	.LVL15:
+ 238              	.L5:
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 239              		.loc 1 135 9 is_stmt 1 view .LVU74
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 240              		.loc 1 135 26 is_stmt 0 view .LVU75
+ 241 00b2 6061     		str	r0, [r4, #20]
+ 242 00b4 DCE7     		b	.L6
+ 243              	.LVL16:
+ 244              	.L11:
+ 245              	.LBB55:
+ 246              	.LBB44:
+  51:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 247              		.loc 1 51 9 is_stmt 1 view .LVU76
+ 248 00b6 08F11500 		add	r0, r8, #21
+ 249              	.LVL17:
+  51:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 250              		.loc 1 51 9 is_stmt 0 view .LVU77
+ 251 00ba FFF7FEFF 		bl	RCC_vClockEnable
+ 252              	.LVL18:
+  51:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 253              		.loc 1 51 9 view .LVU78
+ 254 00be 17F80890 		ldrb	r9, [r7, r8]	@ zero_extendqisi2
+ 255 00c2 2C68     		ldr	r4, [r5]
+ 256 00c4 AEE7     		b	.L2
+ 257              	.L15:
+ 258 00c6 00BF     		.align	2
+ 259              	.L14:
+ 260 00c8 FF030240 		.word	1073873919
+ 261 00cc 00000000 		.word	.LANCHOR0
+ 262 00d0 ABAAAAAA 		.word	-1431655765
+ARM GAS  /tmp/ccOcJyPi.s 			page 9
+
+
+ 263 00d4 E0FEE301 		.word	31719136
+ 264 00d8 00FCFFFF 		.word	-1024
+ 265              	.LBE44:
+ 266              	.LBE55:
+ 267              		.cfi_endproc
+ 268              	.LFE168:
+ 270              		.section	.text.DMA_vDeinit,"ax",%progbits
+ 271              		.align	1
+ 272              		.p2align 2,,3
+ 273              		.global	DMA_vDeinit
+ 274              		.syntax unified
+ 275              		.thumb
+ 276              		.thumb_func
+ 277              		.fpu fpv4-sp-d16
+ 279              	DMA_vDeinit:
+ 280              	.LVL19:
+ 281              	.LFB169:
+ 144:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 145:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 146:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Deinitializes the DMA stream.
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 149:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vDeinit(DMA_HandleType * pxDMA)
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 282              		.loc 1 150 1 is_stmt 1 view -0
+ 283              		.cfi_startproc
+ 284              		@ args = 0, pretend = 0, frame = 0
+ 285              		@ frame_needed = 0, uses_anonymous_args = 0
+ 286              		@ link register save eliminated.
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvDisable(pxDMA);
+ 287              		.loc 1 151 5 is_stmt 0 view .LVU80
+ 288 0000 0368     		ldr	r3, [r0]
+ 289              	.LBB60:
+ 290              	.LBB61:
+  59:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 291              		.loc 1 59 21 view .LVU81
+ 292 0002 1549     		ldr	r1, .L20
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 293              		.loc 1 61 5 view .LVU82
+ 294 0004 DAB2     		uxtb	r2, r3
+ 295 0006 DFF858C0 		ldr	ip, .L20+8
+  59:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 296              		.loc 1 59 21 view .LVU83
+ 297 000a 8B42     		cmp	r3, r1
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 298              		.loc 1 61 5 view .LVU84
+ 299 000c A2F11002 		sub	r2, r2, #16
+  59:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 300              		.loc 1 59 21 view .LVU85
+ 301 0010 94BF     		ite	ls
+ 302 0012 0021     		movls	r1, #0
+ 303 0014 0121     		movhi	r1, #1
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 304              		.loc 1 61 5 view .LVU86
+ 305 0016 ACFB02C2 		umull	ip, r2, ip, r2
+ 306              	.LBE61:
+ 307              	.LBE60:
+ARM GAS  /tmp/ccOcJyPi.s 			page 10
+
+
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvDisable(pxDMA);
+ 308              		.loc 1 150 1 view .LVU87
+ 309 001a F0B4     		push	{r4, r5, r6, r7}
+ 310              	.LCFI1:
+ 311              		.cfi_def_cfa_offset 16
+ 312              		.cfi_offset 4, -16
+ 313              		.cfi_offset 5, -12
+ 314              		.cfi_offset 6, -8
+ 315              		.cfi_offset 7, -4
+ 316              	.LBB70:
+ 317              	.LBB71:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 318              		.loc 1 84 21 view .LVU88
+ 319 001c 1F68     		ldr	r7, [r3]
+ 320              	.LBE71:
+ 321              	.LBE70:
+ 152:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 153:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* configuration reset */
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->CR = 0;
+ 322              		.loc 1 154 21 view .LVU89
+ 323 001e 0024     		movs	r4, #0
+ 324              	.LBB74:
+ 325              	.LBB62:
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 326              		.loc 1 61 5 view .LVU90
+ 327 0020 0E4E     		ldr	r6, .L20+4
+ 328 0022 1209     		lsrs	r2, r2, #4
+ 329 0024 0125     		movs	r5, #1
+ 330              	.LBE62:
+ 331              	.LBE74:
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 332              		.loc 1 151 5 is_stmt 1 view .LVU91
+ 333              	.LBB75:
+ 334              	.LBI70:
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 335              		.loc 1 82 22 view .LVU92
+ 336              	.LVL20:
+ 337              	.LBB72:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 338              		.loc 1 84 5 view .LVU93
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 339              		.loc 1 84 21 is_stmt 0 view .LVU94
+ 340 0026 27F00107 		bic	r7, r7, #1
+ 341              	.LBE72:
+ 342              	.LBE75:
+ 343              	.LBB76:
+ 344              	.LBB63:
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 345              		.loc 1 61 5 view .LVU95
+ 346 002a 9540     		lsls	r5, r5, r2
+ 347              	.LBE63:
+ 348              	.LBE76:
+ 349              	.LBB77:
+ 350              	.LBB73:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 351              		.loc 1 84 21 view .LVU96
+ 352 002c 1F60     		str	r7, [r3]
+ARM GAS  /tmp/ccOcJyPi.s 			page 11
+
+
+ 353              	.LBE73:
+ 354              	.LBE77:
+ 355              		.loc 1 154 5 is_stmt 1 view .LVU97
+ 356              	.LBB78:
+ 357              	.LBB64:
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 358              		.loc 1 61 5 is_stmt 0 view .LVU98
+ 359 002e 725C     		ldrb	r2, [r6, r1]	@ zero_extendqisi2
+ 360              	.LBE64:
+ 361              	.LBE78:
+ 362              		.loc 1 154 21 view .LVU99
+ 363 0030 1C60     		str	r4, [r3]
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->FCR = 0;
+ 364              		.loc 1 155 5 is_stmt 1 view .LVU100
+ 365              		.loc 1 155 22 is_stmt 0 view .LVU101
+ 366 0032 5C61     		str	r4, [r3, #20]
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->NDTR = 0;
+ 367              		.loc 1 157 5 is_stmt 1 view .LVU102
+ 368              	.LBB79:
+ 369              	.LBB65:
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 370              		.loc 1 61 5 is_stmt 0 view .LVU103
+ 371 0034 22EA0502 		bic	r2, r2, r5
+ 372              	.LBE65:
+ 373              	.LBE79:
+ 374              		.loc 1 157 23 view .LVU104
+ 375 0038 5C60     		str	r4, [r3, #4]
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->PAR = 0;
+ 376              		.loc 1 158 5 is_stmt 1 view .LVU105
+ 377              		.loc 1 158 22 is_stmt 0 view .LVU106
+ 378 003a 9C60     		str	r4, [r3, #8]
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Clear all interrupt flags */
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Base->LIFCR = (DMA_LIFCR_CFEIF0 | DMA_LIFCR_CDMEIF0 |
+ 379              		.loc 1 161 5 is_stmt 1 view .LVU107
+ 162:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTCIF0 | DMA_LIFCR_CTEIF0)
+ 163:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                 << (uint32_t)pxDMA->StreamOffset;
+ 380              		.loc 1 163 17 is_stmt 0 view .LVU108
+ 381 003c 3D23     		movs	r3, #61
+ 382              		.loc 1 163 20 view .LVU109
+ 383 003e 047A     		ldrb	r4, [r0, #8]	@ zero_extendqisi2
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTCIF0 | DMA_LIFCR_CTEIF0)
+ 384              		.loc 1 161 10 view .LVU110
+ 385 0040 4068     		ldr	r0, [r0, #4]
+ 386              	.LVL21:
+ 387              		.loc 1 163 17 view .LVU111
+ 388 0042 A340     		lsls	r3, r3, r4
+ 389              	.LBB80:
+ 390              	.LBB66:
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 391              		.loc 1 61 5 view .LVU112
+ 392 0044 7254     		strb	r2, [r6, r1]
+ 393              	.LBE66:
+ 394              	.LBE80:
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTCIF0 | DMA_LIFCR_CTEIF0)
+ 395              		.loc 1 161 24 view .LVU113
+ARM GAS  /tmp/ccOcJyPi.s 			page 12
+
+
+ 396 0046 8360     		str	r3, [r0, #8]
+ 164:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 165:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* disable DMA clock */
+ 166:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvClockDisable(pxDMA);
+ 397              		.loc 1 166 5 is_stmt 1 view .LVU114
+ 398              	.LBB81:
+ 399              	.LBI60:
+  57:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 400              		.loc 1 57 13 view .LVU115
+ 401              	.LVL22:
+ 402              	.LBB67:
+  59:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 403              		.loc 1 59 5 view .LVU116
+  61:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 404              		.loc 1 61 5 view .LVU117
+  63:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 405              		.loc 1 63 5 view .LVU118
+  63:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 406              		.loc 1 63 8 is_stmt 0 view .LVU119
+ 407 0048 0AB1     		cbz	r2, .L19
+ 408              	.LBE67:
+ 409              	.LBE81:
+ 167:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 410              		.loc 1 167 1 view .LVU120
+ 411 004a F0BC     		pop	{r4, r5, r6, r7}
+ 412              	.LCFI2:
+ 413              		.cfi_remember_state
+ 414              		.cfi_restore 7
+ 415              		.cfi_restore 6
+ 416              		.cfi_restore 5
+ 417              		.cfi_restore 4
+ 418              		.cfi_def_cfa_offset 0
+ 419 004c 7047     		bx	lr
+ 420              	.L19:
+ 421              	.LCFI3:
+ 422              		.cfi_restore_state
+ 423              	.LBB82:
+ 424              	.LBB68:
+  65:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 425              		.loc 1 65 9 is_stmt 1 view .LVU121
+ 426 004e 01F11500 		add	r0, r1, #21
+ 427              	.LBE68:
+ 428              	.LBE82:
+ 429              		.loc 1 167 1 is_stmt 0 view .LVU122
+ 430 0052 F0BC     		pop	{r4, r5, r6, r7}
+ 431              	.LCFI4:
+ 432              		.cfi_restore 7
+ 433              		.cfi_restore 6
+ 434              		.cfi_restore 5
+ 435              		.cfi_restore 4
+ 436              		.cfi_def_cfa_offset 0
+ 437              	.LBB83:
+ 438              	.LBB69:
+  65:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 439              		.loc 1 65 9 view .LVU123
+ 440 0054 FFF7FEBF 		b	RCC_vClockDisable
+ 441              	.LVL23:
+ARM GAS  /tmp/ccOcJyPi.s 			page 13
+
+
+ 442              	.L21:
+  65:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 443              		.loc 1 65 9 view .LVU124
+ 444              		.align	2
+ 445              	.L20:
+ 446 0058 FF030240 		.word	1073873919
+ 447 005c 00000000 		.word	.LANCHOR0
+ 448 0060 ABAAAAAA 		.word	-1431655765
+ 449              	.LBE69:
+ 450              	.LBE83:
+ 451              		.cfi_endproc
+ 452              	.LFE169:
+ 454              		.section	.text.DMA_eStart,"ax",%progbits
+ 455              		.align	1
+ 456              		.p2align 2,,3
+ 457              		.global	DMA_eStart
+ 458              		.syntax unified
+ 459              		.thumb
+ 460              		.thumb_func
+ 461              		.fpu fpv4-sp-d16
+ 463              	DMA_eStart:
+ 464              	.LVL24:
+ 465              	.LFB170:
+ 168:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 169:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 170:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Sets up a DMA transfer and starts it.
+ 171:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 172:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pvPeriphAddress: pointer to the peripheral data register
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pvMemAddress: pointer to the memory data
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param usDataCount: the amount of data to be transferred
+ 175:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @return BUSY if DMA is in use, OK if success
+ 176:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** XPD_ReturnType DMA_eStart(
+ 178:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_HandleType *    pxDMA,
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         void *              pvPeriphAddress,
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         void *              pvMemAddress,
+ 181:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         uint16_t            usDataCount)
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 466              		.loc 1 182 1 is_stmt 1 view -0
+ 467              		.cfi_startproc
+ 468              		@ args = 0, pretend = 0, frame = 0
+ 469              		@ frame_needed = 0, uses_anonymous_args = 0
+ 470              		@ link register save eliminated.
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult = XPD_OK;
+ 471              		.loc 1 183 5 view .LVU126
+ 184:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 185:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Enter critical section to ensure single user of DMA */
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ENTER_CRITICAL(pxDMA);
+ 472              		.loc 1 186 30 view .LVU127
+ 187:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 188:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* If previous user was a different peripheral, check busy state first */
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if ((uint32_t)pvPeriphAddress != pxDMA->Inst->PAR)
+ 473              		.loc 1 189 5 view .LVU128
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult = XPD_OK;
+ 474              		.loc 1 182 1 is_stmt 0 view .LVU129
+ 475 0000 30B4     		push	{r4, r5}
+ 476              	.LCFI5:
+ARM GAS  /tmp/ccOcJyPi.s 			page 14
+
+
+ 477              		.cfi_def_cfa_offset 8
+ 478              		.cfi_offset 4, -8
+ 479              		.cfi_offset 5, -4
+ 480              		.loc 1 189 43 view .LVU130
+ 481 0002 0468     		ldr	r4, [r0]
+ 482              		.loc 1 189 49 view .LVU131
+ 483 0004 A068     		ldr	r0, [r4, #8]
+ 484              	.LVL25:
+ 485              		.loc 1 189 8 view .LVU132
+ 486 0006 8842     		cmp	r0, r1
+ 487 0008 09D0     		beq	.L23
+ 190:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         eResult = DMA_usGetStatus(pxDMA);
+ 488              		.loc 1 191 9 is_stmt 1 view .LVU133
+ 489              	.LVL26:
+ 490              	.LBB84:
+ 491              	.LBI84:
+ 192:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 193:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (eResult == XPD_OK)
+ 195:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_prvDisable(pxDMA);
+ 197:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 198:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* DMA transfer setup */
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->NDTR = usDataCount;
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->PAR  = (uint32_t)pvPeriphAddress;
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->M0AR = (uint32_t)pvMemAddress;
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* reset error state */
+ 204:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Errors = DMA_ERROR_NONE;
+ 205:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_prvEnable(pxDMA);
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     else
+ 210:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         eResult = XPD_BUSY;
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 213:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_EXIT_CRITICAL(pxDMA);
+ 215:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return eResult;
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 220:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Sets up a DMA transfer, starts it and produces completion callback using the interrupt st
+ 221:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pvPeriphAddress: pointer to the peripheral data register
+ 223:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pvMemAddress: pointer to the memory data
+ 224:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param usDataCount: the amount of data to be transferred
+ 225:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @return BUSY if DMA is in use, OK if success
+ 226:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 227:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** XPD_ReturnType DMA_eStart_IT(
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_HandleType *    pxDMA,
+ 229:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         void *              pvPeriphAddress,
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         void *              pvMemAddress,
+ 231:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         uint16_t            usDataCount)
+ARM GAS  /tmp/ccOcJyPi.s 			page 15
+
+
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult = DMA_eStart(pxDMA,
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pvPeriphAddress, pvMemAddress, usDataCount);
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (eResult == XPD_OK)
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 238:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* enable interrupts
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****          * half transfer interrupt has to be enabled by user if callback is used */
+ 240:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 241:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         SET_BIT(pxDMA->Inst->CR, DMA_SxCR_TCIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE);
+ 242:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->FCR |= DMA_SxFCR_FEIE;
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #else
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->CR |= DMA_SxCR_TCIE;
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return eResult;
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 249:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 251:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Stops a DMA transfer.
+ 252:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vStop(DMA_HandleType *pxDMA)
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulTimeout = DMA_ABORT_TIMEOUT;
+ 257:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 258:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* disable the stream */
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvDisable(pxDMA);
+ 260:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 261:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* wait until stream is effectively disabled */
+ 262:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_eWaitForMatch(&pxDMA->Inst->CR, DMA_SxCR_EN, 0, &ulTimeout);
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 264:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 265:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 266:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Stops a DMA transfer and disables all interrupt sources.
+ 267:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 268:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 269:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vStop_IT(DMA_HandleType *pxDMA)
+ 270:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 271:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* disable the stream */
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     DMA_prvDisable(pxDMA);
+ 273:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 274:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* disable interrupts */
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     CLEAR_BIT(pxDMA->Inst->CR,
+ 276:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_SxCR_TCIE | DMA_SxCR_HTIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE);
+ 277:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 278:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     pxDMA->Inst->FCR &= ~DMA_SxFCR_FEIE;
+ 279:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 280:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 281:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 282:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 283:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Gets the remaining transfer length of the DMA stream.
+ 284:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 285:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @return The number of transfers left until completion
+ 286:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 287:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** uint16_t DMA_usGetStatus(DMA_HandleType * pxDMA)
+ 492              		.loc 1 287 10 view .LVU134
+ARM GAS  /tmp/ccOcJyPi.s 			page 16
+
+
+ 493              	.LBB85:
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 289:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return (pxDMA->Inst->CR & DMA_SxCR_EN) ? pxDMA->Inst->NDTR : 0;
+ 494              		.loc 1 289 5 view .LVU135
+ 495              		.loc 1 289 24 is_stmt 0 view .LVU136
+ 496 000a 2068     		ldr	r0, [r4]
+ 497              		.loc 1 289 64 view .LVU137
+ 498 000c C007     		lsls	r0, r0, #31
+ 499 000e 06D5     		bpl	.L23
+ 500              		.loc 1 289 57 view .LVU138
+ 501 0010 6068     		ldr	r0, [r4, #4]
+ 502              	.LVL27:
+ 503              		.loc 1 289 57 view .LVU139
+ 504              	.LBE85:
+ 505              	.LBE84:
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 506              		.loc 1 194 5 is_stmt 1 view .LVU140
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 507              		.loc 1 194 8 is_stmt 0 view .LVU141
+ 508 0012 10F0FF0F 		tst	r0, #255
+ 509 0016 02D0     		beq	.L23
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 510              		.loc 1 211 17 view .LVU142
+ 511 0018 0220     		movs	r0, #2
+ 512              	.LVL28:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 513              		.loc 1 214 29 is_stmt 1 view .LVU143
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 514              		.loc 1 216 5 view .LVU144
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 515              		.loc 1 217 1 is_stmt 0 view .LVU145
+ 516 001a 30BC     		pop	{r4, r5}
+ 517              	.LCFI6:
+ 518              		.cfi_remember_state
+ 519              		.cfi_restore 5
+ 520              		.cfi_restore 4
+ 521              		.cfi_def_cfa_offset 0
+ 522 001c 7047     		bx	lr
+ 523              	.LVL29:
+ 524              	.L23:
+ 525              	.LCFI7:
+ 526              		.cfi_restore_state
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 527              		.loc 1 196 9 is_stmt 1 view .LVU146
+ 528              	.LBB86:
+ 529              	.LBI86:
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 530              		.loc 1 82 22 view .LVU147
+ 531              	.LBB87:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 532              		.loc 1 84 5 view .LVU148
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 533              		.loc 1 84 21 is_stmt 0 view .LVU149
+ 534 001e 2568     		ldr	r5, [r4]
+ 535              	.LBE87:
+ 536              	.LBE86:
+ 537              	.LBB89:
+ARM GAS  /tmp/ccOcJyPi.s 			page 17
+
+
+ 538              	.LBB90:
+  76:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 539              		.loc 1 76 1 view .LVU150
+ 540 0020 0020     		movs	r0, #0
+ 541              	.LBE90:
+ 542              	.LBE89:
+ 543              	.LBB92:
+ 544              	.LBB88:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 545              		.loc 1 84 21 view .LVU151
+ 546 0022 25F00105 		bic	r5, r5, #1
+ 547 0026 2560     		str	r5, [r4]
+ 548              	.LBE88:
+ 549              	.LBE92:
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->PAR  = (uint32_t)pvPeriphAddress;
+ 550              		.loc 1 199 9 is_stmt 1 view .LVU152
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->PAR  = (uint32_t)pvPeriphAddress;
+ 551              		.loc 1 199 27 is_stmt 0 view .LVU153
+ 552 0028 6360     		str	r3, [r4, #4]
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->M0AR = (uint32_t)pvMemAddress;
+ 553              		.loc 1 200 9 is_stmt 1 view .LVU154
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->M0AR = (uint32_t)pvMemAddress;
+ 554              		.loc 1 200 27 is_stmt 0 view .LVU155
+ 555 002a A160     		str	r1, [r4, #8]
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 556              		.loc 1 201 9 is_stmt 1 view .LVU156
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 557              		.loc 1 201 27 is_stmt 0 view .LVU157
+ 558 002c E260     		str	r2, [r4, #12]
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 559              		.loc 1 207 9 is_stmt 1 view .LVU158
+ 560              	.LBB93:
+ 561              	.LBI89:
+  73:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 562              		.loc 1 73 22 view .LVU159
+ 563              	.LVL30:
+ 564              	.LBB91:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 565              		.loc 1 75 5 view .LVU160
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 566              		.loc 1 75 21 is_stmt 0 view .LVU161
+ 567 002e 2368     		ldr	r3, [r4]
+ 568              	.LVL31:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 569              		.loc 1 75 21 view .LVU162
+ 570 0030 43F00103 		orr	r3, r3, #1
+ 571 0034 2360     		str	r3, [r4]
+ 572              	.LVL32:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 573              		.loc 1 75 21 view .LVU163
+ 574              	.LBE91:
+ 575              	.LBE93:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 576              		.loc 1 214 29 is_stmt 1 view .LVU164
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 577              		.loc 1 216 5 view .LVU165
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ARM GAS  /tmp/ccOcJyPi.s 			page 18
+
+
+ 578              		.loc 1 217 1 is_stmt 0 view .LVU166
+ 579 0036 30BC     		pop	{r4, r5}
+ 580              	.LCFI8:
+ 581              		.cfi_restore 5
+ 582              		.cfi_restore 4
+ 583              		.cfi_def_cfa_offset 0
+ 584 0038 7047     		bx	lr
+ 585              		.cfi_endproc
+ 586              	.LFE170:
+ 588 003a 00BF     		.section	.text.DMA_eStart_IT,"ax",%progbits
+ 589              		.align	1
+ 590              		.p2align 2,,3
+ 591              		.global	DMA_eStart_IT
+ 592              		.syntax unified
+ 593              		.thumb
+ 594              		.thumb_func
+ 595              		.fpu fpv4-sp-d16
+ 597              	DMA_eStart_IT:
+ 598              	.LVL33:
+ 599              	.LFB171:
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult = DMA_eStart(pxDMA,
+ 600              		.loc 1 232 1 is_stmt 1 view -0
+ 601              		.cfi_startproc
+ 602              		@ args = 0, pretend = 0, frame = 0
+ 603              		@ frame_needed = 0, uses_anonymous_args = 0
+ 604              		@ link register save eliminated.
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pvPeriphAddress, pvMemAddress, usDataCount);
+ 605              		.loc 1 233 5 view .LVU168
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult = DMA_eStart(pxDMA,
+ 606              		.loc 1 232 1 is_stmt 0 view .LVU169
+ 607 0000 30B4     		push	{r4, r5}
+ 608              	.LCFI9:
+ 609              		.cfi_def_cfa_offset 8
+ 610              		.cfi_offset 4, -8
+ 611              		.cfi_offset 5, -4
+ 612              	.LBB94:
+ 613              	.LBB95:
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 614              		.loc 1 189 43 view .LVU170
+ 615 0002 0468     		ldr	r4, [r0]
+ 616              	.LVL34:
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 617              		.loc 1 189 43 view .LVU171
+ 618              	.LBE95:
+ 619              	.LBI94:
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_HandleType *    pxDMA,
+ 620              		.loc 1 177 16 is_stmt 1 view .LVU172
+ 621              	.LBB104:
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 622              		.loc 1 183 5 view .LVU173
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 623              		.loc 1 186 30 view .LVU174
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 624              		.loc 1 189 5 view .LVU175
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 625              		.loc 1 189 49 is_stmt 0 view .LVU176
+ 626 0004 A068     		ldr	r0, [r4, #8]
+ARM GAS  /tmp/ccOcJyPi.s 			page 19
+
+
+ 627              	.LVL35:
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 628              		.loc 1 189 8 view .LVU177
+ 629 0006 8842     		cmp	r0, r1
+ 630 0008 09D0     		beq	.L31
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 631              		.loc 1 191 9 is_stmt 1 view .LVU178
+ 632              	.LVL36:
+ 633              	.LBB96:
+ 634              	.LBI96:
+ 287:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 635              		.loc 1 287 10 view .LVU179
+ 636              	.LBB97:
+ 637              		.loc 1 289 5 view .LVU180
+ 638              		.loc 1 289 24 is_stmt 0 view .LVU181
+ 639 000a 2068     		ldr	r0, [r4]
+ 640              		.loc 1 289 64 view .LVU182
+ 641 000c C007     		lsls	r0, r0, #31
+ 642 000e 06D5     		bpl	.L31
+ 643              		.loc 1 289 57 view .LVU183
+ 644 0010 6068     		ldr	r0, [r4, #4]
+ 645              	.LVL37:
+ 646              		.loc 1 289 57 view .LVU184
+ 647              	.LBE97:
+ 648              	.LBE96:
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 649              		.loc 1 194 5 is_stmt 1 view .LVU185
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 650              		.loc 1 194 8 is_stmt 0 view .LVU186
+ 651 0012 10F0FF0F 		tst	r0, #255
+ 652 0016 02D0     		beq	.L31
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 653              		.loc 1 211 17 view .LVU187
+ 654 0018 0220     		movs	r0, #2
+ 655              	.LVL38:
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 656              		.loc 1 211 17 view .LVU188
+ 657              	.LBE104:
+ 658              	.LBE94:
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 659              		.loc 1 248 1 view .LVU189
+ 660 001a 30BC     		pop	{r4, r5}
+ 661              	.LCFI10:
+ 662              		.cfi_remember_state
+ 663              		.cfi_restore 5
+ 664              		.cfi_restore 4
+ 665              		.cfi_def_cfa_offset 0
+ 666 001c 7047     		bx	lr
+ 667              	.L31:
+ 668              	.LCFI11:
+ 669              		.cfi_restore_state
+ 670              	.LBB107:
+ 671              	.LBB105:
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 672              		.loc 1 196 9 is_stmt 1 view .LVU190
+ 673              	.LBB98:
+ 674              	.LBI98:
+ARM GAS  /tmp/ccOcJyPi.s 			page 20
+
+
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 675              		.loc 1 82 22 view .LVU191
+ 676              	.LVL39:
+ 677              	.LBB99:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 678              		.loc 1 84 5 view .LVU192
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 679              		.loc 1 84 21 is_stmt 0 view .LVU193
+ 680 001e 2568     		ldr	r5, [r4]
+ 681              	.LBE99:
+ 682              	.LBE98:
+ 683              	.LBE105:
+ 684              	.LBE107:
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 685              		.loc 1 244 25 view .LVU194
+ 686 0020 0020     		movs	r0, #0
+ 687              	.LBB108:
+ 688              	.LBB106:
+ 689              	.LBB101:
+ 690              	.LBB100:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 691              		.loc 1 84 21 view .LVU195
+ 692 0022 25F00105 		bic	r5, r5, #1
+ 693 0026 2560     		str	r5, [r4]
+ 694              	.LBE100:
+ 695              	.LBE101:
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->PAR  = (uint32_t)pvPeriphAddress;
+ 696              		.loc 1 199 9 is_stmt 1 view .LVU196
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->PAR  = (uint32_t)pvPeriphAddress;
+ 697              		.loc 1 199 27 is_stmt 0 view .LVU197
+ 698 0028 6360     		str	r3, [r4, #4]
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->M0AR = (uint32_t)pvMemAddress;
+ 699              		.loc 1 200 9 is_stmt 1 view .LVU198
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Inst->M0AR = (uint32_t)pvMemAddress;
+ 700              		.loc 1 200 27 is_stmt 0 view .LVU199
+ 701 002a A160     		str	r1, [r4, #8]
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 702              		.loc 1 201 9 is_stmt 1 view .LVU200
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 703              		.loc 1 201 27 is_stmt 0 view .LVU201
+ 704 002c E260     		str	r2, [r4, #12]
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 705              		.loc 1 207 9 is_stmt 1 view .LVU202
+ 706              	.LBB102:
+ 707              	.LBI102:
+  73:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 708              		.loc 1 73 22 view .LVU203
+ 709              	.LVL40:
+ 710              	.LBB103:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 711              		.loc 1 75 5 view .LVU204
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 712              		.loc 1 75 21 is_stmt 0 view .LVU205
+ 713 002e 2368     		ldr	r3, [r4]
+ 714              	.LVL41:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 715              		.loc 1 75 21 view .LVU206
+ARM GAS  /tmp/ccOcJyPi.s 			page 21
+
+
+ 716 0030 43F00103 		orr	r3, r3, #1
+ 717 0034 2360     		str	r3, [r4]
+ 718              	.LVL42:
+  75:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 719              		.loc 1 75 21 view .LVU207
+ 720              	.LBE103:
+ 721              	.LBE102:
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 722              		.loc 1 214 29 is_stmt 1 view .LVU208
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 723              		.loc 1 216 5 view .LVU209
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 724              		.loc 1 216 5 is_stmt 0 view .LVU210
+ 725              	.LBE106:
+ 726              	.LBE108:
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 727              		.loc 1 236 5 is_stmt 1 view .LVU211
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 728              		.loc 1 244 9 view .LVU212
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 729              		.loc 1 247 5 view .LVU213
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 730              		.loc 1 244 25 is_stmt 0 view .LVU214
+ 731 0036 2368     		ldr	r3, [r4]
+ 732 0038 43F01003 		orr	r3, r3, #16
+ 733 003c 2360     		str	r3, [r4]
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 734              		.loc 1 248 1 view .LVU215
+ 735 003e 30BC     		pop	{r4, r5}
+ 736              	.LCFI12:
+ 737              		.cfi_restore 5
+ 738              		.cfi_restore 4
+ 739              		.cfi_def_cfa_offset 0
+ 740 0040 7047     		bx	lr
+ 741              		.cfi_endproc
+ 742              	.LFE171:
+ 744 0042 00BF     		.section	.text.DMA_vStop,"ax",%progbits
+ 745              		.align	1
+ 746              		.p2align 2,,3
+ 747              		.global	DMA_vStop
+ 748              		.syntax unified
+ 749              		.thumb
+ 750              		.thumb_func
+ 751              		.fpu fpv4-sp-d16
+ 753              	DMA_vStop:
+ 754              	.LVL43:
+ 755              	.LFB172:
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulTimeout = DMA_ABORT_TIMEOUT;
+ 756              		.loc 1 255 1 is_stmt 1 view -0
+ 757              		.cfi_startproc
+ 758              		@ args = 0, pretend = 0, frame = 8
+ 759              		@ frame_needed = 0, uses_anonymous_args = 0
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 760              		.loc 1 256 5 view .LVU217
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulTimeout = DMA_ABORT_TIMEOUT;
+ 761              		.loc 1 255 1 is_stmt 0 view .LVU218
+ 762 0000 10B5     		push	{r4, lr}
+ARM GAS  /tmp/ccOcJyPi.s 			page 22
+
+
+ 763              	.LCFI13:
+ 764              		.cfi_def_cfa_offset 8
+ 765              		.cfi_offset 4, -8
+ 766              		.cfi_offset 14, -4
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 767              		.loc 1 256 14 view .LVU219
+ 768 0002 4FF47A73 		mov	r3, #1000
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulTimeout = DMA_ABORT_TIMEOUT;
+ 769              		.loc 1 255 1 view .LVU220
+ 770 0006 82B0     		sub	sp, sp, #8
+ 771              	.LCFI14:
+ 772              		.cfi_def_cfa_offset 16
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 773              		.loc 1 259 5 view .LVU221
+ 774 0008 0468     		ldr	r4, [r0]
+ 256:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 775              		.loc 1 256 14 view .LVU222
+ 776 000a 0193     		str	r3, [sp, #4]
+ 259:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 777              		.loc 1 259 5 is_stmt 1 view .LVU223
+ 778              	.LBB109:
+ 779              	.LBI109:
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 780              		.loc 1 82 22 view .LVU224
+ 781              	.LVL44:
+ 782              	.LBB110:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 783              		.loc 1 84 5 view .LVU225
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 784              		.loc 1 84 21 is_stmt 0 view .LVU226
+ 785 000c 2368     		ldr	r3, [r4]
+ 786 000e 23F00103 		bic	r3, r3, #1
+ 787 0012 2360     		str	r3, [r4]
+ 788              	.LBE110:
+ 789              	.LBE109:
+ 262:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 790              		.loc 1 262 5 is_stmt 1 view .LVU227
+ 791              	.LVL45:
+ 792              	.LBB111:
+ 793              	.LBI111:
+ 794              		.file 2 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @file    xpd_utils.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @brief   STM32 eXtensible Peripheral Drivers Utilities
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+ARM GAS  /tmp/ccOcJyPi.s 			page 23
+
+
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef __XPD_UTILS_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define __XPD_UTILS_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Utils XPD Utilities
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Types XPD Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @brief Time service functions structure */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** typedef struct
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Init)         (uint32_t ulCoreFreq_Hz);
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Prepares the time service for operation */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Block_ms)     (uint32_t ulBlocktime_ms);
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks the thread for the specified time */
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*MatchBlock_ms)(volatile uint32_t* pulVarAddress,
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address matches the input ulMatch, or until times 
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*DiffBlock_ms) (volatile uint32_t* pulVarAddress,
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address differs from the input ulMatch, or until t
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }XPD_TimeServiceType;
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Macros XPD Exported Macros
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_ENTER_CRITICAL
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Enters a critical section by disabling interrupts.
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_ENTER_CRITICAL(HANDLE)
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+ARM GAS  /tmp/ccOcJyPi.s 			page 24
+
+
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_EXIT_CRITICAL
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Leaves a critical section by enabling interrupts.
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_EXIT_CRITICAL(HANDLE)
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions_Timer
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** const XPD_TimeServiceType* XPD_pxTimeService(void);
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vSetTimeService     (const XPD_TimeServiceType* pxTimeService);
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vResetTimeService   (void);
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vDelay_us           (uint32_t ulMicroseconds);
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Initialize the timer of the XPD time service.
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulCoreFreq_Hz: the new core frequency in Hz
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vInitTimer(uint32_t ulCoreFreq_Hz)
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Init(ulCoreFreq_Hz);
+ 103:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 104:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 105:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 106:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Insert a delay of a specified time in the execution.
+ 107:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBlocktime_ms: the amount of delay in ms
+ 108:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 109:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vDelay_ms(uint32_t ulBlocktime_ms)
+ 110:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 111:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Block_ms(ulBlocktime_ms);
+ 112:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 113:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 114:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 115:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Waits until the masked value at address matches the input, or until timeout.
+ 116:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulVarAddress: the word address that needs to be monitored
+ 117:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 118:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulMatch: the expected value to wait for
+ 119:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulTimeout: pointer to the timeout in ms
+ 120:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 121:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 122:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE XPD_ReturnType XPD_eWaitForMatch(
+ 795              		.loc 2 122 32 view .LVU228
+ 796              	.LBB112:
+ 123:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 124:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulBitSelector,
+ 125:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulMatch,
+ 126:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t *          pulTimeout)
+ 127:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 128:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     return XPD_pxTimeService()->MatchBlock_ms(pulVarAddress, ulBitSelector,
+ARM GAS  /tmp/ccOcJyPi.s 			page 25
+
+
+ 797              		.loc 2 128 5 view .LVU229
+ 798              		.loc 2 128 12 is_stmt 0 view .LVU230
+ 799 0014 FFF7FEFF 		bl	XPD_pxTimeService
+ 800              	.LVL46:
+ 801              		.loc 2 128 12 view .LVU231
+ 802 0018 0246     		mov	r2, r0
+ 803 001a 01AB     		add	r3, sp, #4
+ 804              	.LVL47:
+ 805              		.loc 2 128 12 view .LVU232
+ 806 001c 2046     		mov	r0, r4
+ 807 001e 0121     		movs	r1, #1
+ 808 0020 9468     		ldr	r4, [r2, #8]
+ 809              	.LVL48:
+ 810              		.loc 2 128 12 view .LVU233
+ 811 0022 0022     		movs	r2, #0
+ 812 0024 A047     		blx	r4
+ 813              	.LVL49:
+ 814              		.loc 2 128 12 view .LVU234
+ 815              	.LBE112:
+ 816              	.LBE111:
+ 263:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 817              		.loc 1 263 1 view .LVU235
+ 818 0026 02B0     		add	sp, sp, #8
+ 819              	.LCFI15:
+ 820              		.cfi_def_cfa_offset 8
+ 821              		@ sp needed
+ 822 0028 10BD     		pop	{r4, pc}
+ 823              		.cfi_endproc
+ 824              	.LFE172:
+ 826 002a 00BF     		.section	.text.DMA_vStop_IT,"ax",%progbits
+ 827              		.align	1
+ 828              		.p2align 2,,3
+ 829              		.global	DMA_vStop_IT
+ 830              		.syntax unified
+ 831              		.thumb
+ 832              		.thumb_func
+ 833              		.fpu fpv4-sp-d16
+ 835              	DMA_vStop_IT:
+ 836              	.LVL50:
+ 837              	.LFB173:
+ 270:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* disable the stream */
+ 838              		.loc 1 270 1 is_stmt 1 view -0
+ 839              		.cfi_startproc
+ 840              		@ args = 0, pretend = 0, frame = 0
+ 841              		@ frame_needed = 0, uses_anonymous_args = 0
+ 842              		@ link register save eliminated.
+ 272:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 843              		.loc 1 272 5 view .LVU237
+ 844 0000 0368     		ldr	r3, [r0]
+ 845              	.LBB113:
+ 846              	.LBI113:
+  82:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 847              		.loc 1 82 22 view .LVU238
+ 848              	.LVL51:
+ 849              	.LBB114:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 850              		.loc 1 84 5 view .LVU239
+ARM GAS  /tmp/ccOcJyPi.s 			page 26
+
+
+  84:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 851              		.loc 1 84 21 is_stmt 0 view .LVU240
+ 852 0002 1A68     		ldr	r2, [r3]
+ 853 0004 22F00102 		bic	r2, r2, #1
+ 854 0008 1A60     		str	r2, [r3]
+ 855              	.LBE114:
+ 856              	.LBE113:
+ 275:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_SxCR_TCIE | DMA_SxCR_HTIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE);
+ 857              		.loc 1 275 5 is_stmt 1 view .LVU241
+ 858 000a 1A68     		ldr	r2, [r3]
+ 859 000c 22F01E02 		bic	r2, r2, #30
+ 860 0010 1A60     		str	r2, [r3]
+ 280:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 861              		.loc 1 280 1 is_stmt 0 view .LVU242
+ 862 0012 7047     		bx	lr
+ 863              		.cfi_endproc
+ 864              	.LFE173:
+ 866              		.section	.text.DMA_usGetStatus,"ax",%progbits
+ 867              		.align	1
+ 868              		.p2align 2,,3
+ 869              		.global	DMA_usGetStatus
+ 870              		.syntax unified
+ 871              		.thumb
+ 872              		.thumb_func
+ 873              		.fpu fpv4-sp-d16
+ 875              	DMA_usGetStatus:
+ 876              	.LVL52:
+ 877              	.LFB174:
+ 288:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return (pxDMA->Inst->CR & DMA_SxCR_EN) ? pxDMA->Inst->NDTR : 0;
+ 878              		.loc 1 288 1 is_stmt 1 view -0
+ 879              		.cfi_startproc
+ 880              		@ args = 0, pretend = 0, frame = 0
+ 881              		@ frame_needed = 0, uses_anonymous_args = 0
+ 882              		@ link register save eliminated.
+ 883              		.loc 1 289 5 view .LVU244
+ 884              		.loc 1 289 18 is_stmt 0 view .LVU245
+ 885 0000 0368     		ldr	r3, [r0]
+ 886              		.loc 1 289 24 view .LVU246
+ 887 0002 1868     		ldr	r0, [r3]
+ 888              	.LVL53:
+ 889              		.loc 1 289 64 view .LVU247
+ 890 0004 10F00100 		ands	r0, r0, #1
+ 891 0008 01D0     		beq	.L45
+ 892              		.loc 1 289 57 discriminator 1 view .LVU248
+ 893 000a 5868     		ldr	r0, [r3, #4]
+ 894              		.loc 1 289 64 discriminator 1 view .LVU249
+ 895 000c 80B2     		uxth	r0, r0
+ 896              	.L45:
+ 290:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 897              		.loc 1 290 1 discriminator 4 view .LVU250
+ 898 000e 7047     		bx	lr
+ 899              		.cfi_endproc
+ 900              	.LFE174:
+ 902              		.section	.text.DMA_ePollStatus,"ax",%progbits
+ 903              		.align	1
+ 904              		.p2align 2,,3
+ 905              		.global	DMA_ePollStatus
+ARM GAS  /tmp/ccOcJyPi.s 			page 27
+
+
+ 906              		.syntax unified
+ 907              		.thumb
+ 908              		.thumb_func
+ 909              		.fpu fpv4-sp-d16
+ 911              	DMA_ePollStatus:
+ 912              	.LVL54:
+ 913              	.LFB175:
+ 291:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 292:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 293:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Polls the status of the DMA transfer.
+ 294:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 295:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param eOperation: the type of operation to check
+ 296:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param ulTimeout: the timeout in ms for the polling.
+ 297:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @return ERROR if there were transfer errors, TIMEOUT if timed out, OK if successful
+ 298:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 299:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** XPD_ReturnType DMA_ePollStatus(
+ 300:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_HandleType *    pxDMA,
+ 301:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_OperationType   eOperation,
+ 302:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         uint32_t            ulTimeout)
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 914              		.loc 1 303 1 is_stmt 1 view -0
+ 915              		.cfi_startproc
+ 916              		@ args = 0, pretend = 0, frame = 8
+ 917              		@ frame_needed = 0, uses_anonymous_args = 0
+ 304:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult;
+ 918              		.loc 1 304 5 view .LVU252
+ 305:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     uint32_t ulSMask;
+ 919              		.loc 1 305 5 view .LVU253
+ 306:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 307:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Assemble monitoring mask */
+ 308:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     ulSMask = (eOperation == DMA_OPERATION_TRANSFER) ?
+ 920              		.loc 1 308 5 view .LVU254
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult;
+ 921              		.loc 1 303 1 is_stmt 0 view .LVU255
+ 922 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 923              	.LCFI16:
+ 924              		.cfi_def_cfa_offset 20
+ 925              		.cfi_offset 4, -20
+ 926              		.cfi_offset 5, -16
+ 927              		.cfi_offset 6, -12
+ 928              		.cfi_offset 7, -8
+ 929              		.cfi_offset 14, -4
+ 930 0002 83B0     		sub	sp, sp, #12
+ 931              	.LCFI17:
+ 932              		.cfi_def_cfa_offset 32
+ 303:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     XPD_ReturnType eResult;
+ 933              		.loc 1 303 1 view .LVU256
+ 934 0004 0446     		mov	r4, r0
+ 935 0006 067A     		ldrb	r6, [r0, #8]	@ zero_extendqisi2
+ 936 0008 4768     		ldr	r7, [r0, #4]
+ 937 000a 0192     		str	r2, [sp, #4]
+ 309:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             DMA_LISR_TCIF1 | DMA_LISR_TEIF1 | DMA_LISR_FEIF1 | DMA_LISR_DMEIF1
+ 310:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****           : DMA_LISR_HTIF1 | DMA_LISR_TEIF1 | DMA_LISR_FEIF1 | DMA_LISR_DMEIF1;
+ 938              		.loc 1 310 11 view .LVU257
+ 939 000c B1B9     		cbnz	r1, .L56
+ 940              	.LVL55:
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     ulSMask <<= pxDMA->StreamOffset;
+ARM GAS  /tmp/ccOcJyPi.s 			page 28
+
+
+ 941              		.loc 1 311 5 is_stmt 1 view .LVU258
+ 312:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 313:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Wait until any flags get active */
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     eResult = XPD_eWaitForDiff(&pxDMA->Base->LISR, ulSMask, 0, &ulTimeout);
+ 942              		.loc 1 314 5 view .LVU259
+ 943              	.LBB115:
+ 944              	.LBI115:
+ 129:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****             ulMatch, pulTimeout);
+ 130:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 131:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 132:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 133:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Waits until the masked value at address differs from the input, or until timeout.
+ 134:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulVarAddress: the word address that needs to be monitored
+ 135:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 136:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulMatch: the expected value to wait for
+ 137:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulTimeout: pointer to the timeout in ms
+ 138:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 139:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE XPD_ReturnType XPD_eWaitForDiff(
+ 945              		.loc 2 140 32 view .LVU260
+ 946              	.LBB116:
+ 141:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 142:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulBitSelector,
+ 143:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulMatch,
+ 144:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t *          pulTimeout)
+ 145:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 146:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     return XPD_pxTimeService()->DiffBlock_ms(pulVarAddress, ulBitSelector,
+ 947              		.loc 2 146 5 view .LVU261
+ 948 000e 0D46     		mov	r5, r1
+ 949              		.loc 2 146 12 is_stmt 0 view .LVU262
+ 950 0010 FFF7FEFF 		bl	XPD_pxTimeService
+ 951              	.LVL56:
+ 952              		.loc 2 146 12 view .LVU263
+ 953              	.LBE116:
+ 954              	.LBE115:
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 955              		.loc 1 311 13 view .LVU264
+ 956 0014 4FF43461 		mov	r1, #2880
+ 957              	.LBB120:
+ 958              	.LBB117:
+ 959              		.loc 2 146 12 view .LVU265
+ 960 0018 01AB     		add	r3, sp, #4
+ 961              	.LVL57:
+ 962              		.loc 2 146 12 view .LVU266
+ 963 001a 2A46     		mov	r2, r5
+ 964 001c C568     		ldr	r5, [r0, #12]
+ 965 001e B140     		lsls	r1, r1, r6
+ 966              	.LVL58:
+ 967              		.loc 2 146 12 view .LVU267
+ 968 0020 3846     		mov	r0, r7
+ 969 0022 A847     		blx	r5
+ 970              	.LVL59:
+ 971              		.loc 2 146 12 view .LVU268
+ 972              	.LBE117:
+ 973              	.LBE120:
+ 315:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (eResult == XPD_OK)
+ARM GAS  /tmp/ccOcJyPi.s 			page 29
+
+
+ 974              		.loc 1 316 5 is_stmt 1 view .LVU269
+ 975              		.loc 1 316 8 is_stmt 0 view .LVU270
+ 976 0024 40B9     		cbnz	r0, .L53
+ 317:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 318:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 319:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         if (DMA_FLAG_STATUS(pxDMA, TE))
+ 320:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         {
+ 321:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Update error code */
+ 322:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pxDMA->Errors |= DMA_ERROR_TRANSFER;
+ 323:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 324:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Clear the transfer error flag */
+ 325:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             DMA_FLAG_CLEAR(pxDMA, TE);
+ 326:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 327:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             eResult = XPD_ERROR;
+ 328:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 329:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         if (DMA_FLAG_STATUS(pxDMA, FE))
+ 330:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         {
+ 331:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Update error code */
+ 332:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pxDMA->Errors |= DMA_ERROR_FIFO;
+ 333:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 334:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Clear the FIFO error flag */
+ 335:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             DMA_FLAG_CLEAR(pxDMA, FE);
+ 336:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 337:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             return XPD_ERROR;
+ 338:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 339:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         if (DMA_FLAG_STATUS(pxDMA, DME))
+ 340:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         {
+ 341:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Update error code */
+ 342:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pxDMA->Errors |= DMA_ERROR_DIRECTM;
+ 343:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 344:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Clear the Direct Mode error flag */
+ 345:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             DMA_FLAG_CLEAR(pxDMA, DME);
+ 346:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 347:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             return XPD_ERROR;
+ 348:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 349:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         else
+ 350:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 351:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         {
+ 352:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             /* Clear the half transfer and transfer complete flags */
+ 353:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             if (eOperation == DMA_OPERATION_TRANSFER)
+ 977              		.loc 1 353 13 is_stmt 1 view .LVU271
+ 354:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             {
+ 355:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                 DMA_FLAG_CLEAR(pxDMA, TC);
+ 978              		.loc 1 355 17 view .LVU272
+ 979 0026 217A     		ldrb	r1, [r4, #8]	@ zero_extendqisi2
+ 980 0028 2023     		movs	r3, #32
+ 981 002a 6268     		ldr	r2, [r4, #4]
+ 356:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             }
+ 357:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             DMA_FLAG_CLEAR(pxDMA, HT);
+ 982              		.loc 1 357 13 is_stmt 0 view .LVU273
+ 983 002c 0020     		movs	r0, #0
+ 984              	.LVL60:
+ 355:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             }
+ 985              		.loc 1 355 17 view .LVU274
+ 986 002e 8B40     		lsls	r3, r3, r1
+ 987 0030 9360     		str	r3, [r2, #8]
+ 988              		.loc 1 357 13 is_stmt 1 view .LVU275
+ARM GAS  /tmp/ccOcJyPi.s 			page 30
+
+
+ 989 0032 1023     		movs	r3, #16
+ 990 0034 8B40     		lsls	r3, r3, r1
+ 991 0036 9360     		str	r3, [r2, #8]
+ 992              	.LVL61:
+ 993              	.L53:
+ 358:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 359:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 360:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 361:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return eResult;
+ 362:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 994              		.loc 1 362 1 is_stmt 0 view .LVU276
+ 995 0038 03B0     		add	sp, sp, #12
+ 996              	.LCFI18:
+ 997              		.cfi_remember_state
+ 998              		.cfi_def_cfa_offset 20
+ 999              		@ sp needed
+ 1000 003a F0BD     		pop	{r4, r5, r6, r7, pc}
+ 1001              	.LVL62:
+ 1002              	.L56:
+ 1003              	.LCFI19:
+ 1004              		.cfi_restore_state
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1005              		.loc 1 311 5 is_stmt 1 view .LVU277
+ 314:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1006              		.loc 1 314 5 view .LVU278
+ 1007              	.LBB121:
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 1008              		.loc 2 140 32 view .LVU279
+ 1009              	.LBB118:
+ 1010              		.loc 2 146 5 view .LVU280
+ 1011              		.loc 2 146 12 is_stmt 0 view .LVU281
+ 1012 003c FFF7FEFF 		bl	XPD_pxTimeService
+ 1013              	.LVL63:
+ 1014              		.loc 2 146 12 view .LVU282
+ 1015              	.LBE118:
+ 1016              	.LBE121:
+ 311:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1017              		.loc 1 311 13 view .LVU283
+ 1018 0040 4FF4E861 		mov	r1, #1856
+ 1019              	.LBB122:
+ 1020              	.LBB119:
+ 1021              		.loc 2 146 12 view .LVU284
+ 1022 0044 0346     		mov	r3, r0
+ 1023 0046 0022     		movs	r2, #0
+ 1024 0048 3846     		mov	r0, r7
+ 1025 004a B140     		lsls	r1, r1, r6
+ 1026              	.LVL64:
+ 1027              		.loc 2 146 12 view .LVU285
+ 1028 004c DD68     		ldr	r5, [r3, #12]
+ 1029 004e 01AB     		add	r3, sp, #4
+ 1030              	.LVL65:
+ 1031              		.loc 2 146 12 view .LVU286
+ 1032 0050 A847     		blx	r5
+ 1033              	.LVL66:
+ 1034              		.loc 2 146 12 view .LVU287
+ 1035              	.LBE119:
+ 1036              	.LBE122:
+ARM GAS  /tmp/ccOcJyPi.s 			page 31
+
+
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 1037              		.loc 1 316 5 is_stmt 1 view .LVU288
+ 316:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 1038              		.loc 1 316 8 is_stmt 0 view .LVU289
+ 1039 0052 0028     		cmp	r0, #0
+ 1040 0054 F0D1     		bne	.L53
+ 1041 0056 217A     		ldrb	r1, [r4, #8]	@ zero_extendqisi2
+ 357:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 1042              		.loc 1 357 13 view .LVU290
+ 1043 0058 1023     		movs	r3, #16
+ 1044 005a 6268     		ldr	r2, [r4, #4]
+ 357:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 1045              		.loc 1 357 13 is_stmt 1 view .LVU291
+ 1046 005c 0020     		movs	r0, #0
+ 1047              	.LVL67:
+ 357:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 1048              		.loc 1 357 13 is_stmt 0 view .LVU292
+ 1049 005e 8B40     		lsls	r3, r3, r1
+ 1050 0060 9360     		str	r3, [r2, #8]
+ 1051              		.loc 1 362 1 view .LVU293
+ 1052 0062 03B0     		add	sp, sp, #12
+ 1053              	.LCFI20:
+ 1054              		.cfi_def_cfa_offset 20
+ 1055              		@ sp needed
+ 1056 0064 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 1057              		.loc 1 362 1 view .LVU294
+ 1058              		.cfi_endproc
+ 1059              	.LFE175:
+ 1061 0066 00BF     		.section	.text.DMA_vIRQHandler,"ax",%progbits
+ 1062              		.align	1
+ 1063              		.p2align 2,,3
+ 1064              		.global	DMA_vIRQHandler
+ 1065              		.syntax unified
+ 1066              		.thumb
+ 1067              		.thumb_func
+ 1068              		.fpu fpv4-sp-d16
+ 1070              	DMA_vIRQHandler:
+ 1071              	.LVL68:
+ 1072              	.LFB176:
+ 363:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 364:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 365:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief DMA stream transfer interrupt handler that provides handle callbacks.
+ 366:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 367:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 368:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vIRQHandler(DMA_HandleType * pxDMA)
+ 369:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 1073              		.loc 1 369 1 is_stmt 1 view -0
+ 1074              		.cfi_startproc
+ 1075              		@ args = 0, pretend = 0, frame = 0
+ 1076              		@ frame_needed = 0, uses_anonymous_args = 0
+ 370:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Half Transfer Complete interrupt management */
+ 371:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         if (((pxDMA->Inst->CR & DMA_SxCR_HTIE) != 0) && (DMA_FLAG_STATUS(pxDMA, HT) != 0))
+ 1077              		.loc 1 371 9 view .LVU296
+ 1078 0000 D0E90032 		ldrd	r3, r2, [r0]
+ 369:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Half Transfer Complete interrupt management */
+ 1079              		.loc 1 369 1 is_stmt 0 view .LVU297
+ 1080 0004 70B5     		push	{r4, r5, r6, lr}
+ARM GAS  /tmp/ccOcJyPi.s 			page 32
+
+
+ 1081              	.LCFI21:
+ 1082              		.cfi_def_cfa_offset 16
+ 1083              		.cfi_offset 4, -16
+ 1084              		.cfi_offset 5, -12
+ 1085              		.cfi_offset 6, -8
+ 1086              		.cfi_offset 14, -4
+ 1087              		.loc 1 371 26 view .LVU298
+ 1088 0006 1B68     		ldr	r3, [r3]
+ 369:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Half Transfer Complete interrupt management */
+ 1089              		.loc 1 369 1 view .LVU299
+ 1090 0008 0446     		mov	r4, r0
+ 1091 000a 017A     		ldrb	r1, [r0, #8]	@ zero_extendqisi2
+ 1092              		.loc 1 371 12 view .LVU300
+ 1093 000c 1E07     		lsls	r6, r3, #28
+ 1094 000e 04D5     		bpl	.L58
+ 1095              		.loc 1 371 58 discriminator 1 view .LVU301
+ 1096 0010 0D1D     		adds	r5, r1, #4
+ 1097 0012 1368     		ldr	r3, [r2]
+ 1098 0014 EB40     		lsrs	r3, r3, r5
+ 1099              		.loc 1 371 54 discriminator 1 view .LVU302
+ 1100 0016 DD07     		lsls	r5, r3, #31
+ 1101 0018 18D4     		bmi	.L76
+ 1102              	.LVL69:
+ 1103              	.L58:
+ 372:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 373:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* clear the half transfer complete flag */
+ 374:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_FLAG_CLEAR(pxDMA, HT);
+ 375:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 376:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* half transfer callback */
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         XPD_SAFE_CALLBACK(pxDMA->Callbacks.HalfComplete, pxDMA);
+ 1104              		.loc 1 377 9 is_stmt 1 discriminator 3 view .LVU303
+ 378:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 379:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 380:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Transfer Complete interrupt management */
+ 381:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (DMA_FLAG_STATUS(pxDMA, TC) != 0)
+ 1105              		.loc 1 381 5 discriminator 3 view .LVU304
+ 1106              		.loc 1 381 9 is_stmt 0 discriminator 3 view .LVU305
+ 1107 001a 481D     		adds	r0, r1, #5
+ 1108 001c 1368     		ldr	r3, [r2]
+ 1109 001e C340     		lsrs	r3, r3, r0
+ 1110              		.loc 1 381 8 discriminator 3 view .LVU306
+ 1111 0020 D807     		lsls	r0, r3, #31
+ 1112 0022 0DD5     		bpl	.L57
+ 382:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 383:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* clear the transfer complete flag */
+ 384:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_FLAG_CLEAR(pxDMA, TC);
+ 1113              		.loc 1 384 9 is_stmt 1 view .LVU307
+ 1114 0024 2023     		movs	r3, #32
+ 385:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 386:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* DMA mode is not CIRCULAR */
+ 387:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         if (DMA_eCircularMode(pxDMA) == 0)
+ 1115              		.loc 1 387 13 is_stmt 0 view .LVU308
+ 1116 0026 2068     		ldr	r0, [r4]
+ 384:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1117              		.loc 1 384 9 view .LVU309
+ 1118 0028 03FA01F1 		lsl	r1, r3, r1
+ 1119 002c 9160     		str	r1, [r2, #8]
+ARM GAS  /tmp/ccOcJyPi.s 			page 33
+
+
+ 1120              		.loc 1 387 9 is_stmt 1 view .LVU310
+ 1121              	.LBB123:
+ 1122              	.LBI123:
+ 1123              		.file 3 "STM32_XPD/STM32H7_XPD/inc/xpd_dma.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * @file    xpd_dma.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * @version 0.2
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * @brief   STM32 eXtensible Peripheral Drivers DMA Module
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   *
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifndef __XPD_DMA_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define __XPD_DMA_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @defgroup DMA
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @defgroup DMA_Exported_Types DMA Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA transfer direction types */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_PERIPH2MEMORY = 0, /*!< Data is transferred from peripheral to memory */
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MEMORY2PERIPH = 1, /*!< Data is transferred from memory to peripheral */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MEMORY2MEMORY = 2  /*!< Data is transferred from memory to memory
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                 @note Must use normal mode with FIFO for this direction */
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_DirectionType;
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA data alignment types */
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ALIGN_BYTE     = 0, /*!< Data is byte aligned */
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ALIGN_HALFWORD = 1, /*!< Data is half word aligned */
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ALIGN_WORD     = 2  /*!< Data is word aligned */
+ARM GAS  /tmp/ccOcJyPi.s 			page 34
+
+
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_AlignmentType;
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA transfer mode types */
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MODE_NORMAL    = 0, /*!< Normal DMA transfer */
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MODE_CIRCULAR  = 1, /*!< Circular DMA transfer */
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MODE_PERIPH_FC = 4, /*!< DMA transfer with peripheral flow control (completion is indicated
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_MODE_DBUFFER   = 3, /*!< Double-buffered DMA transfer (which is inherently circular) */
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_ModeType;
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA FIFO burst mode types */
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BURST_SINGLE = 0, /*!< FIFOs use single transfer */
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BURST_INC4   = 1, /*!< FIFOs transfer 4 data items in one burst */
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BURST_INC8   = 2, /*!< FIFOs transfer 8 data items in one burst */
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BURST_INC16  = 3  /*!< FIFOs transfer 16 data items in one burst */
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_BurstType;
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA transfer error types */
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ERROR_NONE     = 0,  /*!< No error             */
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ERROR_TRANSFER = 1,  /*!< Transfer error       */
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ERROR_FIFO     = 2,  /*!< FIFO error           */
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ERROR_DIRECTM  = 4,  /*!< Direct Mode error    */
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_ErrorType;
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA operation types */
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef enum
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_OPERATION_TRANSFER     = 0, /*!< DMA transfer operation */
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_OPERATION_HALFTRANSFER = 1  /*!< DMA half transfer operation */
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_OperationType;
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA channel setup structure */
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef union
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     struct {
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t : 3;
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_ModeType      Mode : 3;            /*!< DMA operating mode */
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_DirectionType Direction : 2;       /*!< DMA channel direction */
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t : 1;
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     FunctionalState   PeriphInc : 1;       /*!< The peripheral address is incremented after each tr
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     FunctionalState   MemoryInc : 1;       /*!< The memory is incremented after each transfer */
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_AlignmentType PeriphDataAlign : 2; /*!< The peripheral data width */
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_AlignmentType MemoryDataAlign : 2; /*!< The memory data width */
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     FunctionalState   PeriphWordInc : 1;   /*!< When enabled with @ref DMA_InitType::PeriphInc,
+ 103:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                                 the peripheral address is incremented by 32 bits
+ 104:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                                 (instead of what's dictated by @ref DMA_InitType::P
+ 105:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     LevelType         Priority : 2;        /*!< DMA bus arbitration priority level */
+ 106:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t : 3;
+ 107:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BurstType     PeriphBurst : 2;     /*!< The peripheral burst size (forced to 0 when FIFO is
+ 108:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_BurstType     MemoryBurst : 2;     /*!< The memory burst size (forced to 0 when FIFO isn't 
+ 109:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t          Channel : 3;         /*!< Channel selection for the DMA stream [0 .. 7] */
+ 110:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t : 1;
+ARM GAS  /tmp/ccOcJyPi.s 			page 35
+
+
+ 111:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t          FifoThreshold : 3;   /*!< The number of FIFO quarters to fill before transfer
+ 112:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                                 (set to 0 to disable the FIFO) */
+ 113:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     };
+ 114:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint32_t w;
+ 115:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_InitType;
+ 116:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 117:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @brief DMA stream handle structure */
+ 118:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** typedef struct
+ 119:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+ 120:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_Stream_TypeDef * Inst;                /*!< The address of the peripheral instance used by t
+ 121:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifdef DMA_Stream_BB
+ 122:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_Stream_BitBand_TypeDef * Inst_BB;     /*!< The address of the peripheral instance in the bi
+ 123:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #endif
+ 124:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     DMA_TypeDef * Base;                       /*!< [Internal] The address of the master DMA used by
+ 125:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     uint8_t StreamOffset;                     /*!< [Internal] The offset of the stream in the maste
+ 126:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     struct {
+ 127:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****         XPD_HandleCallbackType Complete;      /*!< DMA transfer complete callback */
+ 128:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****         XPD_HandleCallbackType HalfComplete;  /*!< DMA transfer half complete callback */
+ 129:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifdef __XPD_DMA_ERROR_DETECT
+ 130:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****         XPD_HandleCallbackType Error;         /*!< DMA transfer error callback */
+ 131:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #endif
+ 132:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     } Callbacks;                              /*   Handle Callbacks */
+ 133:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     void * Owner;                             /*!< [Internal] The pointer of the peripheral handle 
+ 134:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifdef __XPD_DMA_ERROR_DETECT
+ 135:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     volatile DMA_ErrorType Errors;            /*!< Transfer errors */
+ 136:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #endif
+ 137:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** }DMA_HandleType;
+ 138:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 139:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @} */
+ 140:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 141:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @defgroup DMA_Exported_Macros DMA Exported Macros
+ 142:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @{ */
+ 143:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 144:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #ifdef DMA_Stream_BB
+ 145:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 146:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief DMA Instance to handle binder macro
+ 147:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param HANDLE: specifies the peripheral handle.
+ 148:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param INSTANCE: specifies the DMA peripheral instance.
+ 149:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 150:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_INST2HANDLE(HANDLE, INSTANCE)           \
+ 151:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     ((HANDLE)->Inst    = (INSTANCE),                        \
+ 152:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****      (HANDLE)->Inst_BB = DMA_Stream_BB(INSTANCE))
+ 153:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 154:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 155:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief DMA register bit accessing macro
+ 156:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param HANDLE: specifies the peripheral handle.
+ 157:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param REG_NAME: specifies the register name.
+ 158:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param BIT_NAME: specifies the register bit name.
+ 159:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 160:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_REG_BIT(HANDLE, REG_NAME, BIT_NAME)     \
+ 161:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     ((HANDLE)->Inst_BB->REG_NAME.BIT_NAME)
+ 162:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 163:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #else
+ 164:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 165:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief DMA Instance to handle binder macro
+ 166:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param HANDLE: specifies the peripheral handle.
+ 167:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param INSTANCE: specifies the DMA peripheral instance.
+ARM GAS  /tmp/ccOcJyPi.s 			page 36
+
+
+ 168:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 169:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_INST2HANDLE(HANDLE, INSTANCE)           \
+ 170:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     ((HANDLE)->Inst    = (INSTANCE))
+ 171:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 172:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 173:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief DMA register bit accessing macro
+ 174:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param HANDLE: specifies the peripheral handle.
+ 175:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param REG_NAME: specifies the register name.
+ 176:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param BIT_NAME: specifies the register bit name.
+ 177:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 178:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_REG_BIT(HANDLE, REG_NAME, BIT_NAME)     \
+ 179:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     ((HANDLE)->Inst->REG_NAME.b.BIT_NAME)
+ 180:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 181:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #endif /* DMA_Stream_BB */
+ 182:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 183:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 184:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief  Enable the specified DMA interrupt.
+ 185:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  HANDLE: specifies the DMA Handle.
+ 186:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  IT_NAME: specifies the interrupt to enable.
+ 187:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *         This parameter can be one of the following values:
+ 188:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TC:      Transfer Complete Interrupt
+ 189:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg HT:      Half Transfer Complete Interrupt
+ 190:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TE:      Transfer Error Interrupt
+ 191:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg DME:     Direct Mode Error Interrupt
+ 192:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg FE:      FIFO Error Interrupt
+ 193:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 194:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_IT_ENABLE(HANDLE, IT_NAME)              \
+ 195:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     __XPD_DMA_ITConfig_##IT_NAME(HANDLE, 1)
+ 196:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 197:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 198:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief  Disable the specified DMA interrupt.
+ 199:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  HANDLE: specifies the DMA Handle.
+ 200:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  IT_NAME: specifies the interrupt to enable.
+ 201:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *         This parameter can be one of the following values:
+ 202:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TC:      Transfer Complete Interrupt
+ 203:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg HT:      Half Transfer Complete Interrupt
+ 204:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TE:      Transfer Error Interrupt
+ 205:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg DME:     Direct Mode Error Interrupt
+ 206:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg FE:      FIFO Error Interrupt
+ 207:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 208:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_IT_DISABLE(HANDLE, IT_NAME)             \
+ 209:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     __XPD_DMA_ITConfig_##IT_NAME(HANDLE, 0)
+ 210:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 211:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 212:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief  Get the specified DMA flag.
+ 213:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  HANDLE: specifies the DMA Handle.
+ 214:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  FLAG_NAME: specifies the flag to return.
+ 215:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *         This parameter can be one of the following values:
+ 216:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TC:      Transfer Complete
+ 217:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg HT:      Half Transfer Complete
+ 218:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TE:      Transfer Error
+ 219:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg DME:     Direct Mode Error
+ 220:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg FE:      FIFO Error
+ 221:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 222:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_FLAG_STATUS(HANDLE, FLAG_NAME)          \
+ 223:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (((HANDLE)->Base->LISR >> (DMA_LISR_##FLAG_NAME##IF0_Pos \
+ 224:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****             + (uint32_t)((HANDLE)->StreamOffset))) & 1)
+ARM GAS  /tmp/ccOcJyPi.s 			page 37
+
+
+ 225:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 226:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 227:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief  Clear the specified DMA flag.
+ 228:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  HANDLE: specifies the DMA Handle.
+ 229:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  FLAG_NAME: specifies the flag to clear.
+ 230:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *         This parameter can be one of the following values:
+ 231:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TC:      Transfer Complete
+ 232:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg HT:      Half Transfer Complete
+ 233:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg TE:      Transfer Error
+ 234:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg DME:     Direct Mode Error
+ 235:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  *            @arg FE:      FIFO Error
+ 236:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 237:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         DMA_FLAG_CLEAR(HANDLE, FLAG_NAME)           \
+ 238:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     ((HANDLE)->Base->LIFCR = (DMA_LIFCR_C##FLAG_NAME##IF0 \
+ 239:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****             << (uint32_t)((HANDLE)->StreamOffset)))
+ 240:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 241:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         __XPD_DMA_ITConfig_TC(HANDLE,VALUE)         \
+ 242:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (DMA_REG_BIT((HANDLE),CR,TCIE) = (VALUE))
+ 243:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         __XPD_DMA_ITConfig_TE(HANDLE,VALUE)         \
+ 244:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (DMA_REG_BIT((HANDLE),CR,TEIE) = (VALUE))
+ 245:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         __XPD_DMA_ITConfig_HT(HANDLE,VALUE)         \
+ 246:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (DMA_REG_BIT((HANDLE),CR,HTIE) = (VALUE))
+ 247:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         __XPD_DMA_ITConfig_DME(HANDLE,VALUE)        \
+ 248:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (DMA_REG_BIT((HANDLE),CR,DMEIE) = (VALUE))
+ 249:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** #define         __XPD_DMA_ITConfig_FE(HANDLE,VALUE)         \
+ 250:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****     (DMA_REG_BIT((HANDLE),FCR,FEIE) = (VALUE))
+ 251:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 252:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @} */
+ 253:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 254:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /** @addtogroup DMA_Exported_Functions
+ 255:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @{ */
+ 256:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vInit           (DMA_HandleType * pxDMA, const DMA_InitType * pxConfig);
+ 257:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vDeinit         (DMA_HandleType * pxDMA);
+ 258:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 259:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** XPD_ReturnType  DMA_eStart          (DMA_HandleType * pxDMA, void * pvPeriphAddress,
+ 260:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                      void * pvMemAddress, uint16_t usDataCount);
+ 261:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** XPD_ReturnType  DMA_eStart_IT       (DMA_HandleType * pxDMA, void * pvPeriphAddress,
+ 262:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                      void * pvMemAddress, uint16_t usDataCount);
+ 263:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vStop           (DMA_HandleType * pxDMA);
+ 264:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vStop_IT        (DMA_HandleType * pxDMA);
+ 265:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 266:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** uint16_t        DMA_usGetStatus     (DMA_HandleType * pxDMA);
+ 267:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** XPD_ReturnType  DMA_ePollStatus     (DMA_HandleType * pxDMA, DMA_OperationType eOperation,
+ 268:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****                                      uint32_t ulTimeout);
+ 269:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 270:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vIRQHandler     (DMA_HandleType * pxDMA);
+ 271:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 272:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** uint32_t        DMA_ulActiveMemory  (DMA_HandleType * pxDMA);
+ 273:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** void            DMA_vSetSwapMemory  (DMA_HandleType * pxDMA, void * pvAddress);
+ 274:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** 
+ 275:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** /**
+ 276:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @brief  Provides the circular mode of DMA stream.
+ 277:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  * @param  HANDLE: specifies the DMA Handle.
+ 278:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****  */
+ 279:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** __STATIC_INLINE bool DMA_eCircularMode(DMA_HandleType * pxDMA)
+ 1124              		.loc 3 279 22 view .LVU311
+ 1125              	.LVL70:
+ARM GAS  /tmp/ccOcJyPi.s 			page 38
+
+
+ 1126              	.LBB124:
+ 280:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h **** {
+ 281:STM32_XPD/STM32H7_XPD/inc/xpd_dma.h ****   return pxDMA->Inst->CR & DMA_SxCR_CIRC;
+ 1127              		.loc 3 281 3 view .LVU312
+ 1128              		.loc 3 281 21 is_stmt 0 view .LVU313
+ 1129 002e 0368     		ldr	r3, [r0]
+ 1130              	.LBE124:
+ 1131              	.LBE123:
+ 1132              		.loc 1 387 12 view .LVU314
+ 1133 0030 DB05     		lsls	r3, r3, #23
+ 1134 0032 06D5     		bpl	.L77
+ 1135              	.L61:
+ 388:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         {
+ 389:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             CLEAR_BIT(pxDMA->Inst->CR,
+ 390:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                 DMA_SxCR_TCIE | DMA_SxCR_HTIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE);
+ 391:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 392:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****             pxDMA->Inst->FCR &= ~DMA_SxFCR_FEIE;
+ 393:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 394:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         }
+ 395:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 396:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* transfer complete callback */
+ 397:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         XPD_SAFE_CALLBACK(pxDMA->Callbacks.Complete, pxDMA);
+ 1136              		.loc 1 397 9 is_stmt 1 view .LVU315
+ 1137              		.loc 1 397 9 view .LVU316
+ 1138 0034 E368     		ldr	r3, [r4, #12]
+ 1139 0036 1BB1     		cbz	r3, .L57
+ 1140              		.loc 1 397 9 discriminator 1 view .LVU317
+ 1141 0038 2046     		mov	r0, r4
+ 398:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 399:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 400:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #ifdef __XPD_DMA_ERROR_DETECT
+ 401:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Transfer Error interrupt management */
+ 402:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (DMA_FLAG_STATUS(pxDMA, TE) != 0)
+ 403:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 404:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* clear the transfer error flag */
+ 405:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_FLAG_CLEAR(pxDMA, TE);
+ 406:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 407:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Errors |= DMA_ERROR_TRANSFER;
+ 408:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 409:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* FIFO Error interrupt management */
+ 410:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (DMA_FLAG_STATUS(pxDMA, FE) != 0)
+ 411:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 412:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* clear the FIFO error flag */
+ 413:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_FLAG_CLEAR(pxDMA, FE);
+ 414:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 415:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Errors |= DMA_ERROR_FIFO;
+ 416:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 417:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* Direct Mode Error interrupt management */
+ 418:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (DMA_FLAG_STATUS(pxDMA, DME) != 0)
+ 419:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 420:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* clear the direct mode error flag */
+ 421:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         DMA_FLAG_CLEAR(pxDMA, DME);
+ 422:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 423:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         pxDMA->Errors |= DMA_ERROR_DIRECTM;
+ 424:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 425:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 426:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     if (pxDMA->Errors != 0)
+ARM GAS  /tmp/ccOcJyPi.s 			page 39
+
+
+ 427:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     {
+ 428:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         /* transfer errors callback */
+ 429:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****         XPD_SAFE_CALLBACK(pxDMA->Callbacks.Error, pxDMA);
+ 430:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 431:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** #endif
+ 432:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1142              		.loc 1 432 1 is_stmt 0 discriminator 1 view .LVU318
+ 1143 003a BDE87040 		pop	{r4, r5, r6, lr}
+ 1144              	.LCFI22:
+ 1145              		.cfi_remember_state
+ 1146              		.cfi_restore 14
+ 1147              		.cfi_restore 6
+ 1148              		.cfi_restore 5
+ 1149              		.cfi_restore 4
+ 1150              		.cfi_def_cfa_offset 0
+ 1151              	.LVL71:
+ 397:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1152              		.loc 1 397 9 discriminator 1 view .LVU319
+ 1153 003e 1847     		bx	r3	@ indirect register sibling call
+ 1154              	.LVL72:
+ 1155              	.L57:
+ 1156              	.LCFI23:
+ 1157              		.cfi_restore_state
+ 1158              		.loc 1 432 1 view .LVU320
+ 1159 0040 70BD     		pop	{r4, r5, r6, pc}
+ 1160              	.LVL73:
+ 1161              	.L77:
+ 389:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****                 DMA_SxCR_TCIE | DMA_SxCR_HTIE | DMA_SxCR_TEIE | DMA_SxCR_DMEIE);
+ 1162              		.loc 1 389 13 is_stmt 1 view .LVU321
+ 1163 0042 0368     		ldr	r3, [r0]
+ 1164 0044 23F01E03 		bic	r3, r3, #30
+ 1165 0048 0360     		str	r3, [r0]
+ 1166 004a F3E7     		b	.L61
+ 1167              	.LVL74:
+ 1168              	.L76:
+ 374:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1169              		.loc 1 374 9 view .LVU322
+ 1170 004c 1023     		movs	r3, #16
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1171              		.loc 1 377 9 is_stmt 0 view .LVU323
+ 1172 004e 0569     		ldr	r5, [r0, #16]
+ 374:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 1173              		.loc 1 374 9 view .LVU324
+ 1174 0050 8B40     		lsls	r3, r3, r1
+ 1175 0052 9360     		str	r3, [r2, #8]
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1176              		.loc 1 377 9 is_stmt 1 view .LVU325
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1177              		.loc 1 377 9 view .LVU326
+ 1178 0054 002D     		cmp	r5, #0
+ 1179 0056 E0D0     		beq	.L58
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1180              		.loc 1 377 9 discriminator 1 view .LVU327
+ 1181 0058 A847     		blx	r5
+ 1182              	.LVL75:
+ 377:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     }
+ 1183              		.loc 1 377 9 is_stmt 0 discriminator 1 view .LVU328
+ARM GAS  /tmp/ccOcJyPi.s 			page 40
+
+
+ 1184 005a 6268     		ldr	r2, [r4, #4]
+ 1185 005c 217A     		ldrb	r1, [r4, #8]	@ zero_extendqisi2
+ 1186 005e DCE7     		b	.L58
+ 1187              		.cfi_endproc
+ 1188              	.LFE176:
+ 1190              		.section	.text.DMA_ulActiveMemory,"ax",%progbits
+ 1191              		.align	1
+ 1192              		.p2align 2,,3
+ 1193              		.global	DMA_ulActiveMemory
+ 1194              		.syntax unified
+ 1195              		.thumb
+ 1196              		.thumb_func
+ 1197              		.fpu fpv4-sp-d16
+ 1199              	DMA_ulActiveMemory:
+ 1200              	.LVL76:
+ 1201              	.LFB177:
+ 433:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 434:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 435:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Gets the memory address register number which is currently used by the DMA stream.
+ 436:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ 437:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @return Index of the currently active memory address register
+ 438:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 439:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** uint32_t DMA_ulActiveMemory(DMA_HandleType * pxDMA)
+ 440:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 1202              		.loc 1 440 1 is_stmt 1 view -0
+ 1203              		.cfi_startproc
+ 1204              		@ args = 0, pretend = 0, frame = 0
+ 1205              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1206              		@ link register save eliminated.
+ 441:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     return ((pxDMA->Inst->CR & DMA_SxCR_CT_Msk) >> DMA_SxCR_CT_Pos);
+ 1207              		.loc 1 441 5 view .LVU330
+ 1208              		.loc 1 441 19 is_stmt 0 view .LVU331
+ 1209 0000 0368     		ldr	r3, [r0]
+ 1210              		.loc 1 441 25 view .LVU332
+ 1211 0002 1868     		ldr	r0, [r3]
+ 1212              	.LVL77:
+ 442:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1213              		.loc 1 442 1 view .LVU333
+ 1214 0004 C0F3C040 		ubfx	r0, r0, #19, #1
+ 1215 0008 7047     		bx	lr
+ 1216              		.cfi_endproc
+ 1217              	.LFE177:
+ 1219 000a 00BF     		.section	.text.DMA_vSetSwapMemory,"ax",%progbits
+ 1220              		.align	1
+ 1221              		.p2align 2,,3
+ 1222              		.global	DMA_vSetSwapMemory
+ 1223              		.syntax unified
+ 1224              		.thumb
+ 1225              		.thumb_func
+ 1226              		.fpu fpv4-sp-d16
+ 1228              	DMA_vSetSwapMemory:
+ 1229              	.LVL78:
+ 1230              	.LFB178:
+ 443:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** 
+ 444:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** /**
+ 445:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @brief Sets the memory address in the currently inactive register for double buffering transfer.
+ 446:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pxDMA: pointer to the DMA stream handle structure
+ARM GAS  /tmp/ccOcJyPi.s 			page 41
+
+
+ 447:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  * @param pvAddress: The new memory address to use
+ 448:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****  */
+ 449:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** void DMA_vSetSwapMemory(DMA_HandleType * pxDMA, void * pvAddress)
+ 450:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 1231              		.loc 1 450 1 is_stmt 1 view -0
+ 1232              		.cfi_startproc
+ 1233              		@ args = 0, pretend = 0, frame = 0
+ 1234              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1235              		@ link register save eliminated.
+ 451:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     /* selects the MxAR register which is not used, and sets the new address */
+ 452:STM32_XPD/STM32H7_XPD/src/xpd_dma.c ****     (&pxDMA->Inst->M0AR)[1 - DMA_ulActiveMemory(pxDMA)] = (uint32_t)pvAddress;
+ 1236              		.loc 1 452 5 view .LVU335
+ 1237              	.LBB125:
+ 1238              	.LBI125:
+ 439:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** {
+ 1239              		.loc 1 439 10 view .LVU336
+ 1240              	.LBB126:
+ 441:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1241              		.loc 1 441 5 view .LVU337
+ 441:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1242              		.loc 1 441 25 is_stmt 0 view .LVU338
+ 1243 0000 0268     		ldr	r2, [r0]
+ 1244 0002 52F80C3B 		ldr	r3, [r2], #12
+ 1245              	.LVL79:
+ 441:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1246              		.loc 1 441 25 view .LVU339
+ 1247              	.LBE126:
+ 1248              	.LBE125:
+ 1249              		.loc 1 452 25 view .LVU340
+ 1250 0006 6FEAD343 		mvn	r3, r3, lsr #19
+ 1251 000a 03F00103 		and	r3, r3, #1
+ 1252              		.loc 1 452 57 view .LVU341
+ 1253 000e 42F82310 		str	r1, [r2, r3, lsl #2]
+ 453:STM32_XPD/STM32H7_XPD/src/xpd_dma.c **** }
+ 1254              		.loc 1 453 1 view .LVU342
+ 1255 0012 7047     		bx	lr
+ 1256              		.cfi_endproc
+ 1257              	.LFE178:
+ 1259              		.section	.bss.dma_aucUsers,"aw",%nobits
+ 1260              		.align	2
+ 1261              		.set	.LANCHOR0,. + 0
+ 1264              	dma_aucUsers:
+ 1265 0000 0000     		.space	2
+ 1266              		.text
+ 1267              	.Letext0:
+ 1268              		.file 4 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1269              		.file 5 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1270              		.file 6 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 1271              		.file 7 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 1272              		.file 8 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 1273              		.file 9 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 1274              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ 1275              		.file 11 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ 1276              		.file 12 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc.h"
+ARM GAS  /tmp/ccOcJyPi.s 			page 42
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_dma.c
+     /tmp/ccOcJyPi.s:18     .text.DMA_vInit:0000000000000000 $t
+     /tmp/ccOcJyPi.s:27     .text.DMA_vInit:0000000000000000 DMA_vInit
+     /tmp/ccOcJyPi.s:260    .text.DMA_vInit:00000000000000c8 $d
+     /tmp/ccOcJyPi.s:271    .text.DMA_vDeinit:0000000000000000 $t
+     /tmp/ccOcJyPi.s:279    .text.DMA_vDeinit:0000000000000000 DMA_vDeinit
+     /tmp/ccOcJyPi.s:446    .text.DMA_vDeinit:0000000000000058 $d
+     /tmp/ccOcJyPi.s:455    .text.DMA_eStart:0000000000000000 $t
+     /tmp/ccOcJyPi.s:463    .text.DMA_eStart:0000000000000000 DMA_eStart
+     /tmp/ccOcJyPi.s:589    .text.DMA_eStart_IT:0000000000000000 $t
+     /tmp/ccOcJyPi.s:597    .text.DMA_eStart_IT:0000000000000000 DMA_eStart_IT
+     /tmp/ccOcJyPi.s:745    .text.DMA_vStop:0000000000000000 $t
+     /tmp/ccOcJyPi.s:753    .text.DMA_vStop:0000000000000000 DMA_vStop
+     /tmp/ccOcJyPi.s:827    .text.DMA_vStop_IT:0000000000000000 $t
+     /tmp/ccOcJyPi.s:835    .text.DMA_vStop_IT:0000000000000000 DMA_vStop_IT
+     /tmp/ccOcJyPi.s:867    .text.DMA_usGetStatus:0000000000000000 $t
+     /tmp/ccOcJyPi.s:875    .text.DMA_usGetStatus:0000000000000000 DMA_usGetStatus
+     /tmp/ccOcJyPi.s:903    .text.DMA_ePollStatus:0000000000000000 $t
+     /tmp/ccOcJyPi.s:911    .text.DMA_ePollStatus:0000000000000000 DMA_ePollStatus
+     /tmp/ccOcJyPi.s:1062   .text.DMA_vIRQHandler:0000000000000000 $t
+     /tmp/ccOcJyPi.s:1070   .text.DMA_vIRQHandler:0000000000000000 DMA_vIRQHandler
+     /tmp/ccOcJyPi.s:1191   .text.DMA_ulActiveMemory:0000000000000000 $t
+     /tmp/ccOcJyPi.s:1199   .text.DMA_ulActiveMemory:0000000000000000 DMA_ulActiveMemory
+     /tmp/ccOcJyPi.s:1220   .text.DMA_vSetSwapMemory:0000000000000000 $t
+     /tmp/ccOcJyPi.s:1228   .text.DMA_vSetSwapMemory:0000000000000000 DMA_vSetSwapMemory
+     /tmp/ccOcJyPi.s:1260   .bss.dma_aucUsers:0000000000000000 $d
+     /tmp/ccOcJyPi.s:1264   .bss.dma_aucUsers:0000000000000000 dma_aucUsers
+
+UNDEFINED SYMBOLS
+RCC_vClockEnable
+RCC_vClockDisable
+XPD_pxTimeService

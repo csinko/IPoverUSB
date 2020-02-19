@@ -1,0 +1,2949 @@
+ARM GAS  /tmp/cc3dOtN4.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"ip4_addr.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.ip4_addr_isbroadcast_u32,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	ip4_addr_isbroadcast_u32
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	ip4_addr_isbroadcast_u32:
+  28              	.LVL0:
+  29              	.LFB105:
+  30              		.file 1 "lwIP/src/core/ipv4/ip4_addr.c"
+   1:lwIP/src/core/ipv4/ip4_addr.c **** /**
+   2:lwIP/src/core/ipv4/ip4_addr.c ****  * @file
+   3:lwIP/src/core/ipv4/ip4_addr.c ****  * This is the IPv4 address tools implementation.
+   4:lwIP/src/core/ipv4/ip4_addr.c ****  *
+   5:lwIP/src/core/ipv4/ip4_addr.c ****  */
+   6:lwIP/src/core/ipv4/ip4_addr.c **** 
+   7:lwIP/src/core/ipv4/ip4_addr.c **** /*
+   8:lwIP/src/core/ipv4/ip4_addr.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+   9:lwIP/src/core/ipv4/ip4_addr.c ****  * All rights reserved.
+  10:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  11:lwIP/src/core/ipv4/ip4_addr.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  12:lwIP/src/core/ipv4/ip4_addr.c ****  * are permitted provided that the following conditions are met:
+  13:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  14:lwIP/src/core/ipv4/ip4_addr.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  15:lwIP/src/core/ipv4/ip4_addr.c ****  *    this list of conditions and the following disclaimer.
+  16:lwIP/src/core/ipv4/ip4_addr.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:lwIP/src/core/ipv4/ip4_addr.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:lwIP/src/core/ipv4/ip4_addr.c ****  *    and/or other materials provided with the distribution.
+  19:lwIP/src/core/ipv4/ip4_addr.c ****  * 3. The name of the author may not be used to endorse or promote products
+  20:lwIP/src/core/ipv4/ip4_addr.c ****  *    derived from this software without specific prior written permission.
+  21:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  22:lwIP/src/core/ipv4/ip4_addr.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  23:lwIP/src/core/ipv4/ip4_addr.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  24:lwIP/src/core/ipv4/ip4_addr.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  25:lwIP/src/core/ipv4/ip4_addr.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  26:lwIP/src/core/ipv4/ip4_addr.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  27:lwIP/src/core/ipv4/ip4_addr.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:lwIP/src/core/ipv4/ip4_addr.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ARM GAS  /tmp/cc3dOtN4.s 			page 2
+
+
+  29:lwIP/src/core/ipv4/ip4_addr.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  30:lwIP/src/core/ipv4/ip4_addr.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  31:lwIP/src/core/ipv4/ip4_addr.c ****  * OF SUCH DAMAGE.
+  32:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  33:lwIP/src/core/ipv4/ip4_addr.c ****  * This file is part of the lwIP TCP/IP stack.
+  34:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  35:lwIP/src/core/ipv4/ip4_addr.c ****  * Author: Adam Dunkels <adam@sics.se>
+  36:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  37:lwIP/src/core/ipv4/ip4_addr.c ****  */
+  38:lwIP/src/core/ipv4/ip4_addr.c **** 
+  39:lwIP/src/core/ipv4/ip4_addr.c **** #include "lwip/opt.h"
+  40:lwIP/src/core/ipv4/ip4_addr.c **** 
+  41:lwIP/src/core/ipv4/ip4_addr.c **** #if LWIP_IPV4
+  42:lwIP/src/core/ipv4/ip4_addr.c **** 
+  43:lwIP/src/core/ipv4/ip4_addr.c **** #include "lwip/ip_addr.h"
+  44:lwIP/src/core/ipv4/ip4_addr.c **** #include "lwip/netif.h"
+  45:lwIP/src/core/ipv4/ip4_addr.c **** 
+  46:lwIP/src/core/ipv4/ip4_addr.c **** /* used by IP4_ADDR_ANY and IP_ADDR_BROADCAST in ip_addr.h */
+  47:lwIP/src/core/ipv4/ip4_addr.c **** const ip_addr_t ip_addr_any = IPADDR4_INIT(IPADDR_ANY);
+  48:lwIP/src/core/ipv4/ip4_addr.c **** const ip_addr_t ip_addr_broadcast = IPADDR4_INIT(IPADDR_BROADCAST);
+  49:lwIP/src/core/ipv4/ip4_addr.c **** 
+  50:lwIP/src/core/ipv4/ip4_addr.c **** /**
+  51:lwIP/src/core/ipv4/ip4_addr.c ****  * Determine if an address is a broadcast address on a network interface
+  52:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  53:lwIP/src/core/ipv4/ip4_addr.c ****  * @param addr address to be checked
+  54:lwIP/src/core/ipv4/ip4_addr.c ****  * @param netif the network interface against which the address is checked
+  55:lwIP/src/core/ipv4/ip4_addr.c ****  * @return returns non-zero if the address is a broadcast address
+  56:lwIP/src/core/ipv4/ip4_addr.c ****  */
+  57:lwIP/src/core/ipv4/ip4_addr.c **** u8_t
+  58:lwIP/src/core/ipv4/ip4_addr.c **** ip4_addr_isbroadcast_u32(u32_t addr, const struct netif *netif)
+  59:lwIP/src/core/ipv4/ip4_addr.c **** {
+  31              		.loc 1 59 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  60:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_t ipaddr;
+  36              		.loc 1 60 3 view .LVU1
+  61:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_set_u32(&ipaddr, addr);
+  37              		.loc 1 61 3 view .LVU2
+  62:lwIP/src/core/ipv4/ip4_addr.c **** 
+  63:lwIP/src/core/ipv4/ip4_addr.c ****   /* all ones (broadcast) or all zeroes (old skool broadcast) */
+  64:lwIP/src/core/ipv4/ip4_addr.c ****   if ((~addr == IPADDR_ANY) ||
+  38              		.loc 1 64 29 is_stmt 0 view .LVU3
+  39 0000 431E     		subs	r3, r0, #1
+  59:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_t ipaddr;
+  40              		.loc 1 59 1 view .LVU4
+  41 0002 0246     		mov	r2, r0
+  42              	.LVL1:
+  43              		.loc 1 64 3 is_stmt 1 view .LVU5
+  44              		.loc 1 64 6 is_stmt 0 view .LVU6
+  45 0004 0333     		adds	r3, r3, #3
+  46 0006 15D8     		bhi	.L3
+  65:lwIP/src/core/ipv4/ip4_addr.c ****       (addr == IPADDR_ANY)) {
+  66:lwIP/src/core/ipv4/ip4_addr.c ****     return 1;
+  67:lwIP/src/core/ipv4/ip4_addr.c ****     /* no broadcast support on this network interface? */
+  68:lwIP/src/core/ipv4/ip4_addr.c ****   } else if ((netif->flags & NETIF_FLAG_BROADCAST) == 0) {
+ARM GAS  /tmp/cc3dOtN4.s 			page 3
+
+
+  47              		.loc 1 68 10 is_stmt 1 view .LVU7
+  48 0008 91F82530 		ldrb	r3, [r1, #37]	@ zero_extendqisi2
+  49              		.loc 1 68 13 is_stmt 0 view .LVU8
+  50 000c 13F00200 		ands	r0, r3, #2
+  51              	.LVL2:
+  52              		.loc 1 68 13 view .LVU9
+  53 0010 0FD0     		beq	.L2
+  69:lwIP/src/core/ipv4/ip4_addr.c ****     /* the given address cannot be a broadcast address
+  70:lwIP/src/core/ipv4/ip4_addr.c ****      * nor can we check against any broadcast addresses */
+  71:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+  72:lwIP/src/core/ipv4/ip4_addr.c ****     /* address matches network interface address exactly? => no broadcast */
+  73:lwIP/src/core/ipv4/ip4_addr.c ****   } else if (addr == ip4_addr_get_u32(netif_ip4_addr(netif))) {
+  54              		.loc 1 73 10 is_stmt 1 view .LVU10
+  55              		.loc 1 73 22 is_stmt 0 view .LVU11
+  56 0012 0868     		ldr	r0, [r1]
+  57              		.loc 1 73 13 view .LVU12
+  58 0014 9042     		cmp	r0, r2
+  59 0016 0BD0     		beq	.L5
+  74:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+  75:lwIP/src/core/ipv4/ip4_addr.c ****     /*  on the same (sub) network... */
+  76:lwIP/src/core/ipv4/ip4_addr.c ****   } else if (ip4_addr_netcmp(&ipaddr, netif_ip4_addr(netif), netif_ip4_netmask(netif))
+  60              		.loc 1 76 10 is_stmt 1 view .LVU13
+  61              		.loc 1 76 14 is_stmt 0 view .LVU14
+  62 0018 4B68     		ldr	r3, [r1, #4]
+  63 001a 5040     		eors	r0, r0, r2
+  64              		.loc 1 76 13 view .LVU15
+  65 001c 1842     		tst	r0, r3
+  66 001e 07D1     		bne	.L5
+  77:lwIP/src/core/ipv4/ip4_addr.c ****              /* ...and host identifier bits are all ones? =>... */
+  78:lwIP/src/core/ipv4/ip4_addr.c ****              && ((addr & ~ip4_addr_get_u32(netif_ip4_netmask(netif))) ==
+  67              		.loc 1 78 24 view .LVU16
+  68 0020 22EA0302 		bic	r2, r2, r3
+  69              	.LVL3:
+  70              		.loc 1 78 26 view .LVU17
+  71 0024 D843     		mvns	r0, r3
+  79:lwIP/src/core/ipv4/ip4_addr.c ****                  (IPADDR_BROADCAST & ~ip4_addr_get_u32(netif_ip4_netmask(netif))))) {
+  80:lwIP/src/core/ipv4/ip4_addr.c ****     /* => network broadcast address */
+  81:lwIP/src/core/ipv4/ip4_addr.c ****     return 1;
+  82:lwIP/src/core/ipv4/ip4_addr.c ****   } else {
+  83:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+  72              		.loc 1 83 12 view .LVU18
+  73 0026 101A     		subs	r0, r2, r0
+  74 0028 B0FA80F0 		clz	r0, r0
+  75 002c 4009     		lsrs	r0, r0, #5
+  76 002e 7047     		bx	lr
+  77              	.LVL4:
+  78              	.L5:
+  79              		.loc 1 83 12 view .LVU19
+  80 0030 0020     		movs	r0, #0
+  81              	.L2:
+  82              	.LVL5:
+  84:lwIP/src/core/ipv4/ip4_addr.c ****   }
+  85:lwIP/src/core/ipv4/ip4_addr.c **** }
+  83              		.loc 1 85 1 view .LVU20
+  84 0032 7047     		bx	lr
+  85              	.LVL6:
+  86              	.L3:
+ARM GAS  /tmp/cc3dOtN4.s 			page 4
+
+
+  66:lwIP/src/core/ipv4/ip4_addr.c ****     /* no broadcast support on this network interface? */
+  87              		.loc 1 66 12 view .LVU21
+  88 0034 0120     		movs	r0, #1
+  89              	.LVL7:
+  66:lwIP/src/core/ipv4/ip4_addr.c ****     /* no broadcast support on this network interface? */
+  90              		.loc 1 66 12 view .LVU22
+  91 0036 7047     		bx	lr
+  92              		.cfi_endproc
+  93              	.LFE105:
+  95              		.section	.text.ip4_addr_netmask_valid,"ax",%progbits
+  96              		.align	1
+  97              		.p2align 2,,3
+  98              		.global	ip4_addr_netmask_valid
+  99              		.syntax unified
+ 100              		.thumb
+ 101              		.thumb_func
+ 102              		.fpu fpv4-sp-d16
+ 104              	ip4_addr_netmask_valid:
+ 105              	.LVL8:
+ 106              	.LFB106:
+  86:lwIP/src/core/ipv4/ip4_addr.c **** 
+  87:lwIP/src/core/ipv4/ip4_addr.c **** /** Checks if a netmask is valid (starting with ones, then only zeros)
+  88:lwIP/src/core/ipv4/ip4_addr.c ****  *
+  89:lwIP/src/core/ipv4/ip4_addr.c ****  * @param netmask the IPv4 netmask to check (in network byte order!)
+  90:lwIP/src/core/ipv4/ip4_addr.c ****  * @return 1 if the netmask is valid, 0 if it is not
+  91:lwIP/src/core/ipv4/ip4_addr.c ****  */
+  92:lwIP/src/core/ipv4/ip4_addr.c **** u8_t
+  93:lwIP/src/core/ipv4/ip4_addr.c **** ip4_addr_netmask_valid(u32_t netmask)
+  94:lwIP/src/core/ipv4/ip4_addr.c **** {
+ 107              		.loc 1 94 1 is_stmt 1 view -0
+ 108              		.cfi_startproc
+ 109              		@ args = 0, pretend = 0, frame = 0
+ 110              		@ frame_needed = 0, uses_anonymous_args = 0
+ 111              		@ link register save eliminated.
+  95:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t mask;
+ 112              		.loc 1 95 3 view .LVU24
+  96:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t nm_hostorder = lwip_htonl(netmask);
+ 113              		.loc 1 96 3 view .LVU25
+ 114              	.LBB6:
+ 115              	.LBI6:
+ 116              		.file 2 "STM32_XPD/CMSIS/Include/cmsis_gcc.h"
+   1:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*
+   8:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  10:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  12:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  16:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+ARM GAS  /tmp/cc3dOtN4.s 			page 5
+
+
+  17:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  18:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+  24:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  25:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  28:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  34:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  39:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ARM GAS  /tmp/cc3dOtN4.s 			page 6
+
+
+  74:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 117:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 118:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 124:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ARM GAS  /tmp/cc3dOtN4.s 			page 7
+
+
+ 131:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 133:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 134:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 135:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 141:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 142:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 143:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 144:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 145:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 146:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 147:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
+ 148:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
+ 149:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Control Register value
+ 150:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 151:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_CONTROL(void)
+ 152:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 153:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 154:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 155:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 156:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 157:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 158:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 159:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 160:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 161:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 162:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
+ 163:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
+ 164:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               non-secure Control Register value
+ 165:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 166:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_CONTROL_NS(void)
+ 167:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 168:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 169:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 170:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control_ns" : "=r" (result) );
+ 171:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 172:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 173:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 174:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 175:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 176:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 177:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register
+ 178:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the Control Register.
+ 179:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 180:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 181:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
+ 182:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 183:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
+ 184:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 185:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 186:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 187:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ARM GAS  /tmp/cc3dOtN4.s 			page 8
+
+
+ 188:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 189:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register (non-secure)
+ 190:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the non-secure Control Register when in secure state.
+ 191:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 192:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 193:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_CONTROL_NS(uint32_t control)
+ 194:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 195:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control_ns, %0" : : "r" (control) : "memory");
+ 196:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 197:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 198:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 199:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 200:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 201:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get IPSR Register
+ 202:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
+ 203:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
+ 204:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 205:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
+ 206:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 207:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 208:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 209:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 210:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 211:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 212:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 213:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 214:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 215:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get APSR Register
+ 216:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the APSR Register.
+ 217:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
+ 218:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 219:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
+ 220:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 221:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 222:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 223:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 224:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 225:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 226:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 227:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 228:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 229:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get xPSR Register
+ 230:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the xPSR Register.
+ 231:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               xPSR Register value
+ 232:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 233:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_xPSR(void)
+ 234:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 235:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 236:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 237:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 238:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 239:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 240:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 241:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 242:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 243:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer
+ 244:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer (PSP).
+ARM GAS  /tmp/cc3dOtN4.s 			page 9
+
+
+ 245:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 246:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 247:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSP(void)
+ 248:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 249:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 250:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 251:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+ 252:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 253:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 254:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 255:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 256:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 257:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 258:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer (non-secure)
+ 259:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
+ 260:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 261:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 262:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
+ 263:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 264:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 265:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 266:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp_ns"  : "=r" (result) );
+ 267:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 268:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 269:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 270:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 271:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 272:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 273:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer
+ 274:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
+ 275:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 276:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 277:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
+ 278:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 279:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
+ 280:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 281:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 282:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 283:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 284:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 285:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 286:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer (PSP) when in secure sta
+ 287:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 288:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 289:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSP_NS(uint32_t topOfProcStack)
+ 290:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 291:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp_ns, %0" : : "r" (topOfProcStack) : );
+ 292:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 293:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 294:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 295:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 296:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 297:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer
+ 298:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer (MSP).
+ 299:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 300:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 301:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSP(void)
+ARM GAS  /tmp/cc3dOtN4.s 			page 10
+
+
+ 302:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 303:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 304:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 305:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp" : "=r" (result) );
+ 306:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 307:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 308:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 309:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 310:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 311:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 312:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer (non-secure)
+ 313:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer (MSP) when in secure stat
+ 314:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 315:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 316:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
+ 317:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 318:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 319:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 320:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
+ 321:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 322:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 323:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 324:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 325:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 326:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 327:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer
+ 328:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer (MSP).
+ 329:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 330:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 331:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
+ 332:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 333:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
+ 334:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 335:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 336:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 337:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 338:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 339:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer (non-secure)
+ 340:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer (MSP) when in secure state.
+ 341:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 342:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 343:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSP_NS(uint32_t topOfMainStack)
+ 344:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 345:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
+ 346:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 347:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 348:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 349:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 350:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 351:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 352:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Stack Pointer (non-secure)
+ 353:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Stack Pointer (SP) when in secure state.
+ 354:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               SP Register value
+ 355:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 356:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_SP_NS(void)
+ 357:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 358:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ARM GAS  /tmp/cc3dOtN4.s 			page 11
+
+
+ 359:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 360:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, sp_ns" : "=r" (result) );
+ 361:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 362:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 363:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 364:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 365:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 366:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Stack Pointer (non-secure)
+ 367:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Stack Pointer (SP) when in secure state.
+ 368:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfStack  Stack Pointer value to set
+ 369:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 370:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_SP_NS(uint32_t topOfStack)
+ 371:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 372:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR sp_ns, %0" : : "r" (topOfStack) : );
+ 373:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 374:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 375:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 376:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 377:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 378:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask
+ 379:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the priority mask bit from the Priority Mask Register.
+ 380:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 381:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 382:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PRIMASK(void)
+ 383:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 384:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 385:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 386:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask" : "=r" (result) :: "memory");
+ 387:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 388:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 389:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 390:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 391:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 392:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 393:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask (non-secure)
+ 394:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the non-secure priority mask bit from the Priority Mask Reg
+ 395:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 396:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 397:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PRIMASK_NS(void)
+ 398:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 399:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 400:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 401:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask_ns" : "=r" (result) :: "memory");
+ 402:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 403:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 404:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 405:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 406:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 407:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 408:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask
+ 409:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Priority Mask Register.
+ 410:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 411:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 412:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PRIMASK(uint32_t priMask)
+ 413:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 414:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+ 415:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ARM GAS  /tmp/cc3dOtN4.s 			page 12
+
+
+ 416:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 417:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 418:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 419:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 420:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask (non-secure)
+ 421:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Priority Mask Register when in secure state.
+ 422:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 423:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 424:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PRIMASK_NS(uint32_t priMask)
+ 425:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 426:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
+ 427:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 428:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 429:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 430:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 431:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 432:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 433:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    )
+ 434:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 435:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable FIQ
+ 436:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 437:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 438:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 439:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_fault_irq(void)
+ 440:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 441:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie f" : : : "memory");
+ 442:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 443:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 444:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 445:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 446:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable FIQ
+ 447:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables FIQ interrupts by setting the F-bit in the CPSR.
+ 448:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 449:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 450:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_fault_irq(void)
+ 451:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 452:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid f" : : : "memory");
+ 453:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 454:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 455:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 456:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 457:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority
+ 458:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Base Priority register.
+ 459:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 460:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 461:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_BASEPRI(void)
+ 462:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 463:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 464:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 465:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri" : "=r" (result) );
+ 466:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 467:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 468:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 469:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 470:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 471:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 472:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority (non-secure)
+ARM GAS  /tmp/cc3dOtN4.s 			page 13
+
+
+ 473:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Base Priority register when in secure state.
+ 474:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 475:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 476:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_BASEPRI_NS(void)
+ 477:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 478:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 479:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 480:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri_ns" : "=r" (result) );
+ 481:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 482:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 483:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 484:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 485:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 486:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 487:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority
+ 488:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register.
+ 489:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 490:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 491:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI(uint32_t basePri)
+ 492:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 493:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri, %0" : : "r" (basePri) : "memory");
+ 494:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 495:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 496:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 497:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 498:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 499:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority (non-secure)
+ 500:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Base Priority register when in secure state.
+ 501:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 502:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 503:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_BASEPRI_NS(uint32_t basePri)
+ 504:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 505:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_ns, %0" : : "r" (basePri) : "memory");
+ 506:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 507:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 508:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 509:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 510:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 511:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority with condition
+ 512:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register only if BASEPRI masking is disable
+ 513:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            or the new value increases the BASEPRI priority level.
+ 514:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 515:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 516:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI_MAX(uint32_t basePri)
+ 517:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 518:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_max, %0" : : "r" (basePri) : "memory");
+ 519:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 520:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 521:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 522:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 523:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask
+ 524:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Fault Mask register.
+ 525:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 526:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 527:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FAULTMASK(void)
+ 528:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 529:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ARM GAS  /tmp/cc3dOtN4.s 			page 14
+
+
+ 530:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 531:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask" : "=r" (result) );
+ 532:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 533:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 534:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 535:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 536:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 537:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 538:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask (non-secure)
+ 539:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Fault Mask register when in secure state.
+ 540:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 541:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 542:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_FAULTMASK_NS(void)
+ 543:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 544:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 545:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 546:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask_ns" : "=r" (result) );
+ 547:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 548:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 549:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 550:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 551:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 552:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 553:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask
+ 554:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Fault Mask register.
+ 555:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 556:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 557:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FAULTMASK(uint32_t faultMask)
+ 558:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 559:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask, %0" : : "r" (faultMask) : "memory");
+ 560:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 561:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 562:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 563:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 564:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 565:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask (non-secure)
+ 566:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Fault Mask register when in secure state.
+ 567:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 568:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 569:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_FAULTMASK_NS(uint32_t faultMask)
+ 570:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 571:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask_ns, %0" : : "r" (faultMask) : "memory");
+ 572:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 573:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 574:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 575:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 576:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 577:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    ) */
+ 578:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 579:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 580:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 581:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    )
+ 582:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 583:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 584:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit
+ 585:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 586:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ARM GAS  /tmp/cc3dOtN4.s 			page 15
+
+
+ 587:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 588:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 589:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer Limit (PSPLIM).
+ 590:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 591:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 592:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSPLIM(void)
+ 593:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 594:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 595:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 596:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 597:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 598:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 599:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 600:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim"  : "=r" (result) );
+ 601:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 602:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 603:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 604:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 605:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3))
+ 606:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 607:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit (non-secure)
+ 608:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 609:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 610:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 611:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer Limit (PSPLIM) when in
+ 612:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 613:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 614:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSPLIM_NS(void)
+ 615:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 616:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 617:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 618:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 619:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 620:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 621:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim_ns"  : "=r" (result) );
+ 622:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 623:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 624:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 625:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 626:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 627:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 628:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 629:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer Limit
+ 630:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 631:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 632:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 633:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 634:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer Limit (PSPLIM).
+ 635:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 636:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 637:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSPLIM(uint32_t ProcStackPtrLimit)
+ 638:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 639:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 640:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 641:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 642:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 643:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ARM GAS  /tmp/cc3dOtN4.s 			page 16
+
+
+ 644:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim, %0" : : "r" (ProcStackPtrLimit));
+ 645:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 646:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 647:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 648:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 649:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 650:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 651:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 652:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 653:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 654:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 655:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer Limit (PSPLIM) when in s
+ 656:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 657:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 658:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSPLIM_NS(uint32_t ProcStackPtrLimit)
+ 659:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 660:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 661:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 662:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 663:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 664:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim_ns, %0\n" : : "r" (ProcStackPtrLimit));
+ 665:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 666:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 667:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 668:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 669:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 670:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 671:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit
+ 672:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 673:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 674:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 675:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 676:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer Limit (MSPLIM).
+ 677:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 678:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 679:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSPLIM(void)
+ 680:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 681:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 682:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 683:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 684:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 685:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 686:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 687:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim" : "=r" (result) );
+ 688:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 689:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 690:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 691:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 692:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 693:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 694:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 695:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit (non-secure)
+ 696:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 697:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 698:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 699:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer Limit(MSPLIM) when in sec
+ 700:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ARM GAS  /tmp/cc3dOtN4.s 			page 17
+
+
+ 701:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 702:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSPLIM_NS(void)
+ 703:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 704:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 705:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 706:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 707:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 708:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 709:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim_ns" : "=r" (result) );
+ 710:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 711:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 712:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 713:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 714:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 715:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 716:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 717:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit
+ 718:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 719:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 720:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 721:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 722:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer Limit (MSPLIM).
+ 723:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer Limit value to set
+ 724:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 725:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSPLIM(uint32_t MainStackPtrLimit)
+ 726:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 727:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 728:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 729:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 730:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 731:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 732:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim, %0" : : "r" (MainStackPtrLimit));
+ 733:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 734:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 735:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 736:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 737:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 738:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 739:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit (non-secure)
+ 740:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 741:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 742:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 743:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer Limit (MSPLIM) when in secu
+ 744:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer value to set
+ 745:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 746:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSPLIM_NS(uint32_t MainStackPtrLimit)
+ 747:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 748:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 749:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 750:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 751:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 752:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim_ns, %0" : : "r" (MainStackPtrLimit));
+ 753:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 754:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 755:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 756:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 757:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ARM GAS  /tmp/cc3dOtN4.s 			page 18
+
+
+ 758:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    ) */
+ 759:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 760:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 761:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 762:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get FPSCR
+ 763:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Floating Point Status/Control register.
+ 764:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Floating Point Status/Control register value
+ 765:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 766:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FPSCR(void)
+ 767:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 768:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 769:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 770:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_get_fpscr) 
+ 771:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 772:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 773:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 774:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_arm_get_fpscr();
+ 775:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 776:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 777:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 778:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMRS %0, fpscr" : "=r" (result) );
+ 779:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 780:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 781:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 782:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(0U);
+ 783:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 784:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 785:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 786:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 787:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 788:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set FPSCR
+ 789:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Floating Point Status/Control register.
+ 790:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    fpscr  Floating Point Status/Control value to set
+ 791:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 792:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
+ 793:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 794:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 795:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 796:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_set_fpscr)
+ 797:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 798:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 799:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 800:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __builtin_arm_set_fpscr(fpscr);
+ 801:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 802:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMSR fpscr, %0" : : "r" (fpscr) : "vfpcc", "memory");
+ 803:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 804:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 805:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)fpscr;
+ 806:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 807:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 808:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 809:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 810:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*@} end of CMSIS_Core_RegAccFunctions */
+ 811:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 812:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 813:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ##########################  Core Instruction Access  ######################### */
+ 814:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+ARM GAS  /tmp/cc3dOtN4.s 			page 19
+
+
+ 815:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Access to dedicated instructions
+ 816:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 817:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** */
+ 818:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 819:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Define macros for porting to both thumb1 and thumb2.
+ 820:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * For thumb1, use low register (r0-r7), specified by constraint "l"
+ 821:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Otherwise, use general registers, specified by constraint "r" */
+ 822:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if defined (__thumb__) && !defined (__thumb2__)
+ 823:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=l" (r)
+ 824:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+l" (r)
+ 825:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "l" (r)
+ 826:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 827:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=r" (r)
+ 828:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+r" (r)
+ 829:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "r" (r)
+ 830:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 831:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 832:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 833:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   No Operation
+ 834:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details No Operation does nothing. This instruction can be used for code alignment purposes.
+ 835:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 836:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __NOP()                             __ASM volatile ("nop")
+ 837:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 838:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 839:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Interrupt
+ 840:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Interrupt is a hint instruction that suspends execution until one of a number o
+ 841:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 842:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFI()                             __ASM volatile ("wfi")
+ 843:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 844:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 845:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 846:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Event
+ 847:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Event is a hint instruction that permits the processor to enter
+ 848:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            a low-power state until one of a number of events occurs.
+ 849:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 850:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFE()                             __ASM volatile ("wfe")
+ 851:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 852:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 853:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 854:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Send Event
+ 855:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 856:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 857:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __SEV()                             __ASM volatile ("sev")
+ 858:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 859:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 860:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 861:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Instruction Synchronization Barrier
+ 862:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 863:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            so that all instructions following the ISB are fetched from cache or memory,
+ 864:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            after the instruction has been completed.
+ 865:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 866:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __ISB(void)
+ 867:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 868:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("isb 0xF":::"memory");
+ 869:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 870:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 871:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/cc3dOtN4.s 			page 20
+
+
+ 872:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 873:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Synchronization Barrier
+ 874:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Acts as a special kind of Data Memory Barrier.
+ 875:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            It completes when all explicit memory accesses before this instruction complete.
+ 876:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 877:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DSB(void)
+ 878:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 879:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dsb 0xF":::"memory");
+ 880:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 881:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 882:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 883:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 884:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Memory Barrier
+ 885:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Ensures the apparent order of the explicit memory operations before
+ 886:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            and after the instruction, without ensuring their completion.
+ 887:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 888:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DMB(void)
+ 889:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 890:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dmb 0xF":::"memory");
+ 891:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 892:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 893:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 894:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 895:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (32 bit)
+ 896:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order in unsigned integer value. For example, 0x12345678 becomes 0x785
+ 897:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
+ 898:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
+ 899:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __REV(uint32_t value)
+ 117              		.loc 2 900 31 view .LVU26
+ 118              	.LBB7:
+ 901:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 902:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+ 903:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_bswap32(value);
+ 119              		.loc 2 903 3 view .LVU27
+ 120              		.loc 2 903 10 is_stmt 0 view .LVU28
+ 121 0000 2022     		movs	r2, #32
+ 122              	.LBE7:
+ 123              	.LBE6:
+  97:lwIP/src/core/ipv4/ip4_addr.c **** 
+  98:lwIP/src/core/ipv4/ip4_addr.c ****   /* first, check for the first zero */
+  99:lwIP/src/core/ipv4/ip4_addr.c ****   for (mask = 1UL << 31 ; mask != 0; mask >>= 1) {
+ 124              		.loc 1 99 13 view .LVU29
+ 125 0002 4FF00043 		mov	r3, #-2147483648
+ 126              	.LBB9:
+ 127              	.LBB8:
+ 128              		.loc 2 903 10 view .LVU30
+ 129 0006 00BA     		rev	r0, r0
+ 130              	.LVL9:
+ 131              		.loc 2 903 10 view .LVU31
+ 132              	.LBE8:
+ 133              	.LBE9:
+ 134              		.loc 1 99 3 is_stmt 1 view .LVU32
+ 135              		.loc 1 99 27 view .LVU33
+ 136 0008 03E0     		b	.L14
+ 137              	.LVL10:
+ 138              	.L11:
+ARM GAS  /tmp/cc3dOtN4.s 			page 21
+
+
+ 139              		.loc 1 99 3 is_stmt 0 discriminator 2 view .LVU34
+ 140 000a 013A     		subs	r2, r2, #1
+ 141              		.loc 1 99 43 discriminator 2 view .LVU35
+ 142 000c 4FEA5303 		lsr	r3, r3, #1
+ 143              	.LVL11:
+ 144              		.loc 1 99 27 is_stmt 1 discriminator 2 view .LVU36
+ 145              		.loc 1 99 3 is_stmt 0 discriminator 2 view .LVU37
+ 146 0010 08D0     		beq	.L20
+ 147              	.LVL12:
+ 148              	.L14:
+ 100:lwIP/src/core/ipv4/ip4_addr.c ****     if ((nm_hostorder & mask) == 0) {
+ 149              		.loc 1 100 5 is_stmt 1 view .LVU38
+  99:lwIP/src/core/ipv4/ip4_addr.c ****     if ((nm_hostorder & mask) == 0) {
+ 150              		.loc 1 99 38 view .LVU39
+ 151              		.loc 1 100 8 is_stmt 0 view .LVU40
+ 152 0012 1842     		tst	r0, r3
+ 153 0014 F9D1     		bne	.L11
+ 101:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 102:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 103:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 104:lwIP/src/core/ipv4/ip4_addr.c ****   /* then check that there is no one */
+ 105:lwIP/src/core/ipv4/ip4_addr.c ****   for (; mask != 0; mask >>= 1) {
+ 154              		.loc 1 105 10 is_stmt 1 view .LVU41
+ 155              		.loc 1 105 3 is_stmt 0 view .LVU42
+ 156 0016 2BB1     		cbz	r3, .L20
+ 157              	.L12:
+ 158              		.loc 1 105 21 is_stmt 1 view .LVU43
+ 159              	.LVL13:
+ 160              		.loc 1 105 10 view .LVU44
+ 161              		.loc 1 105 3 is_stmt 0 view .LVU45
+ 162 0018 5B08     		lsrs	r3, r3, #1
+ 163              	.LVL14:
+ 106:lwIP/src/core/ipv4/ip4_addr.c ****     if ((nm_hostorder & mask) != 0) {
+ 164              		.loc 1 106 5 is_stmt 1 view .LVU46
+ 105:lwIP/src/core/ipv4/ip4_addr.c ****     if ((nm_hostorder & mask) != 0) {
+ 165              		.loc 1 105 3 is_stmt 0 view .LVU47
+ 166 001a 03D0     		beq	.L20
+ 167              		.loc 1 106 8 view .LVU48
+ 168 001c 1842     		tst	r0, r3
+ 169 001e FBD0     		beq	.L12
+ 107:lwIP/src/core/ipv4/ip4_addr.c ****       /* there is a one after the first zero -> invalid */
+ 108:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;
+ 170              		.loc 1 108 14 view .LVU49
+ 171 0020 0020     		movs	r0, #0
+ 172              	.LVL15:
+ 109:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 110:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 111:lwIP/src/core/ipv4/ip4_addr.c ****   /* no one after the first zero -> valid */
+ 112:lwIP/src/core/ipv4/ip4_addr.c ****   return 1;
+ 113:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 173              		.loc 1 113 1 view .LVU50
+ 174 0022 7047     		bx	lr
+ 175              	.LVL16:
+ 176              	.L20:
+ 112:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 177              		.loc 1 112 10 view .LVU51
+ 178 0024 0120     		movs	r0, #1
+ARM GAS  /tmp/cc3dOtN4.s 			page 22
+
+
+ 179              	.LVL17:
+ 112:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 180              		.loc 1 112 10 view .LVU52
+ 181 0026 7047     		bx	lr
+ 182              		.cfi_endproc
+ 183              	.LFE106:
+ 185              		.section	.rodata.ip4addr_aton.str1.4,"aMS",%progbits,1
+ 186              		.align	2
+ 187              	.LC0:
+ 188 0000 756E6861 		.ascii	"unhandled\000"
+ 188      6E646C65 
+ 188      6400
+ 189              		.section	.text.ip4addr_aton,"ax",%progbits
+ 190              		.align	1
+ 191              		.p2align 2,,3
+ 192              		.global	ip4addr_aton
+ 193              		.syntax unified
+ 194              		.thumb
+ 195              		.thumb_func
+ 196              		.fpu fpv4-sp-d16
+ 198              	ip4addr_aton:
+ 199              	.LVL18:
+ 200              	.LFB108:
+ 114:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 115:lwIP/src/core/ipv4/ip4_addr.c **** /**
+ 116:lwIP/src/core/ipv4/ip4_addr.c ****  * Ascii internet address interpretation routine.
+ 117:lwIP/src/core/ipv4/ip4_addr.c ****  * The value returned is in network order.
+ 118:lwIP/src/core/ipv4/ip4_addr.c ****  *
+ 119:lwIP/src/core/ipv4/ip4_addr.c ****  * @param cp IP address in ascii representation (e.g. "127.0.0.1")
+ 120:lwIP/src/core/ipv4/ip4_addr.c ****  * @return ip address in network order
+ 121:lwIP/src/core/ipv4/ip4_addr.c ****  */
+ 122:lwIP/src/core/ipv4/ip4_addr.c **** u32_t
+ 123:lwIP/src/core/ipv4/ip4_addr.c **** ipaddr_addr(const char *cp)
+ 124:lwIP/src/core/ipv4/ip4_addr.c **** {
+ 125:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_t val;
+ 126:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 127:lwIP/src/core/ipv4/ip4_addr.c ****   if (ip4addr_aton(cp, &val)) {
+ 128:lwIP/src/core/ipv4/ip4_addr.c ****     return ip4_addr_get_u32(&val);
+ 129:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 130:lwIP/src/core/ipv4/ip4_addr.c ****   return (IPADDR_NONE);
+ 131:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 132:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 133:lwIP/src/core/ipv4/ip4_addr.c **** /**
+ 134:lwIP/src/core/ipv4/ip4_addr.c ****  * Check whether "cp" is a valid ascii representation
+ 135:lwIP/src/core/ipv4/ip4_addr.c ****  * of an Internet address and convert to a binary address.
+ 136:lwIP/src/core/ipv4/ip4_addr.c ****  * Returns 1 if the address is valid, 0 if not.
+ 137:lwIP/src/core/ipv4/ip4_addr.c ****  * This replaces inet_addr, the return value from which
+ 138:lwIP/src/core/ipv4/ip4_addr.c ****  * cannot distinguish between failure and a local broadcast address.
+ 139:lwIP/src/core/ipv4/ip4_addr.c ****  *
+ 140:lwIP/src/core/ipv4/ip4_addr.c ****  * @param cp IP address in ascii representation (e.g. "127.0.0.1")
+ 141:lwIP/src/core/ipv4/ip4_addr.c ****  * @param addr pointer to which to save the ip address in network order
+ 142:lwIP/src/core/ipv4/ip4_addr.c ****  * @return 1 if cp could be converted to addr, 0 on failure
+ 143:lwIP/src/core/ipv4/ip4_addr.c ****  */
+ 144:lwIP/src/core/ipv4/ip4_addr.c **** int
+ 145:lwIP/src/core/ipv4/ip4_addr.c **** ip4addr_aton(const char *cp, ip4_addr_t *addr)
+ 146:lwIP/src/core/ipv4/ip4_addr.c **** {
+ 201              		.loc 1 146 1 is_stmt 1 view -0
+ARM GAS  /tmp/cc3dOtN4.s 			page 23
+
+
+ 202              		.cfi_startproc
+ 203              		@ args = 0, pretend = 0, frame = 16
+ 204              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t val;
+ 205              		.loc 1 147 3 view .LVU54
+ 148:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t base;
+ 206              		.loc 1 148 3 view .LVU55
+ 149:lwIP/src/core/ipv4/ip4_addr.c ****   char c;
+ 207              		.loc 1 149 3 view .LVU56
+ 150:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t parts[4];
+ 208              		.loc 1 150 3 view .LVU57
+ 151:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t *pp = parts;
+ 209              		.loc 1 151 3 view .LVU58
+ 152:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 153:lwIP/src/core/ipv4/ip4_addr.c ****   c = *cp;
+ 210              		.loc 1 153 3 view .LVU59
+ 154:lwIP/src/core/ipv4/ip4_addr.c ****   for (;;) {
+ 155:lwIP/src/core/ipv4/ip4_addr.c ****     /*
+ 156:lwIP/src/core/ipv4/ip4_addr.c ****      * Collect number up to ``.''.
+ 157:lwIP/src/core/ipv4/ip4_addr.c ****      * Values are specified as for C:
+ 158:lwIP/src/core/ipv4/ip4_addr.c ****      * 0x=hex, 0=octal, 1-9=decimal.
+ 159:lwIP/src/core/ipv4/ip4_addr.c ****      */
+ 160:lwIP/src/core/ipv4/ip4_addr.c ****     if (!lwip_isdigit(c)) {
+ 211              		.loc 1 160 10 is_stmt 0 view .LVU60
+ 212 0000 DFF86CC1 		ldr	ip, .L69+4
+ 153:lwIP/src/core/ipv4/ip4_addr.c ****   for (;;) {
+ 213              		.loc 1 153 5 view .LVU61
+ 214 0004 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 215              	.LVL19:
+ 154:lwIP/src/core/ipv4/ip4_addr.c ****   for (;;) {
+ 216              		.loc 1 154 3 is_stmt 1 view .LVU62
+ 217              		.loc 1 160 5 view .LVU63
+ 218              		.loc 1 160 10 is_stmt 0 view .LVU64
+ 219 0006 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 220              		.loc 1 160 8 view .LVU65
+ 221 000a 12F0040F 		tst	r2, #4
+ 222 000e 00F0A580 		beq	.L64
+ 146:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t val;
+ 223              		.loc 1 146 1 view .LVU66
+ 224 0012 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 225              	.LCFI0:
+ 226              		.cfi_def_cfa_offset 32
+ 227              		.cfi_offset 4, -32
+ 228              		.cfi_offset 5, -28
+ 229              		.cfi_offset 6, -24
+ 230              		.cfi_offset 7, -20
+ 231              		.cfi_offset 8, -16
+ 232              		.cfi_offset 9, -12
+ 233              		.cfi_offset 10, -8
+ 234              		.cfi_offset 14, -4
+ 235 0016 84B0     		sub	sp, sp, #16
+ 236              	.LCFI1:
+ 237              		.cfi_def_cfa_offset 48
+ 238 0018 02F00406 		and	r6, r2, #4
+ 151:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 239              		.loc 1 151 10 view .LVU67
+ 240 001c E946     		mov	r9, sp
+ARM GAS  /tmp/cc3dOtN4.s 			page 24
+
+
+ 161:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;
+ 162:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 163:lwIP/src/core/ipv4/ip4_addr.c ****     val = 0;
+ 164:lwIP/src/core/ipv4/ip4_addr.c ****     base = 10;
+ 165:lwIP/src/core/ipv4/ip4_addr.c ****     if (c == '0') {
+ 166:lwIP/src/core/ipv4/ip4_addr.c ****       c = *++cp;
+ 167:lwIP/src/core/ipv4/ip4_addr.c ****       if (c == 'x' || c == 'X') {
+ 168:lwIP/src/core/ipv4/ip4_addr.c ****         base = 16;
+ 169:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 170:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 171:lwIP/src/core/ipv4/ip4_addr.c ****         base = 8;
+ 172:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 173:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 174:lwIP/src/core/ipv4/ip4_addr.c ****     for (;;) {
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****       if (lwip_isdigit(c)) {
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 178:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val << 4) | (u32_t)(c + 10 - (lwip_islower(c) ? 'a' : 'A'));
+ 180:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 181:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 182:lwIP/src/core/ipv4/ip4_addr.c ****         break;
+ 183:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 184:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 185:lwIP/src/core/ipv4/ip4_addr.c ****     if (c == '.') {
+ 186:lwIP/src/core/ipv4/ip4_addr.c ****       /*
+ 187:lwIP/src/core/ipv4/ip4_addr.c ****        * Internet format:
+ 188:lwIP/src/core/ipv4/ip4_addr.c ****        *  a.b.c.d
+ 189:lwIP/src/core/ipv4/ip4_addr.c ****        *  a.b.c   (with c treated as 16 bits)
+ 190:lwIP/src/core/ipv4/ip4_addr.c ****        *  a.b (with b treated as 24 bits)
+ 191:lwIP/src/core/ipv4/ip4_addr.c ****        */
+ 192:lwIP/src/core/ipv4/ip4_addr.c ****       if (pp >= parts + 3) {
+ 241              		.loc 1 192 10 view .LVU68
+ 242 001e 0DF10C08 		add	r8, sp, #12
+ 151:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 243              		.loc 1 151 10 view .LVU69
+ 244 0022 CE46     		mov	lr, r9
+ 245              	.LVL20:
+ 246              	.L22:
+ 163:lwIP/src/core/ipv4/ip4_addr.c ****     base = 10;
+ 247              		.loc 1 163 5 is_stmt 1 view .LVU70
+ 164:lwIP/src/core/ipv4/ip4_addr.c ****     if (c == '0') {
+ 248              		.loc 1 164 5 view .LVU71
+ 165:lwIP/src/core/ipv4/ip4_addr.c ****       c = *++cp;
+ 249              		.loc 1 165 5 view .LVU72
+ 165:lwIP/src/core/ipv4/ip4_addr.c ****       c = *++cp;
+ 250              		.loc 1 165 8 is_stmt 0 view .LVU73
+ 251 0024 302B     		cmp	r3, #48
+ 252 0026 19D0     		beq	.L65
+ 164:lwIP/src/core/ipv4/ip4_addr.c ****     if (c == '0') {
+ 253              		.loc 1 164 10 view .LVU74
+ 254 0028 0A25     		movs	r5, #10
+ 255              	.LVL21:
+ 256              	.L24:
+ 174:lwIP/src/core/ipv4/ip4_addr.c ****       if (lwip_isdigit(c)) {
+ 257              		.loc 1 174 5 is_stmt 1 view .LVU75
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ARM GAS  /tmp/cc3dOtN4.s 			page 25
+
+
+ 258              		.loc 1 175 7 view .LVU76
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 259              		.loc 1 175 10 is_stmt 0 view .LVU77
+ 260 002a 06F0FF04 		and	r4, r6, #255
+ 261 002e 8246     		mov	r10, r0
+ 262 0030 002E     		cmp	r6, #0
+ 263 0032 41D1     		bne	.L66
+ 264              	.LVL22:
+ 265              	.L31:
+ 185:lwIP/src/core/ipv4/ip4_addr.c ****       /*
+ 266              		.loc 1 185 5 is_stmt 1 view .LVU78
+ 185:lwIP/src/core/ipv4/ip4_addr.c ****       /*
+ 267              		.loc 1 185 8 is_stmt 0 view .LVU79
+ 268 0034 2E2B     		cmp	r3, #46
+ 269 0036 4CD1     		bne	.L33
+ 270              	.LVL23:
+ 271              	.L68:
+ 272              		.loc 1 192 7 is_stmt 1 view .LVU80
+ 273              		.loc 1 192 10 is_stmt 0 view .LVU81
+ 274 0038 C645     		cmp	lr, r8
+ 275 003a 0BD0     		beq	.L34
+ 193:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 194:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 195:lwIP/src/core/ipv4/ip4_addr.c ****       *pp++ = val;
+ 276              		.loc 1 195 7 is_stmt 1 view .LVU82
+ 277              	.LVL24:
+ 196:lwIP/src/core/ipv4/ip4_addr.c ****       c = *++cp;
+ 278              		.loc 1 196 9 is_stmt 0 view .LVU83
+ 279 003c 9AF80130 		ldrb	r3, [r10, #1]	@ zero_extendqisi2
+ 280              	.LVL25:
+ 281              		.loc 1 196 9 view .LVU84
+ 282 0040 0AF10100 		add	r0, r10, #1
+ 195:lwIP/src/core/ipv4/ip4_addr.c ****       c = *++cp;
+ 283              		.loc 1 195 13 view .LVU85
+ 284 0044 4EF8044B 		str	r4, [lr], #4
+ 285              	.LVL26:
+ 286              		.loc 1 196 7 is_stmt 1 view .LVU86
+ 154:lwIP/src/core/ipv4/ip4_addr.c ****     /*
+ 287              		.loc 1 154 9 view .LVU87
+ 154:lwIP/src/core/ipv4/ip4_addr.c ****     /*
+ 288              		.loc 1 154 3 view .LVU88
+ 160:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;
+ 289              		.loc 1 160 5 view .LVU89
+ 160:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;
+ 290              		.loc 1 160 10 is_stmt 0 view .LVU90
+ 291 0048 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 160:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;
+ 292              		.loc 1 160 8 view .LVU91
+ 293 004c 5407     		lsls	r4, r2, #29
+ 294 004e 02F00406 		and	r6, r2, #4
+ 295 0052 E7D4     		bmi	.L22
+ 296              	.LVL27:
+ 297              	.L34:
+ 161:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 298              		.loc 1 161 14 view .LVU92
+ 299 0054 0020     		movs	r0, #0
+ 300              	.L21:
+ARM GAS  /tmp/cc3dOtN4.s 			page 26
+
+
+ 197:lwIP/src/core/ipv4/ip4_addr.c ****     } else {
+ 198:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 199:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 200:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 201:lwIP/src/core/ipv4/ip4_addr.c ****   /*
+ 202:lwIP/src/core/ipv4/ip4_addr.c ****    * Check for trailing characters.
+ 203:lwIP/src/core/ipv4/ip4_addr.c ****    */
+ 204:lwIP/src/core/ipv4/ip4_addr.c ****   if (c != '\0' && !lwip_isspace(c)) {
+ 205:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+ 206:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 207:lwIP/src/core/ipv4/ip4_addr.c ****   /*
+ 208:lwIP/src/core/ipv4/ip4_addr.c ****    * Concoct the address according to
+ 209:lwIP/src/core/ipv4/ip4_addr.c ****    * the number of parts specified.
+ 210:lwIP/src/core/ipv4/ip4_addr.c ****    */
+ 211:lwIP/src/core/ipv4/ip4_addr.c ****   switch (pp - parts + 1) {
+ 212:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 213:lwIP/src/core/ipv4/ip4_addr.c ****     case 0:
+ 214:lwIP/src/core/ipv4/ip4_addr.c ****       return 0;       /* initial nondigit */
+ 215:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 216:lwIP/src/core/ipv4/ip4_addr.c ****     case 1:             /* a -- 32 bits */
+ 217:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 218:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 219:lwIP/src/core/ipv4/ip4_addr.c ****     case 2:             /* a.b -- 8.24 bits */
+ 220:lwIP/src/core/ipv4/ip4_addr.c ****       if (val > 0xffffffUL) {
+ 221:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 222:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 223:lwIP/src/core/ipv4/ip4_addr.c ****       if (parts[0] > 0xff) {
+ 224:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 225:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 226:lwIP/src/core/ipv4/ip4_addr.c ****       val |= parts[0] << 24;
+ 227:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 228:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 229:lwIP/src/core/ipv4/ip4_addr.c ****     case 3:             /* a.b.c -- 8.8.16 bits */
+ 230:lwIP/src/core/ipv4/ip4_addr.c ****       if (val > 0xffff) {
+ 231:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 232:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****       if ((parts[0] > 0xff) || (parts[1] > 0xff)) {
+ 234:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 235:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 236:lwIP/src/core/ipv4/ip4_addr.c ****       val |= (parts[0] << 24) | (parts[1] << 16);
+ 237:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 238:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 239:lwIP/src/core/ipv4/ip4_addr.c ****     case 4:             /* a.b.c.d -- 8.8.8.8 bits */
+ 240:lwIP/src/core/ipv4/ip4_addr.c ****       if (val > 0xff) {
+ 241:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 242:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****       if ((parts[0] > 0xff) || (parts[1] > 0xff) || (parts[2] > 0xff)) {
+ 244:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 245:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       val |= (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8);
+ 247:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 248:lwIP/src/core/ipv4/ip4_addr.c ****     default:
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       LWIP_ASSERT("unhandled", 0);
+ 250:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 251:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 252:lwIP/src/core/ipv4/ip4_addr.c ****   if (addr) {
+ 253:lwIP/src/core/ipv4/ip4_addr.c ****     ip4_addr_set_u32(addr, lwip_htonl(val));
+ARM GAS  /tmp/cc3dOtN4.s 			page 27
+
+
+ 254:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 255:lwIP/src/core/ipv4/ip4_addr.c ****   return 1;
+ 256:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 301              		.loc 1 256 1 view .LVU93
+ 302 0056 04B0     		add	sp, sp, #16
+ 303              	.LCFI2:
+ 304              		.cfi_remember_state
+ 305              		.cfi_def_cfa_offset 32
+ 306              		@ sp needed
+ 307 0058 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 308              	.LVL28:
+ 309              	.L65:
+ 310              	.LCFI3:
+ 311              		.cfi_restore_state
+ 166:lwIP/src/core/ipv4/ip4_addr.c ****       if (c == 'x' || c == 'X') {
+ 312              		.loc 1 166 7 is_stmt 1 view .LVU94
+ 166:lwIP/src/core/ipv4/ip4_addr.c ****       if (c == 'x' || c == 'X') {
+ 313              		.loc 1 166 9 is_stmt 0 view .LVU95
+ 314 005c 4378     		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+ 315              	.LVL29:
+ 167:lwIP/src/core/ipv4/ip4_addr.c ****         base = 16;
+ 316              		.loc 1 167 7 is_stmt 1 view .LVU96
+ 167:lwIP/src/core/ipv4/ip4_addr.c ****         base = 16;
+ 317              		.loc 1 167 10 is_stmt 0 view .LVU97
+ 318 005e 03F0DF02 		and	r2, r3, #223
+ 319 0062 582A     		cmp	r2, #88
+ 320 0064 06D0     		beq	.L25
+ 321 0066 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 322              	.LVL30:
+ 166:lwIP/src/core/ipv4/ip4_addr.c ****       if (c == 'x' || c == 'X') {
+ 323              		.loc 1 166 9 view .LVU98
+ 324 006a 0130     		adds	r0, r0, #1
+ 325              	.LVL31:
+ 171:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 326              		.loc 1 171 14 view .LVU99
+ 327 006c 0825     		movs	r5, #8
+ 328 006e 02F00406 		and	r6, r2, #4
+ 329 0072 DAE7     		b	.L24
+ 330              	.LVL32:
+ 331              	.L25:
+ 168:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 332              		.loc 1 168 9 is_stmt 1 view .LVU100
+ 169:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 333              		.loc 1 169 9 view .LVU101
+ 169:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 334              		.loc 1 169 11 is_stmt 0 view .LVU102
+ 335 0074 10F8023F 		ldrb	r3, [r0, #2]!	@ zero_extendqisi2
+ 336              	.LVL33:
+ 169:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 337              		.loc 1 169 11 view .LVU103
+ 338 0078 0024     		movs	r4, #0
+ 339 007a 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 340              	.LVL34:
+ 169:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 341              		.loc 1 169 11 view .LVU104
+ 342 007e 05E0     		b	.L26
+ 343              	.LVL35:
+ARM GAS  /tmp/cc3dOtN4.s 			page 28
+
+
+ 344              	.L67:
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 345              		.loc 1 176 13 view .LVU105
+ 346 0080 A6F13004 		sub	r4, r6, #48
+ 347              	.LVL36:
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 348              		.loc 1 177 9 is_stmt 1 view .LVU106
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 349              		.loc 1 177 11 is_stmt 0 view .LVU107
+ 350 0084 4378     		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+ 351              	.LVL37:
+ 352              	.L30:
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 353              		.loc 1 177 11 view .LVU108
+ 354 0086 0130     		adds	r0, r0, #1
+ 355 0088 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 356              	.LVL38:
+ 357              	.L26:
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 358              		.loc 1 176 9 is_stmt 1 view .LVU109
+ 178:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val << 4) | (u32_t)(c + 10 - (lwip_islower(c) ? 'a' : 'A'));
+ 359              		.loc 1 178 14 view .LVU110
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 360              		.loc 1 179 9 view .LVU111
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 361              		.loc 1 175 10 is_stmt 0 view .LVU112
+ 362 008c 12F0040F 		tst	r2, #4
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 363              		.loc 1 179 68 view .LVU113
+ 364 0090 02F00307 		and	r7, r2, #3
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 365              		.loc 1 179 38 view .LVU114
+ 366 0094 03F10A05 		add	r5, r3, #10
+ 367 0098 8246     		mov	r10, r0
+ 368              	.LVL39:
+ 174:lwIP/src/core/ipv4/ip4_addr.c ****       if (lwip_isdigit(c)) {
+ 369              		.loc 1 174 5 is_stmt 1 view .LVU115
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 370              		.loc 1 175 7 view .LVU116
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 371              		.loc 1 176 28 is_stmt 0 view .LVU117
+ 372 009a 03EB0416 		add	r6, r3, r4, lsl #4
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 373              		.loc 1 175 10 view .LVU118
+ 374 009e EFD1     		bne	.L67
+ 178:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val << 4) | (u32_t)(c + 10 - (lwip_islower(c) ? 'a' : 'A'));
+ 375              		.loc 1 178 29 discriminator 1 view .LVU119
+ 376 00a0 12F0440F 		tst	r2, #68
+ 377 00a4 C6D0     		beq	.L31
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 378              		.loc 1 179 68 view .LVU120
+ 379 00a6 022F     		cmp	r7, #2
+ 180:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 380              		.loc 1 180 11 view .LVU121
+ 381 00a8 4378     		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+ 382              	.LVL40:
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ARM GAS  /tmp/cc3dOtN4.s 			page 29
+
+
+ 383              		.loc 1 179 68 view .LVU122
+ 384 00aa 0CBF     		ite	eq
+ 385 00ac 6122     		moveq	r2, #97
+ 386 00ae 4122     		movne	r2, #65
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 387              		.loc 1 179 43 view .LVU123
+ 388 00b0 AD1A     		subs	r5, r5, r2
+ 389              	.LVL41:
+ 179:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 390              		.loc 1 179 13 view .LVU124
+ 391 00b2 45EA0414 		orr	r4, r5, r4, lsl #4
+ 392              	.LVL42:
+ 180:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 393              		.loc 1 180 9 is_stmt 1 view .LVU125
+ 180:lwIP/src/core/ipv4/ip4_addr.c ****       } else {
+ 394              		.loc 1 180 9 is_stmt 0 view .LVU126
+ 395 00b6 E6E7     		b	.L30
+ 396              	.LVL43:
+ 397              	.L66:
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 398              		.loc 1 175 10 view .LVU127
+ 399 00b8 0024     		movs	r4, #0
+ 400              	.LVL44:
+ 401              	.L28:
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 402              		.loc 1 176 9 is_stmt 1 view .LVU128
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 403              		.loc 1 176 13 is_stmt 0 view .LVU129
+ 404 00ba A3F13000 		sub	r0, r3, #48
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 405              		.loc 1 177 11 view .LVU130
+ 406 00be 1AF8013F 		ldrb	r3, [r10, #1]!	@ zero_extendqisi2
+ 407              	.LVL45:
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 408              		.loc 1 177 11 view .LVU131
+ 409 00c2 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 176:lwIP/src/core/ipv4/ip4_addr.c ****         c = *++cp;
+ 410              		.loc 1 176 13 view .LVU132
+ 411 00c6 04FB0504 		mla	r4, r4, r5, r0
+ 412              	.LVL46:
+ 177:lwIP/src/core/ipv4/ip4_addr.c ****       } else if (base == 16 && lwip_isxdigit(c)) {
+ 413              		.loc 1 177 9 is_stmt 1 view .LVU133
+ 174:lwIP/src/core/ipv4/ip4_addr.c ****       if (lwip_isdigit(c)) {
+ 414              		.loc 1 174 5 view .LVU134
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 415              		.loc 1 175 7 view .LVU135
+ 175:lwIP/src/core/ipv4/ip4_addr.c ****         val = (val * base) + (u32_t)(c - '0');
+ 416              		.loc 1 175 10 is_stmt 0 view .LVU136
+ 417 00ca 5607     		lsls	r6, r2, #29
+ 418 00cc F5D4     		bmi	.L28
+ 185:lwIP/src/core/ipv4/ip4_addr.c ****       /*
+ 419              		.loc 1 185 5 is_stmt 1 view .LVU137
+ 185:lwIP/src/core/ipv4/ip4_addr.c ****       /*
+ 420              		.loc 1 185 8 is_stmt 0 view .LVU138
+ 421 00ce 2E2B     		cmp	r3, #46
+ 422 00d0 B2D0     		beq	.L68
+ 423              	.LVL47:
+ARM GAS  /tmp/cc3dOtN4.s 			page 30
+
+
+ 424              	.L33:
+ 204:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+ 425              		.loc 1 204 3 is_stmt 1 view .LVU139
+ 204:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+ 426              		.loc 1 204 6 is_stmt 0 view .LVU140
+ 427 00d2 0BB1     		cbz	r3, .L35
+ 204:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+ 428              		.loc 1 204 17 discriminator 1 view .LVU141
+ 429 00d4 1307     		lsls	r3, r2, #28
+ 430              	.LVL48:
+ 204:lwIP/src/core/ipv4/ip4_addr.c ****     return 0;
+ 431              		.loc 1 204 17 discriminator 1 view .LVU142
+ 432 00d6 BDD5     		bpl	.L34
+ 433              	.L35:
+ 211:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 434              		.loc 1 211 3 is_stmt 1 view .LVU143
+ 211:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 435              		.loc 1 211 14 is_stmt 0 view .LVU144
+ 436 00d8 AEEB0900 		sub	r0, lr, r9
+ 437 00dc 8010     		asrs	r0, r0, #2
+ 211:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 438              		.loc 1 211 22 view .LVU145
+ 439 00de 0130     		adds	r0, r0, #1
+ 440 00e0 0428     		cmp	r0, #4
+ 441 00e2 3FD8     		bhi	.L36
+ 442 00e4 01A3     		adr	r3, .L38
+ 443 00e6 53F820F0 		ldr	pc, [r3, r0, lsl #2]
+ 444 00ea 00BF     		.p2align 2
+ 445              	.L38:
+ 446 00ec 57000000 		.word	.L21+1
+ 447 00f0 23010000 		.word	.L41+1
+ 448 00f4 49010000 		.word	.L40+1
+ 449 00f8 2D010000 		.word	.L39+1
+ 450 00fc 01010000 		.word	.L37+1
+ 451              		.p2align 1
+ 452              	.L37:
+ 240:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 453              		.loc 1 240 7 is_stmt 1 view .LVU146
+ 240:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 454              		.loc 1 240 10 is_stmt 0 view .LVU147
+ 455 0100 FF2C     		cmp	r4, #255
+ 456 0102 A7D8     		bhi	.L34
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 457              		.loc 1 243 7 is_stmt 1 view .LVU148
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 458              		.loc 1 243 17 is_stmt 0 view .LVU149
+ 459 0104 0098     		ldr	r0, [sp]
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 460              		.loc 1 243 10 view .LVU150
+ 461 0106 FF28     		cmp	r0, #255
+ 462 0108 A4D8     		bhi	.L34
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 463              		.loc 1 243 38 discriminator 1 view .LVU151
+ 464 010a 019B     		ldr	r3, [sp, #4]
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 465              		.loc 1 243 29 discriminator 1 view .LVU152
+ 466 010c FF2B     		cmp	r3, #255
+ARM GAS  /tmp/cc3dOtN4.s 			page 31
+
+
+ 467 010e A1D8     		bhi	.L34
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 468              		.loc 1 243 59 discriminator 2 view .LVU153
+ 469 0110 029A     		ldr	r2, [sp, #8]
+ 243:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 470              		.loc 1 243 50 discriminator 2 view .LVU154
+ 471 0112 FF2A     		cmp	r2, #255
+ 472 0114 9ED8     		bhi	.L34
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 473              		.loc 1 246 7 is_stmt 1 view .LVU155
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 474              		.loc 1 246 43 is_stmt 0 view .LVU156
+ 475 0116 1B04     		lsls	r3, r3, #16
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 476              		.loc 1 246 31 view .LVU157
+ 477 0118 43EA0063 		orr	r3, r3, r0, lsl #24
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 478              		.loc 1 246 50 view .LVU158
+ 479 011c 43EA0223 		orr	r3, r3, r2, lsl #8
+ 246:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 480              		.loc 1 246 11 view .LVU159
+ 481 0120 1C43     		orrs	r4, r4, r3
+ 482              	.LVL49:
+ 247:lwIP/src/core/ipv4/ip4_addr.c ****     default:
+ 483              		.loc 1 247 7 is_stmt 1 view .LVU160
+ 484              	.L41:
+ 252:lwIP/src/core/ipv4/ip4_addr.c ****     ip4_addr_set_u32(addr, lwip_htonl(val));
+ 485              		.loc 1 252 3 view .LVU161
+ 252:lwIP/src/core/ipv4/ip4_addr.c ****     ip4_addr_set_u32(addr, lwip_htonl(val));
+ 486              		.loc 1 252 6 is_stmt 0 view .LVU162
+ 487 0122 E9B1     		cbz	r1, .L47
+ 253:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 488              		.loc 1 253 5 is_stmt 1 view .LVU163
+ 489              	.LVL50:
+ 490              	.LBB10:
+ 491              	.LBI10:
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 492              		.loc 2 900 31 view .LVU164
+ 493              	.LBB11:
+ 494              		.loc 2 903 3 view .LVU165
+ 495              		.loc 2 903 10 is_stmt 0 view .LVU166
+ 496 0124 24BA     		rev	r4, r4
+ 497              	.LVL51:
+ 498              		.loc 2 903 10 view .LVU167
+ 499              	.LBE11:
+ 500              	.LBE10:
+ 255:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 501              		.loc 1 255 10 view .LVU168
+ 502 0126 0120     		movs	r0, #1
+ 253:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 503              		.loc 1 253 5 view .LVU169
+ 504 0128 0C60     		str	r4, [r1]
+ 505 012a 94E7     		b	.L21
+ 506              	.L39:
+ 230:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 507              		.loc 1 230 7 is_stmt 1 view .LVU170
+ 230:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ARM GAS  /tmp/cc3dOtN4.s 			page 32
+
+
+ 508              		.loc 1 230 10 is_stmt 0 view .LVU171
+ 509 012c B4F5803F 		cmp	r4, #65536
+ 510 0130 90D2     		bcs	.L34
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 511              		.loc 1 233 7 is_stmt 1 view .LVU172
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 512              		.loc 1 233 17 is_stmt 0 view .LVU173
+ 513 0132 009A     		ldr	r2, [sp]
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 514              		.loc 1 233 10 view .LVU174
+ 515 0134 FF2A     		cmp	r2, #255
+ 516 0136 8DD8     		bhi	.L34
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 517              		.loc 1 233 38 discriminator 1 view .LVU175
+ 518 0138 019B     		ldr	r3, [sp, #4]
+ 233:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 519              		.loc 1 233 29 discriminator 1 view .LVU176
+ 520 013a FF2B     		cmp	r3, #255
+ 521 013c 8AD8     		bhi	.L34
+ 236:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 522              		.loc 1 236 7 is_stmt 1 view .LVU177
+ 236:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 523              		.loc 1 236 43 is_stmt 0 view .LVU178
+ 524 013e 1B04     		lsls	r3, r3, #16
+ 236:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 525              		.loc 1 236 31 view .LVU179
+ 526 0140 43EA0263 		orr	r3, r3, r2, lsl #24
+ 236:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 527              		.loc 1 236 11 view .LVU180
+ 528 0144 1C43     		orrs	r4, r4, r3
+ 529              	.LVL52:
+ 237:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 530              		.loc 1 237 7 is_stmt 1 view .LVU181
+ 531 0146 ECE7     		b	.L41
+ 532              	.LVL53:
+ 533              	.L40:
+ 220:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 534              		.loc 1 220 7 view .LVU182
+ 220:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 535              		.loc 1 220 10 is_stmt 0 view .LVU183
+ 536 0148 B4F1807F 		cmp	r4, #16777216
+ 537 014c 82D2     		bcs	.L34
+ 223:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 538              		.loc 1 223 7 is_stmt 1 view .LVU184
+ 223:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 539              		.loc 1 223 16 is_stmt 0 view .LVU185
+ 540 014e 009B     		ldr	r3, [sp]
+ 223:lwIP/src/core/ipv4/ip4_addr.c ****         return 0;
+ 541              		.loc 1 223 10 view .LVU186
+ 542 0150 FF2B     		cmp	r3, #255
+ 543 0152 3FF67FAF 		bhi	.L34
+ 226:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 544              		.loc 1 226 7 is_stmt 1 view .LVU187
+ 226:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 545              		.loc 1 226 11 is_stmt 0 view .LVU188
+ 546 0156 44EA0364 		orr	r4, r4, r3, lsl #24
+ 547              	.LVL54:
+ARM GAS  /tmp/cc3dOtN4.s 			page 33
+
+
+ 227:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 548              		.loc 1 227 7 is_stmt 1 view .LVU189
+ 549 015a E2E7     		b	.L41
+ 550              	.LVL55:
+ 551              	.L64:
+ 552              	.LCFI4:
+ 553              		.cfi_def_cfa_offset 0
+ 554              		.cfi_restore 4
+ 555              		.cfi_restore 5
+ 556              		.cfi_restore 6
+ 557              		.cfi_restore 7
+ 558              		.cfi_restore 8
+ 559              		.cfi_restore 9
+ 560              		.cfi_restore 10
+ 561              		.cfi_restore 14
+ 161:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 562              		.loc 1 161 14 is_stmt 0 view .LVU190
+ 563 015c 0020     		movs	r0, #0
+ 564              	.LVL56:
+ 565              		.loc 1 256 1 view .LVU191
+ 566 015e 7047     		bx	lr
+ 567              	.LVL57:
+ 568              	.L47:
+ 569              	.LCFI5:
+ 570              		.cfi_def_cfa_offset 48
+ 571              		.cfi_offset 4, -32
+ 572              		.cfi_offset 5, -28
+ 573              		.cfi_offset 6, -24
+ 574              		.cfi_offset 7, -20
+ 575              		.cfi_offset 8, -16
+ 576              		.cfi_offset 9, -12
+ 577              		.cfi_offset 10, -8
+ 578              		.cfi_offset 14, -4
+ 255:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 579              		.loc 1 255 10 view .LVU192
+ 580 0160 0120     		movs	r0, #1
+ 581 0162 78E7     		b	.L21
+ 582              	.LVL58:
+ 583              	.L36:
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 584              		.loc 1 249 7 is_stmt 1 discriminator 1 view .LVU193
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 585              		.loc 1 249 7 discriminator 1 view .LVU194
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 586              		.loc 1 249 7 discriminator 1 view .LVU195
+ 587 0164 0148     		ldr	r0, .L69
+ 588 0166 FFF7FEFF 		bl	printf
+ 589              	.LVL59:
+ 590              	.L42:
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 591              		.loc 1 249 7 discriminator 1 view .LVU196
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 592              		.loc 1 249 7 discriminator 1 view .LVU197
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 593              		.loc 1 249 7 discriminator 1 view .LVU198
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 594              		.loc 1 249 7 discriminator 1 view .LVU199
+ARM GAS  /tmp/cc3dOtN4.s 			page 34
+
+
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 595              		.loc 1 249 7 discriminator 1 view .LVU200
+ 249:lwIP/src/core/ipv4/ip4_addr.c ****       break;
+ 596              		.loc 1 249 7 discriminator 1 view .LVU201
+ 597 016a FEE7     		b	.L42
+ 598              	.L70:
+ 599              		.align	2
+ 600              	.L69:
+ 601 016c 00000000 		.word	.LC0
+ 602 0170 01000000 		.word	_ctype_+1
+ 603              		.cfi_endproc
+ 604              	.LFE108:
+ 606              		.section	.text.ipaddr_addr,"ax",%progbits
+ 607              		.align	1
+ 608              		.p2align 2,,3
+ 609              		.global	ipaddr_addr
+ 610              		.syntax unified
+ 611              		.thumb
+ 612              		.thumb_func
+ 613              		.fpu fpv4-sp-d16
+ 615              	ipaddr_addr:
+ 616              	.LVL60:
+ 617              	.LFB107:
+ 124:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_t val;
+ 618              		.loc 1 124 1 view -0
+ 619              		.cfi_startproc
+ 620              		@ args = 0, pretend = 0, frame = 8
+ 621              		@ frame_needed = 0, uses_anonymous_args = 0
+ 125:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 622              		.loc 1 125 3 view .LVU203
+ 127:lwIP/src/core/ipv4/ip4_addr.c ****     return ip4_addr_get_u32(&val);
+ 623              		.loc 1 127 3 view .LVU204
+ 124:lwIP/src/core/ipv4/ip4_addr.c ****   ip4_addr_t val;
+ 624              		.loc 1 124 1 is_stmt 0 view .LVU205
+ 625 0000 00B5     		push	{lr}
+ 626              	.LCFI6:
+ 627              		.cfi_def_cfa_offset 4
+ 628              		.cfi_offset 14, -4
+ 629 0002 83B0     		sub	sp, sp, #12
+ 630              	.LCFI7:
+ 631              		.cfi_def_cfa_offset 16
+ 127:lwIP/src/core/ipv4/ip4_addr.c ****     return ip4_addr_get_u32(&val);
+ 632              		.loc 1 127 7 view .LVU206
+ 633 0004 01A9     		add	r1, sp, #4
+ 634 0006 FFF7FEFF 		bl	ip4addr_aton
+ 635              	.LVL61:
+ 127:lwIP/src/core/ipv4/ip4_addr.c ****     return ip4_addr_get_u32(&val);
+ 636              		.loc 1 127 6 view .LVU207
+ 637 000a 20B9     		cbnz	r0, .L75
+ 130:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 638              		.loc 1 130 10 view .LVU208
+ 639 000c 4FF0FF30 		mov	r0, #-1
+ 131:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 640              		.loc 1 131 1 view .LVU209
+ 641 0010 03B0     		add	sp, sp, #12
+ 642              	.LCFI8:
+ 643              		.cfi_remember_state
+ARM GAS  /tmp/cc3dOtN4.s 			page 35
+
+
+ 644              		.cfi_def_cfa_offset 4
+ 645              		@ sp needed
+ 646 0012 5DF804FB 		ldr	pc, [sp], #4
+ 647              	.L75:
+ 648              	.LCFI9:
+ 649              		.cfi_restore_state
+ 128:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 650              		.loc 1 128 5 is_stmt 1 view .LVU210
+ 128:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 651              		.loc 1 128 12 is_stmt 0 view .LVU211
+ 652 0016 0198     		ldr	r0, [sp, #4]
+ 131:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 653              		.loc 1 131 1 view .LVU212
+ 654 0018 03B0     		add	sp, sp, #12
+ 655              	.LCFI10:
+ 656              		.cfi_def_cfa_offset 4
+ 657              		@ sp needed
+ 658 001a 5DF804FB 		ldr	pc, [sp], #4
+ 659              		.cfi_endproc
+ 660              	.LFE107:
+ 662 001e 00BF     		.section	.text.ip4addr_ntoa,"ax",%progbits
+ 663              		.align	1
+ 664              		.p2align 2,,3
+ 665              		.global	ip4addr_ntoa
+ 666              		.syntax unified
+ 667              		.thumb
+ 668              		.thumb_func
+ 669              		.fpu fpv4-sp-d16
+ 671              	ip4addr_ntoa:
+ 672              	.LVL62:
+ 673              	.LFB109:
+ 257:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 258:lwIP/src/core/ipv4/ip4_addr.c **** /**
+ 259:lwIP/src/core/ipv4/ip4_addr.c ****  * Convert numeric IP address into decimal dotted ASCII representation.
+ 260:lwIP/src/core/ipv4/ip4_addr.c ****  * returns ptr to static buffer; not reentrant!
+ 261:lwIP/src/core/ipv4/ip4_addr.c ****  *
+ 262:lwIP/src/core/ipv4/ip4_addr.c ****  * @param addr ip address in network order to convert
+ 263:lwIP/src/core/ipv4/ip4_addr.c ****  * @return pointer to a global static (!) buffer that holds the ASCII
+ 264:lwIP/src/core/ipv4/ip4_addr.c ****  *         representation of addr
+ 265:lwIP/src/core/ipv4/ip4_addr.c ****  */
+ 266:lwIP/src/core/ipv4/ip4_addr.c **** char *
+ 267:lwIP/src/core/ipv4/ip4_addr.c **** ip4addr_ntoa(const ip4_addr_t *addr)
+ 268:lwIP/src/core/ipv4/ip4_addr.c **** {
+ 674              		.loc 1 268 1 is_stmt 1 view -0
+ 675              		.cfi_startproc
+ 676              		@ args = 0, pretend = 0, frame = 8
+ 677              		@ frame_needed = 0, uses_anonymous_args = 0
+ 269:lwIP/src/core/ipv4/ip4_addr.c ****   static char str[IP4ADDR_STRLEN_MAX];
+ 678              		.loc 1 269 3 view .LVU214
+ 270:lwIP/src/core/ipv4/ip4_addr.c ****   return ip4addr_ntoa_r(addr, str, IP4ADDR_STRLEN_MAX);
+ 679              		.loc 1 270 3 view .LVU215
+ 680              	.LBB14:
+ 681              	.LBI14:
+ 271:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 272:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 273:lwIP/src/core/ipv4/ip4_addr.c **** /**
+ 274:lwIP/src/core/ipv4/ip4_addr.c ****  * Same as ip4addr_ntoa, but reentrant since a user-supplied buffer is used.
+ARM GAS  /tmp/cc3dOtN4.s 			page 36
+
+
+ 275:lwIP/src/core/ipv4/ip4_addr.c ****  *
+ 276:lwIP/src/core/ipv4/ip4_addr.c ****  * @param addr ip address in network order to convert
+ 277:lwIP/src/core/ipv4/ip4_addr.c ****  * @param buf target buffer where the string is stored
+ 278:lwIP/src/core/ipv4/ip4_addr.c ****  * @param buflen length of buf
+ 279:lwIP/src/core/ipv4/ip4_addr.c ****  * @return either pointer to buf which now holds the ASCII
+ 280:lwIP/src/core/ipv4/ip4_addr.c ****  *         representation of addr or NULL if buf was too small
+ 281:lwIP/src/core/ipv4/ip4_addr.c ****  */
+ 282:lwIP/src/core/ipv4/ip4_addr.c **** char *
+ 283:lwIP/src/core/ipv4/ip4_addr.c **** ip4addr_ntoa_r(const ip4_addr_t *addr, char *buf, int buflen)
+ 682              		.loc 1 283 1 view .LVU216
+ 683              	.LBB15:
+ 284:lwIP/src/core/ipv4/ip4_addr.c **** {
+ 285:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t s_addr;
+ 684              		.loc 1 285 3 view .LVU217
+ 286:lwIP/src/core/ipv4/ip4_addr.c ****   char inv[3];
+ 685              		.loc 1 286 3 view .LVU218
+ 287:lwIP/src/core/ipv4/ip4_addr.c ****   char *rp;
+ 686              		.loc 1 287 3 view .LVU219
+ 288:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t *ap;
+ 687              		.loc 1 288 3 view .LVU220
+ 289:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t rem;
+ 688              		.loc 1 289 3 view .LVU221
+ 290:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t n;
+ 689              		.loc 1 290 3 view .LVU222
+ 291:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t i;
+ 690              		.loc 1 291 3 view .LVU223
+ 292:lwIP/src/core/ipv4/ip4_addr.c ****   int len = 0;
+ 691              		.loc 1 292 3 view .LVU224
+ 293:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 294:lwIP/src/core/ipv4/ip4_addr.c ****   s_addr = ip4_addr_get_u32(addr);
+ 692              		.loc 1 294 3 view .LVU225
+ 693              	.LBE15:
+ 694              	.LBE14:
+ 268:lwIP/src/core/ipv4/ip4_addr.c ****   static char str[IP4ADDR_STRLEN_MAX];
+ 695              		.loc 1 268 1 is_stmt 0 view .LVU226
+ 696 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 697              	.LCFI11:
+ 698              		.cfi_def_cfa_offset 32
+ 699              		.cfi_offset 4, -32
+ 700              		.cfi_offset 5, -28
+ 701              		.cfi_offset 6, -24
+ 702              		.cfi_offset 7, -20
+ 703              		.cfi_offset 8, -16
+ 704              		.cfi_offset 9, -12
+ 705              		.cfi_offset 10, -8
+ 706              		.cfi_offset 14, -4
+ 707 0004 82B0     		sub	sp, sp, #8
+ 708              	.LCFI12:
+ 709              		.cfi_def_cfa_offset 40
+ 710              	.LBB19:
+ 711              	.LBB16:
+ 712              		.loc 1 294 10 view .LVU227
+ 713 0006 0368     		ldr	r3, [r0]
+ 292:lwIP/src/core/ipv4/ip4_addr.c ****   int len = 0;
+ 714              		.loc 1 292 7 view .LVU228
+ 715 0008 0024     		movs	r4, #0
+ 295:lwIP/src/core/ipv4/ip4_addr.c **** 
+ARM GAS  /tmp/cc3dOtN4.s 			page 37
+
+
+ 296:lwIP/src/core/ipv4/ip4_addr.c ****   rp = buf;
+ 297:lwIP/src/core/ipv4/ip4_addr.c ****   ap = (u8_t *)&s_addr;
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****   for (n = 0; n < 4; n++) {
+ 299:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 300:lwIP/src/core/ipv4/ip4_addr.c ****     do {
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       rem = *ap % (u8_t)10;
+ 302:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****       inv[i++] = (char)('0' + rem);
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 307:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 308:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****       *rp++ = inv[i];
+ 310:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 311:lwIP/src/core/ipv4/ip4_addr.c ****     if (len++ >= buflen) {
+ 312:lwIP/src/core/ipv4/ip4_addr.c ****       return NULL;
+ 313:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 314:lwIP/src/core/ipv4/ip4_addr.c ****     *rp++ = '.';
+ 716              		.loc 1 314 11 view .LVU229
+ 717 000a 2E27     		movs	r7, #46
+ 718 000c 01AD     		add	r5, sp, #4
+ 719 000e 0DF1080C 		add	ip, sp, #8
+ 296:lwIP/src/core/ipv4/ip4_addr.c ****   ap = (u8_t *)&s_addr;
+ 720              		.loc 1 296 6 view .LVU230
+ 721 0012 3348     		ldr	r0, .L90
+ 722              	.LVL63:
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 723              		.loc 1 301 11 view .LVU231
+ 724 0014 334E     		ldr	r6, .L90+4
+ 294:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 725              		.loc 1 294 10 view .LVU232
+ 726 0016 0193     		str	r3, [sp, #4]
+ 296:lwIP/src/core/ipv4/ip4_addr.c ****   ap = (u8_t *)&s_addr;
+ 727              		.loc 1 296 3 is_stmt 1 view .LVU233
+ 728              	.LVL64:
+ 297:lwIP/src/core/ipv4/ip4_addr.c ****   for (n = 0; n < 4; n++) {
+ 729              		.loc 1 297 3 view .LVU234
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 730              		.loc 1 298 3 view .LVU235
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 731              		.loc 1 298 15 view .LVU236
+ 732              	.L83:
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 733              		.loc 1 298 15 is_stmt 0 view .LVU237
+ 734 0018 15F801EB 		ldrb	lr, [r5], #1	@ zero_extendqisi2
+ 735              	.LVL65:
+ 299:lwIP/src/core/ipv4/ip4_addr.c ****     do {
+ 736              		.loc 1 299 7 view .LVU238
+ 737 001c 0021     		movs	r1, #0
+ 738              	.L77:
+ 739              	.LVL66:
+ 300:lwIP/src/core/ipv4/ip4_addr.c ****       rem = *ap % (u8_t)10;
+ 740              		.loc 1 300 5 is_stmt 1 view .LVU239
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 741              		.loc 1 301 7 view .LVU240
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ARM GAS  /tmp/cc3dOtN4.s 			page 38
+
+
+ 742              		.loc 1 301 11 is_stmt 0 view .LVU241
+ 743 001e A6FB0E3A 		umull	r3, r10, r6, lr
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 744              		.loc 1 303 16 view .LVU242
+ 745 0022 02AA     		add	r2, sp, #8
+ 746 0024 0B46     		mov	r3, r1
+ 747 0026 F046     		mov	r8, lr
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 748              		.loc 1 301 11 view .LVU243
+ 749 0028 4FEADA0A 		lsr	r10, r10, #3
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 750              		.loc 1 303 12 view .LVU244
+ 751 002c 0131     		adds	r1, r1, #1
+ 752              	.LVL67:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 753              		.loc 1 303 16 view .LVU245
+ 754 002e 02EB0309 		add	r9, r2, r3
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 755              		.loc 1 304 5 view .LVU246
+ 756 0032 B8F1090F 		cmp	r8, #9
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 757              		.loc 1 301 11 view .LVU247
+ 758 0036 0AEB8A02 		add	r2, r10, r10, lsl #2
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 759              		.loc 1 303 12 view .LVU248
+ 760 003a C9B2     		uxtb	r1, r1
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 761              		.loc 1 301 11 view .LVU249
+ 762 003c AEEB4202 		sub	r2, lr, r2, lsl #1
+ 763              	.LVL68:
+ 302:lwIP/src/core/ipv4/ip4_addr.c ****       inv[i++] = (char)('0' + rem);
+ 764              		.loc 1 302 7 is_stmt 1 view .LVU250
+ 302:lwIP/src/core/ipv4/ip4_addr.c ****       inv[i++] = (char)('0' + rem);
+ 765              		.loc 1 302 11 is_stmt 0 view .LVU251
+ 766 0040 5FFA8AFE 		uxtb	lr, r10
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 767              		.loc 1 303 7 is_stmt 1 view .LVU252
+ 768              	.LVL69:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 769              		.loc 1 303 18 is_stmt 0 view .LVU253
+ 770 0044 02F13002 		add	r2, r2, #48
+ 771              	.LVL70:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 772              		.loc 1 303 18 view .LVU254
+ 773 0048 02F0FF02 		and	r2, r2, #255
+ 774              	.LVL71:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 775              		.loc 1 303 16 view .LVU255
+ 776 004c 09F8082C 		strb	r2, [r9, #-8]
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 777              		.loc 1 304 13 is_stmt 1 view .LVU256
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 778              		.loc 1 304 5 is_stmt 0 view .LVU257
+ 779 0050 E5D8     		bhi	.L77
+ 780 0052 05F801EC 		strb	lr, [r5, #-1]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 781              		.loc 1 305 11 is_stmt 1 view .LVU258
+ARM GAS  /tmp/cc3dOtN4.s 			page 39
+
+
+ 782              	.LVL72:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 783              		.loc 1 305 11 is_stmt 0 view .LVU259
+ 784 0056 04F1010E 		add	lr, r4, #1
+ 785 005a 51B3     		cbz	r1, .L84
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 786              		.loc 1 306 7 is_stmt 1 view .LVU260
+ 787              	.LVL73:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 788              		.loc 1 306 10 is_stmt 0 view .LVU261
+ 789 005c 0F2C     		cmp	r4, #15
+ 790 005e 24DC     		bgt	.L79
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 791              		.loc 1 309 7 is_stmt 1 view .LVU262
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 792              		.loc 1 309 10 is_stmt 0 view .LVU263
+ 793 0060 0146     		mov	r1, r0
+ 794              	.LVL74:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 795              		.loc 1 305 13 view .LVU264
+ 796 0062 03F1FF39 		add	r9, r3, #-1
+ 797 0066 04F10208 		add	r8, r4, #2
+ 798              	.LVL75:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 799              		.loc 1 309 13 view .LVU265
+ 800 006a 01F8012B 		strb	r2, [r1], #1
+ 801              	.LVL76:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 802              		.loc 1 305 11 is_stmt 1 view .LVU266
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 803              		.loc 1 305 13 is_stmt 0 view .LVU267
+ 804 006e 5FFA89F2 		uxtb	r2, r9
+ 805              	.LVL77:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 806              		.loc 1 305 11 view .LVU268
+ 807 0072 83B3     		cbz	r3, .L85
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 808              		.loc 1 306 7 is_stmt 1 view .LVU269
+ 809              	.LVL78:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 810              		.loc 1 306 10 is_stmt 0 view .LVU270
+ 811 0074 BEF10F0F 		cmp	lr, #15
+ 812 0078 17DC     		bgt	.L79
+ 813              	.LVL79:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 814              		.loc 1 309 7 is_stmt 1 view .LVU271
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 815              		.loc 1 309 18 is_stmt 0 view .LVU272
+ 816 007a 02A9     		add	r1, sp, #8
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 817              		.loc 1 305 13 view .LVU273
+ 818 007c 023B     		subs	r3, r3, #2
+ 819 007e 04F1030E 		add	lr, r4, #3
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 820              		.loc 1 309 18 view .LVU274
+ 821 0082 01EB0209 		add	r9, r1, r2
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ARM GAS  /tmp/cc3dOtN4.s 			page 40
+
+
+ 822              		.loc 1 305 13 view .LVU275
+ 823 0086 DBB2     		uxtb	r3, r3
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 824              		.loc 1 309 10 view .LVU276
+ 825 0088 811C     		adds	r1, r0, #2
+ 826              	.LVL80:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 827              		.loc 1 309 13 view .LVU277
+ 828 008a 19F8089C 		ldrb	r9, [r9, #-8]	@ zero_extendqisi2
+ 829 008e 80F80190 		strb	r9, [r0, #1]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 830              		.loc 1 305 11 is_stmt 1 view .LVU278
+ 831              	.LVL81:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 832              		.loc 1 305 11 is_stmt 0 view .LVU279
+ 833 0092 12B3     		cbz	r2, .L86
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 834              		.loc 1 306 7 is_stmt 1 view .LVU280
+ 835              	.LVL82:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 836              		.loc 1 306 10 is_stmt 0 view .LVU281
+ 837 0094 B8F10F0F 		cmp	r8, #15
+ 838 0098 07DC     		bgt	.L79
+ 839              	.LVL83:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 840              		.loc 1 309 7 is_stmt 1 view .LVU282
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 841              		.loc 1 309 18 is_stmt 0 view .LVU283
+ 842 009a 02AA     		add	r2, sp, #8
+ 843 009c 0434     		adds	r4, r4, #4
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 844              		.loc 1 309 10 view .LVU284
+ 845 009e C11C     		adds	r1, r0, #3
+ 846              	.LVL84:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 847              		.loc 1 309 18 view .LVU285
+ 848 00a0 1A44     		add	r2, r2, r3
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 849              		.loc 1 309 13 view .LVU286
+ 850 00a2 12F8082C 		ldrb	r2, [r2, #-8]	@ zero_extendqisi2
+ 851 00a6 8270     		strb	r2, [r0, #2]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 852              		.loc 1 305 11 is_stmt 1 view .LVU287
+ 853              	.LVL85:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 854              		.loc 1 305 11 is_stmt 0 view .LVU288
+ 855 00a8 3BB1     		cbz	r3, .L78
+ 856              	.LVL86:
+ 857              	.L79:
+ 307:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 858              		.loc 1 307 16 view .LVU289
+ 859 00aa 0020     		movs	r0, #0
+ 860              	.LBE16:
+ 861              	.LBE19:
+ 271:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 862              		.loc 1 271 1 view .LVU290
+ 863 00ac 02B0     		add	sp, sp, #8
+ARM GAS  /tmp/cc3dOtN4.s 			page 41
+
+
+ 864              	.LCFI13:
+ 865              		.cfi_remember_state
+ 866              		.cfi_def_cfa_offset 32
+ 867              		@ sp needed
+ 868 00ae BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 869              	.LVL87:
+ 870              	.L84:
+ 871              	.LCFI14:
+ 872              		.cfi_restore_state
+ 873              	.LBB20:
+ 874              	.LBB17:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 875              		.loc 1 305 11 view .LVU291
+ 876 00b2 7346     		mov	r3, lr
+ 877              	.LVL88:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 878              		.loc 1 305 11 view .LVU292
+ 879 00b4 0146     		mov	r1, r0
+ 880 00b6 A646     		mov	lr, r4
+ 881 00b8 1C46     		mov	r4, r3
+ 882              	.LVL89:
+ 883              	.L78:
+ 311:lwIP/src/core/ipv4/ip4_addr.c ****       return NULL;
+ 884              		.loc 1 311 5 is_stmt 1 view .LVU293
+ 311:lwIP/src/core/ipv4/ip4_addr.c ****       return NULL;
+ 885              		.loc 1 311 8 is_stmt 0 view .LVU294
+ 886 00ba BEF10F0F 		cmp	lr, #15
+ 887 00be F4DC     		bgt	.L79
+ 888              		.loc 1 314 5 is_stmt 1 view .LVU295
+ 889              		.loc 1 314 8 is_stmt 0 view .LVU296
+ 890 00c0 0846     		mov	r0, r1
+ 891              	.LVL90:
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 892              		.loc 1 298 3 view .LVU297
+ 893 00c2 AC45     		cmp	ip, r5
+ 894              		.loc 1 314 11 view .LVU298
+ 895 00c4 00F8017B 		strb	r7, [r0], #1
+ 315:lwIP/src/core/ipv4/ip4_addr.c ****     ap++;
+ 896              		.loc 1 315 5 is_stmt 1 view .LVU299
+ 897              	.LVL91:
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 898              		.loc 1 298 22 view .LVU300
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 899              		.loc 1 298 15 view .LVU301
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 900              		.loc 1 298 3 is_stmt 0 view .LVU302
+ 901 00c8 A6D1     		bne	.L83
+ 316:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 317:lwIP/src/core/ipv4/ip4_addr.c ****   *--rp = 0;
+ 902              		.loc 1 317 3 is_stmt 1 view .LVU303
+ 903              	.LVL92:
+ 904              		.loc 1 317 9 is_stmt 0 view .LVU304
+ 905 00ca 0023     		movs	r3, #0
+ 318:lwIP/src/core/ipv4/ip4_addr.c ****   return buf;
+ 906              		.loc 1 318 10 view .LVU305
+ 907 00cc 0448     		ldr	r0, .L90
+ 317:lwIP/src/core/ipv4/ip4_addr.c ****   return buf;
+ARM GAS  /tmp/cc3dOtN4.s 			page 42
+
+
+ 908              		.loc 1 317 9 view .LVU306
+ 909 00ce 0B70     		strb	r3, [r1]
+ 910              		.loc 1 318 3 is_stmt 1 view .LVU307
+ 911              	.LVL93:
+ 912              		.loc 1 318 3 is_stmt 0 view .LVU308
+ 913              	.LBE17:
+ 914              	.LBE20:
+ 271:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 915              		.loc 1 271 1 view .LVU309
+ 916 00d0 02B0     		add	sp, sp, #8
+ 917              	.LCFI15:
+ 918              		.cfi_remember_state
+ 919              		.cfi_def_cfa_offset 32
+ 920              		@ sp needed
+ 921 00d2 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 922              	.LVL94:
+ 923              	.L85:
+ 924              	.LCFI16:
+ 925              		.cfi_restore_state
+ 926              	.LBB21:
+ 927              	.LBB18:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 928              		.loc 1 305 11 view .LVU310
+ 929 00d6 4446     		mov	r4, r8
+ 930 00d8 EFE7     		b	.L78
+ 931              	.LVL95:
+ 932              	.L86:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 933              		.loc 1 305 11 view .LVU311
+ 934 00da 7446     		mov	r4, lr
+ 935 00dc C646     		mov	lr, r8
+ 936 00de ECE7     		b	.L78
+ 937              	.L91:
+ 938              		.align	2
+ 939              	.L90:
+ 940 00e0 00000000 		.word	.LANCHOR0
+ 941 00e4 CDCCCCCC 		.word	-858993459
+ 942              	.LBE18:
+ 943              	.LBE21:
+ 944              		.cfi_endproc
+ 945              	.LFE109:
+ 947              		.section	.text.ip4addr_ntoa_r,"ax",%progbits
+ 948              		.align	1
+ 949              		.p2align 2,,3
+ 950              		.global	ip4addr_ntoa_r
+ 951              		.syntax unified
+ 952              		.thumb
+ 953              		.thumb_func
+ 954              		.fpu fpv4-sp-d16
+ 956              	ip4addr_ntoa_r:
+ 957              	.LVL96:
+ 958              	.LFB110:
+ 284:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t s_addr;
+ 959              		.loc 1 284 1 is_stmt 1 view -0
+ 960              		.cfi_startproc
+ 961              		@ args = 0, pretend = 0, frame = 16
+ 962              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  /tmp/cc3dOtN4.s 			page 43
+
+
+ 285:lwIP/src/core/ipv4/ip4_addr.c ****   char inv[3];
+ 963              		.loc 1 285 3 view .LVU313
+ 286:lwIP/src/core/ipv4/ip4_addr.c ****   char *rp;
+ 964              		.loc 1 286 3 view .LVU314
+ 287:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t *ap;
+ 965              		.loc 1 287 3 view .LVU315
+ 288:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t rem;
+ 966              		.loc 1 288 3 view .LVU316
+ 289:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t n;
+ 967              		.loc 1 289 3 view .LVU317
+ 290:lwIP/src/core/ipv4/ip4_addr.c ****   u8_t i;
+ 968              		.loc 1 290 3 view .LVU318
+ 291:lwIP/src/core/ipv4/ip4_addr.c ****   int len = 0;
+ 969              		.loc 1 291 3 view .LVU319
+ 292:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 970              		.loc 1 292 3 view .LVU320
+ 294:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 971              		.loc 1 294 3 view .LVU321
+ 284:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t s_addr;
+ 972              		.loc 1 284 1 is_stmt 0 view .LVU322
+ 973 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 974              	.LCFI17:
+ 975              		.cfi_def_cfa_offset 36
+ 976              		.cfi_offset 4, -36
+ 977              		.cfi_offset 5, -32
+ 978              		.cfi_offset 6, -28
+ 979              		.cfi_offset 7, -24
+ 980              		.cfi_offset 8, -20
+ 981              		.cfi_offset 9, -16
+ 982              		.cfi_offset 10, -12
+ 983              		.cfi_offset 11, -8
+ 984              		.cfi_offset 14, -4
+ 985 0004 85B0     		sub	sp, sp, #20
+ 986              	.LCFI18:
+ 987              		.cfi_def_cfa_offset 56
+ 294:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 988              		.loc 1 294 10 view .LVU323
+ 989 0006 0368     		ldr	r3, [r0]
+ 284:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t s_addr;
+ 990              		.loc 1 284 1 view .LVU324
+ 991 0008 9146     		mov	r9, r2
+ 296:lwIP/src/core/ipv4/ip4_addr.c ****   ap = (u8_t *)&s_addr;
+ 992              		.loc 1 296 6 view .LVU325
+ 993 000a 8E46     		mov	lr, r1
+ 994 000c 0DF10C0A 		add	r10, sp, #12
+ 995 0010 0DF1100B 		add	fp, sp, #16
+ 292:lwIP/src/core/ipv4/ip4_addr.c **** 
+ 996              		.loc 1 292 7 view .LVU326
+ 997 0014 4FF00008 		mov	r8, #0
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 998              		.loc 1 301 11 view .LVU327
+ 999 0018 3248     		ldr	r0, .L106
+ 1000              	.LVL97:
+ 284:lwIP/src/core/ipv4/ip4_addr.c ****   u32_t s_addr;
+ 1001              		.loc 1 284 1 view .LVU328
+ 1002 001a 0192     		str	r2, [sp, #4]
+ 294:lwIP/src/core/ipv4/ip4_addr.c **** 
+ARM GAS  /tmp/cc3dOtN4.s 			page 44
+
+
+ 1003              		.loc 1 294 10 view .LVU329
+ 1004 001c 0393     		str	r3, [sp, #12]
+ 296:lwIP/src/core/ipv4/ip4_addr.c ****   ap = (u8_t *)&s_addr;
+ 1005              		.loc 1 296 3 is_stmt 1 view .LVU330
+ 1006              	.LVL98:
+ 297:lwIP/src/core/ipv4/ip4_addr.c ****   for (n = 0; n < 4; n++) {
+ 1007              		.loc 1 297 3 view .LVU331
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1008              		.loc 1 298 3 view .LVU332
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1009              		.loc 1 298 15 view .LVU333
+ 1010              	.L99:
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1011              		.loc 1 298 15 is_stmt 0 view .LVU334
+ 1012 001e 1AF8014B 		ldrb	r4, [r10], #1	@ zero_extendqisi2
+ 1013              	.LVL99:
+ 299:lwIP/src/core/ipv4/ip4_addr.c ****     do {
+ 1014              		.loc 1 299 7 view .LVU335
+ 1015 0022 0022     		movs	r2, #0
+ 1016              	.L93:
+ 1017              	.LVL100:
+ 300:lwIP/src/core/ipv4/ip4_addr.c ****       rem = *ap % (u8_t)10;
+ 1018              		.loc 1 300 5 is_stmt 1 discriminator 1 view .LVU336
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 1019              		.loc 1 301 7 discriminator 1 view .LVU337
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 1020              		.loc 1 301 11 is_stmt 0 discriminator 1 view .LVU338
+ 1021 0024 A0FB043C 		umull	r3, ip, r0, r4
+ 1022 0028 1546     		mov	r5, r2
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1023              		.loc 1 303 16 discriminator 1 view .LVU339
+ 1024 002a 04AB     		add	r3, sp, #16
+ 1025 002c 2646     		mov	r6, r4
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 1026              		.loc 1 301 11 discriminator 1 view .LVU340
+ 1027 002e 4FEADC0C 		lsr	ip, ip, #3
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1028              		.loc 1 303 12 discriminator 1 view .LVU341
+ 1029 0032 0132     		adds	r2, r2, #1
+ 1030              	.LVL101:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1031              		.loc 1 303 16 discriminator 1 view .LVU342
+ 1032 0034 5F19     		adds	r7, r3, r5
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 1033              		.loc 1 304 5 discriminator 1 view .LVU343
+ 1034 0036 092E     		cmp	r6, #9
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 1035              		.loc 1 301 11 discriminator 1 view .LVU344
+ 1036 0038 0CEB8C03 		add	r3, ip, ip, lsl #2
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1037              		.loc 1 303 12 discriminator 1 view .LVU345
+ 1038 003c D2B2     		uxtb	r2, r2
+ 301:lwIP/src/core/ipv4/ip4_addr.c ****       *ap /= (u8_t)10;
+ 1039              		.loc 1 301 11 discriminator 1 view .LVU346
+ 1040 003e A4EB4303 		sub	r3, r4, r3, lsl #1
+ 1041              	.LVL102:
+ 302:lwIP/src/core/ipv4/ip4_addr.c ****       inv[i++] = (char)('0' + rem);
+ARM GAS  /tmp/cc3dOtN4.s 			page 45
+
+
+ 1042              		.loc 1 302 7 is_stmt 1 discriminator 1 view .LVU347
+ 302:lwIP/src/core/ipv4/ip4_addr.c ****       inv[i++] = (char)('0' + rem);
+ 1043              		.loc 1 302 11 is_stmt 0 discriminator 1 view .LVU348
+ 1044 0042 5FFA8CF4 		uxtb	r4, ip
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1045              		.loc 1 303 7 is_stmt 1 discriminator 1 view .LVU349
+ 1046              	.LVL103:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1047              		.loc 1 303 18 is_stmt 0 discriminator 1 view .LVU350
+ 1048 0046 03F13003 		add	r3, r3, #48
+ 1049              	.LVL104:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1050              		.loc 1 303 18 discriminator 1 view .LVU351
+ 1051 004a 03F0FF03 		and	r3, r3, #255
+ 1052              	.LVL105:
+ 303:lwIP/src/core/ipv4/ip4_addr.c ****     } while (*ap);
+ 1053              		.loc 1 303 16 discriminator 1 view .LVU352
+ 1054 004e 07F8083C 		strb	r3, [r7, #-8]
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 1055              		.loc 1 304 13 is_stmt 1 discriminator 1 view .LVU353
+ 304:lwIP/src/core/ipv4/ip4_addr.c ****     while (i--) {
+ 1056              		.loc 1 304 5 is_stmt 0 discriminator 1 view .LVU354
+ 1057 0052 E7D8     		bhi	.L93
+ 1058 0054 0AF8014C 		strb	r4, [r10, #-1]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1059              		.loc 1 305 11 is_stmt 1 view .LVU355
+ 1060              	.LVL106:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1061              		.loc 1 305 11 is_stmt 0 view .LVU356
+ 1062 0058 08F10104 		add	r4, r8, #1
+ 1063 005c 4AB3     		cbz	r2, .L100
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1064              		.loc 1 306 7 is_stmt 1 view .LVU357
+ 1065              	.LVL107:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1066              		.loc 1 306 10 is_stmt 0 view .LVU358
+ 1067 005e C145     		cmp	r9, r8
+ 1068 0060 23DD     		ble	.L95
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1069              		.loc 1 309 7 is_stmt 1 view .LVU359
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1070              		.loc 1 309 10 is_stmt 0 view .LVU360
+ 1071 0062 7246     		mov	r2, lr
+ 1072              	.LVL108:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1073              		.loc 1 305 13 view .LVU361
+ 1074 0064 6F1E     		subs	r7, r5, #1
+ 1075 0066 08F10206 		add	r6, r8, #2
+ 1076              	.LVL109:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1077              		.loc 1 309 13 view .LVU362
+ 1078 006a 02F8013B 		strb	r3, [r2], #1
+ 1079              	.LVL110:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1080              		.loc 1 305 11 is_stmt 1 view .LVU363
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1081              		.loc 1 305 13 is_stmt 0 view .LVU364
+ARM GAS  /tmp/cc3dOtN4.s 			page 46
+
+
+ 1082 006e FBB2     		uxtb	r3, r7
+ 1083              	.LVL111:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1084              		.loc 1 305 11 view .LVU365
+ 1085 0070 95B3     		cbz	r5, .L101
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1086              		.loc 1 306 7 is_stmt 1 view .LVU366
+ 1087              	.LVL112:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1088              		.loc 1 306 10 is_stmt 0 view .LVU367
+ 1089 0072 A145     		cmp	r9, r4
+ 1090 0074 19DD     		ble	.L95
+ 1091              	.LVL113:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1092              		.loc 1 309 7 is_stmt 1 view .LVU368
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1093              		.loc 1 309 18 is_stmt 0 view .LVU369
+ 1094 0076 04AA     		add	r2, sp, #16
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1095              		.loc 1 305 13 view .LVU370
+ 1096 0078 023D     		subs	r5, r5, #2
+ 1097 007a 08F10304 		add	r4, r8, #3
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1098              		.loc 1 309 18 view .LVU371
+ 1099 007e D718     		adds	r7, r2, r3
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1100              		.loc 1 305 13 view .LVU372
+ 1101 0080 EDB2     		uxtb	r5, r5
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1102              		.loc 1 309 10 view .LVU373
+ 1103 0082 0EF10202 		add	r2, lr, #2
+ 1104              	.LVL114:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1105              		.loc 1 309 13 view .LVU374
+ 1106 0086 17F8087C 		ldrb	r7, [r7, #-8]	@ zero_extendqisi2
+ 1107 008a 8EF80170 		strb	r7, [lr, #1]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1108              		.loc 1 305 11 is_stmt 1 view .LVU375
+ 1109              	.LVL115:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1110              		.loc 1 305 11 is_stmt 0 view .LVU376
+ 1111 008e 2BB3     		cbz	r3, .L102
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1112              		.loc 1 306 7 is_stmt 1 view .LVU377
+ 1113              	.LVL116:
+ 306:lwIP/src/core/ipv4/ip4_addr.c ****         return NULL;
+ 1114              		.loc 1 306 10 is_stmt 0 view .LVU378
+ 1115 0090 B145     		cmp	r9, r6
+ 1116 0092 0ADD     		ble	.L95
+ 1117              	.LVL117:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1118              		.loc 1 309 7 is_stmt 1 view .LVU379
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1119              		.loc 1 309 18 is_stmt 0 view .LVU380
+ 1120 0094 04AB     		add	r3, sp, #16
+ 1121 0096 08F10408 		add	r8, r8, #4
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ARM GAS  /tmp/cc3dOtN4.s 			page 47
+
+
+ 1122              		.loc 1 309 10 view .LVU381
+ 1123 009a 0EF10302 		add	r2, lr, #3
+ 1124              	.LVL118:
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1125              		.loc 1 309 18 view .LVU382
+ 1126 009e 2B44     		add	r3, r3, r5
+ 309:lwIP/src/core/ipv4/ip4_addr.c ****     }
+ 1127              		.loc 1 309 13 view .LVU383
+ 1128 00a0 13F8083C 		ldrb	r3, [r3, #-8]	@ zero_extendqisi2
+ 1129 00a4 8EF80230 		strb	r3, [lr, #2]
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1130              		.loc 1 305 11 is_stmt 1 view .LVU384
+ 1131              	.LVL119:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1132              		.loc 1 305 11 is_stmt 0 view .LVU385
+ 1133 00a8 3DB1     		cbz	r5, .L94
+ 1134              	.LVL120:
+ 1135              	.L95:
+ 307:lwIP/src/core/ipv4/ip4_addr.c ****       }
+ 1136              		.loc 1 307 16 view .LVU386
+ 1137 00aa 0020     		movs	r0, #0
+ 319:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 1138              		.loc 1 319 1 view .LVU387
+ 1139 00ac 05B0     		add	sp, sp, #20
+ 1140              	.LCFI19:
+ 1141              		.cfi_remember_state
+ 1142              		.cfi_def_cfa_offset 36
+ 1143              		@ sp needed
+ 1144 00ae BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1145              	.LVL121:
+ 1146              	.L100:
+ 1147              	.LCFI20:
+ 1148              		.cfi_restore_state
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1149              		.loc 1 305 11 view .LVU388
+ 1150 00b2 2346     		mov	r3, r4
+ 1151 00b4 7246     		mov	r2, lr
+ 1152 00b6 4446     		mov	r4, r8
+ 1153 00b8 9846     		mov	r8, r3
+ 1154              	.LVL122:
+ 1155              	.L94:
+ 311:lwIP/src/core/ipv4/ip4_addr.c ****       return NULL;
+ 1156              		.loc 1 311 5 is_stmt 1 view .LVU389
+ 311:lwIP/src/core/ipv4/ip4_addr.c ****       return NULL;
+ 1157              		.loc 1 311 8 is_stmt 0 view .LVU390
+ 1158 00ba 4C45     		cmp	r4, r9
+ 1159 00bc F5DA     		bge	.L95
+ 314:lwIP/src/core/ipv4/ip4_addr.c ****     ap++;
+ 1160              		.loc 1 314 5 is_stmt 1 discriminator 2 view .LVU391
+ 314:lwIP/src/core/ipv4/ip4_addr.c ****     ap++;
+ 1161              		.loc 1 314 8 is_stmt 0 discriminator 2 view .LVU392
+ 1162 00be 9646     		mov	lr, r2
+ 314:lwIP/src/core/ipv4/ip4_addr.c ****     ap++;
+ 1163              		.loc 1 314 11 discriminator 2 view .LVU393
+ 1164 00c0 4FF02E03 		mov	r3, #46
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1165              		.loc 1 298 3 discriminator 2 view .LVU394
+ARM GAS  /tmp/cc3dOtN4.s 			page 48
+
+
+ 1166 00c4 D345     		cmp	fp, r10
+ 314:lwIP/src/core/ipv4/ip4_addr.c ****     ap++;
+ 1167              		.loc 1 314 11 discriminator 2 view .LVU395
+ 1168 00c6 0EF8013B 		strb	r3, [lr], #1
+ 315:lwIP/src/core/ipv4/ip4_addr.c ****   }
+ 1169              		.loc 1 315 5 is_stmt 1 discriminator 2 view .LVU396
+ 1170              	.LVL123:
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1171              		.loc 1 298 22 discriminator 2 view .LVU397
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1172              		.loc 1 298 15 discriminator 2 view .LVU398
+ 298:lwIP/src/core/ipv4/ip4_addr.c ****     i = 0;
+ 1173              		.loc 1 298 3 is_stmt 0 discriminator 2 view .LVU399
+ 1174 00ca A8D1     		bne	.L99
+ 317:lwIP/src/core/ipv4/ip4_addr.c ****   return buf;
+ 1175              		.loc 1 317 3 is_stmt 1 view .LVU400
+ 318:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 1176              		.loc 1 318 10 is_stmt 0 view .LVU401
+ 1177 00cc 0846     		mov	r0, r1
+ 317:lwIP/src/core/ipv4/ip4_addr.c ****   return buf;
+ 1178              		.loc 1 317 9 view .LVU402
+ 1179 00ce 0023     		movs	r3, #0
+ 1180 00d0 1370     		strb	r3, [r2]
+ 318:lwIP/src/core/ipv4/ip4_addr.c **** }
+ 1181              		.loc 1 318 3 is_stmt 1 view .LVU403
+ 1182              		.loc 1 319 1 is_stmt 0 view .LVU404
+ 1183 00d2 05B0     		add	sp, sp, #20
+ 1184              	.LCFI21:
+ 1185              		.cfi_remember_state
+ 1186              		.cfi_def_cfa_offset 36
+ 1187              		@ sp needed
+ 1188 00d4 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1189              	.LVL124:
+ 1190              	.L101:
+ 1191              	.LCFI22:
+ 1192              		.cfi_restore_state
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1193              		.loc 1 305 11 view .LVU405
+ 1194 00d8 B046     		mov	r8, r6
+ 1195 00da EEE7     		b	.L94
+ 1196              	.LVL125:
+ 1197              	.L102:
+ 305:lwIP/src/core/ipv4/ip4_addr.c ****       if (len++ >= buflen) {
+ 1198              		.loc 1 305 11 view .LVU406
+ 1199 00dc A046     		mov	r8, r4
+ 1200 00de 3446     		mov	r4, r6
+ 1201 00e0 EBE7     		b	.L94
+ 1202              	.L107:
+ 1203 00e2 00BF     		.align	2
+ 1204              	.L106:
+ 1205 00e4 CDCCCCCC 		.word	-858993459
+ 1206              		.cfi_endproc
+ 1207              	.LFE110:
+ 1209              		.global	ip_addr_broadcast
+ 1210              		.global	ip_addr_any
+ 1211              		.section	.bss.str.8032,"aw",%nobits
+ 1212              		.align	2
+ARM GAS  /tmp/cc3dOtN4.s 			page 49
+
+
+ 1213              		.set	.LANCHOR0,. + 0
+ 1216              	str.8032:
+ 1217 0000 00000000 		.space	16
+ 1217      00000000 
+ 1217      00000000 
+ 1217      00000000 
+ 1218              		.section	.rodata.ip_addr_any,"a"
+ 1219              		.align	2
+ 1222              	ip_addr_any:
+ 1223 0000 00000000 		.space	4
+ 1224              		.section	.rodata.ip_addr_broadcast,"a"
+ 1225              		.align	2
+ 1228              	ip_addr_broadcast:
+ 1229 0000 FFFFFFFF 		.word	-1
+ 1230              		.text
+ 1231              	.Letext0:
+ 1232              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1233              		.file 4 "/usr/arm-none-eabi/include/sys/lock.h"
+ 1234              		.file 5 "/usr/arm-none-eabi/include/sys/_types.h"
+ 1235              		.file 6 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 1236              		.file 7 "/usr/arm-none-eabi/include/sys/reent.h"
+ 1237              		.file 8 "/usr/arm-none-eabi/include/stdlib.h"
+ 1238              		.file 9 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1239              		.file 10 "lwIP/src/include/lwip/arch.h"
+ 1240              		.file 11 "/usr/arm-none-eabi/include/ctype.h"
+ 1241              		.file 12 "lwIP/src/include/lwip/ip4_addr.h"
+ 1242              		.file 13 "lwIP/src/include/lwip/ip_addr.h"
+ 1243              		.file 14 "lwIP/src/include/lwip/err.h"
+ 1244              		.file 15 "lwIP/src/include/lwip/pbuf.h"
+ 1245              		.file 16 "lwIP/src/include/lwip/priv/memp_priv.h"
+ 1246              		.file 17 "lwIP/src/include/lwip/memp.h"
+ 1247              		.file 18 "lwIP/src/include/lwip/netif.h"
+ 1248              		.file 19 "/usr/arm-none-eabi/include/stdio.h"
+ARM GAS  /tmp/cc3dOtN4.s 			page 50
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 ip4_addr.c
+     /tmp/cc3dOtN4.s:18     .text.ip4_addr_isbroadcast_u32:0000000000000000 $t
+     /tmp/cc3dOtN4.s:27     .text.ip4_addr_isbroadcast_u32:0000000000000000 ip4_addr_isbroadcast_u32
+     /tmp/cc3dOtN4.s:96     .text.ip4_addr_netmask_valid:0000000000000000 $t
+     /tmp/cc3dOtN4.s:104    .text.ip4_addr_netmask_valid:0000000000000000 ip4_addr_netmask_valid
+     /tmp/cc3dOtN4.s:186    .rodata.ip4addr_aton.str1.4:0000000000000000 $d
+     /tmp/cc3dOtN4.s:190    .text.ip4addr_aton:0000000000000000 $t
+     /tmp/cc3dOtN4.s:198    .text.ip4addr_aton:0000000000000000 ip4addr_aton
+     /tmp/cc3dOtN4.s:446    .text.ip4addr_aton:00000000000000ec $d
+     /tmp/cc3dOtN4.s:451    .text.ip4addr_aton:0000000000000100 $t
+     /tmp/cc3dOtN4.s:601    .text.ip4addr_aton:000000000000016c $d
+     /tmp/cc3dOtN4.s:607    .text.ipaddr_addr:0000000000000000 $t
+     /tmp/cc3dOtN4.s:615    .text.ipaddr_addr:0000000000000000 ipaddr_addr
+     /tmp/cc3dOtN4.s:663    .text.ip4addr_ntoa:0000000000000000 $t
+     /tmp/cc3dOtN4.s:671    .text.ip4addr_ntoa:0000000000000000 ip4addr_ntoa
+     /tmp/cc3dOtN4.s:940    .text.ip4addr_ntoa:00000000000000e0 $d
+     /tmp/cc3dOtN4.s:948    .text.ip4addr_ntoa_r:0000000000000000 $t
+     /tmp/cc3dOtN4.s:956    .text.ip4addr_ntoa_r:0000000000000000 ip4addr_ntoa_r
+     /tmp/cc3dOtN4.s:1205   .text.ip4addr_ntoa_r:00000000000000e4 $d
+     /tmp/cc3dOtN4.s:1228   .rodata.ip_addr_broadcast:0000000000000000 ip_addr_broadcast
+     /tmp/cc3dOtN4.s:1222   .rodata.ip_addr_any:0000000000000000 ip_addr_any
+     /tmp/cc3dOtN4.s:1212   .bss.str.8032:0000000000000000 $d
+     /tmp/cc3dOtN4.s:1216   .bss.str.8032:0000000000000000 str.8032
+     /tmp/cc3dOtN4.s:1219   .rodata.ip_addr_any:0000000000000000 $d
+     /tmp/cc3dOtN4.s:1225   .rodata.ip_addr_broadcast:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+printf
+_ctype_

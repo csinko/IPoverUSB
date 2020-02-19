@@ -1,0 +1,3127 @@
+ARM GAS  /tmp/ccc8sFcY.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"dhcp_server.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.dhcp_srv_recv,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv4-sp-d16
+  26              	dhcp_srv_recv:
+  27              	.LVL0:
+  28              	.LFB111:
+  29              		.file 1 "lwIP/src/apps/dhcp_server/dhcp_server.c"
+   1:lwIP/src/apps/dhcp_server/dhcp_server.c **** /**
+   2:lwIP/src/apps/dhcp_server/dhcp_server.c ****  ******************************************************************************
+   3:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @file    dhcp_server.c
+   4:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @author  Benedek Kupper
+   5:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @brief   Simple DHCP server
+   6:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *
+   7:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * Copyright (c) 2018 Benedek Kupper
+   8:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *
+   9:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * Licensed under the Apache License, Version 2.0 (the "License");
+  10:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * you may not use this file except in compliance with the License.
+  11:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * You may obtain a copy of the License at
+  12:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *
+  13:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *     http://www.apache.org/licenses/LICENSE-2.0
+  14:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *
+  15:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * Unless required by applicable law or agreed to in writing, software
+  16:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * distributed under the License is distributed on an "AS IS" BASIS,
+  17:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  18:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * See the License for the specific language governing permissions and
+  19:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * limitations under the License.
+  20:lwIP/src/apps/dhcp_server/dhcp_server.c ****  */
+  21:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/apps/dhcp_server.h"
+  22:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  23:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/ip_addr.h"
+  24:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/def.h"
+  25:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/dns.h"
+  26:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/udp.h"
+  27:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/timeouts.h"
+  28:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/debug.h"
+  29:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/ip_addr.h"
+ARM GAS  /tmp/ccc8sFcY.s 			page 2
+
+
+  30:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/prot/dhcp.h"
+  31:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/prot/dns.h"
+  32:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include "lwip/prot/iana.h"
+  33:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  34:lwIP/src/apps/dhcp_server/dhcp_server.c **** #include <string.h>
+  35:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  36:lwIP/src/apps/dhcp_server/dhcp_server.c **** #if LWIP_DHCP_SERVER /* don't build if not configured for use in lwipopts.h */
+  37:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  38:lwIP/src/apps/dhcp_server/dhcp_server.c **** /**
+  39:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @defgroup dhcp_server DHCP server
+  40:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @ingroup apps
+  41:lwIP/src/apps/dhcp_server/dhcp_server.c ****  *
+  42:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * This is simple DHCP server for the lwIP raw API.
+  43:lwIP/src/apps/dhcp_server/dhcp_server.c ****  */
+  44:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  45:lwIP/src/apps/dhcp_server/dhcp_server.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  46:lwIP/src/apps/dhcp_server/dhcp_server.c **** #  include "arch/bpstruct.h"
+  47:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif
+  48:lwIP/src/apps/dhcp_server/dhcp_server.c **** PACK_STRUCT_BEGIN
+  49:lwIP/src/apps/dhcp_server/dhcp_server.c **** struct dhcp_ip4_option
+  50:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  51:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_8(u8_t type);
+  52:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_8(u8_t len);
+  53:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_S(ip4_addr_p_t addr);
+  54:lwIP/src/apps/dhcp_server/dhcp_server.c **** } PACK_STRUCT_STRUCT;
+  55:lwIP/src/apps/dhcp_server/dhcp_server.c **** PACK_STRUCT_END
+  56:lwIP/src/apps/dhcp_server/dhcp_server.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  57:lwIP/src/apps/dhcp_server/dhcp_server.c **** #  include "arch/epstruct.h"
+  58:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif
+  59:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  60:lwIP/src/apps/dhcp_server/dhcp_server.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  61:lwIP/src/apps/dhcp_server/dhcp_server.c **** #  include "arch/bpstruct.h"
+  62:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif
+  63:lwIP/src/apps/dhcp_server/dhcp_server.c **** PACK_STRUCT_BEGIN
+  64:lwIP/src/apps/dhcp_server/dhcp_server.c **** struct dhcp_u32_option
+  65:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  66:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_8(u8_t type);
+  67:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_8(u8_t len);
+  68:lwIP/src/apps/dhcp_server/dhcp_server.c ****   PACK_STRUCT_FLD_S(u32_t dw);
+  69:lwIP/src/apps/dhcp_server/dhcp_server.c **** } PACK_STRUCT_STRUCT;
+  70:lwIP/src/apps/dhcp_server/dhcp_server.c **** PACK_STRUCT_END
+  71:lwIP/src/apps/dhcp_server/dhcp_server.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  72:lwIP/src/apps/dhcp_server/dhcp_server.c **** #  include "arch/epstruct.h"
+  73:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif
+  74:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  75:lwIP/src/apps/dhcp_server/dhcp_server.c **** struct dhcp_srv_entry
+  76:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  77:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_t ip4addr;
+  78:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_t lease;
+  79:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u8_t hwaddr[NETIF_MAX_HWADDR_LEN];
+  80:lwIP/src/apps/dhcp_server/dhcp_server.c **** };
+  81:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  82:lwIP/src/apps/dhcp_server/dhcp_server.c **** struct dhcp_srv_state
+  83:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  84:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct udp_pcb *upcb;
+  85:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct netif *netif;
+  86:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int entries;
+ARM GAS  /tmp/ccc8sFcY.s 			page 3
+
+
+  87:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct dhcp_srv_entry entry[DHCP_SERVER_MAX_CLIENTS];
+  88:lwIP/src/apps/dhcp_server/dhcp_server.c **** };
+  89:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  90:lwIP/src/apps/dhcp_server/dhcp_server.c **** static const u8_t hwaddr_free_val = 0xFF;
+  91:lwIP/src/apps/dhcp_server/dhcp_server.c **** static struct dhcp_srv_state dss;
+  92:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+  93:lwIP/src/apps/dhcp_server/dhcp_server.c **** static struct dhcp_srv_entry*
+  94:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_get_entry(struct dhcp_msg *msg)
+  95:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  96:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int i;
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****   for (i = 0; i < dss.entries; i++) {
+  98:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 100:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 101:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 102:lwIP/src/apps/dhcp_server/dhcp_server.c ****   return NULL;
+ 103:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 104:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 105:lwIP/src/apps/dhcp_server/dhcp_server.c **** static int
+ 106:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_is_entry_free(struct dhcp_srv_entry *entry)
+ 107:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 108:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u8_t i;
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****   for (i = 0; i < sizeof(dss.entry[0].hwaddr); i++) {
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 111:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 112:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 113:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 114:lwIP/src/apps/dhcp_server/dhcp_server.c ****   return 1;
+ 115:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 116:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 117:lwIP/src/apps/dhcp_server/dhcp_server.c **** static struct dhcp_srv_entry*
+ 118:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_put_new_entry(struct dhcp_msg *msg)
+ 119:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 120:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int i;
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****   for (i = 0; i < dss.entries; i++) {
+ 122:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 123:lwIP/src/apps/dhcp_server/dhcp_server.c ****       /* allocate free entry to this requester by saving its HW address */
+ 124:lwIP/src/apps/dhcp_server/dhcp_server.c ****       MEMCPY(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr));
+ 125:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 126:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 127:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 128:lwIP/src/apps/dhcp_server/dhcp_server.c ****   return NULL;
+ 129:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 130:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 131:lwIP/src/apps/dhcp_server/dhcp_server.c **** static void
+ 132:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_free_entry(struct dhcp_srv_entry *entry)
+ 133:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 134:lwIP/src/apps/dhcp_server/dhcp_server.c ****   memset(entry->hwaddr, hwaddr_free_val, sizeof(dss.entry[0].hwaddr));
+ 135:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 136:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 137:lwIP/src/apps/dhcp_server/dhcp_server.c **** static void*
+ 138:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_get_option(u8_t *options, u8_t option_type, u8_t option_size)
+ 139:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 140:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u16_t head = 0, next = 2 + options[1];
+ 141:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 142:lwIP/src/apps/dhcp_server/dhcp_server.c ****   do {
+ 143:lwIP/src/apps/dhcp_server/dhcp_server.c ****     /* find the option by type */
+ARM GAS  /tmp/ccc8sFcY.s 			page 4
+
+
+ 144:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (options[head] == option_type) {
+ 145:lwIP/src/apps/dhcp_server/dhcp_server.c ****       /* check if the size is correct */
+ 146:lwIP/src/apps/dhcp_server/dhcp_server.c ****       if (options[head + 1] == option_size) {
+ 147:lwIP/src/apps/dhcp_server/dhcp_server.c ****         /* return the pointer to the option data */
+ 148:lwIP/src/apps/dhcp_server/dhcp_server.c ****         return &options[head + 2];
+ 149:lwIP/src/apps/dhcp_server/dhcp_server.c ****       }
+ 150:lwIP/src/apps/dhcp_server/dhcp_server.c ****       break;
+ 151:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 152:lwIP/src/apps/dhcp_server/dhcp_server.c ****     head = next;
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****     next += 2 + options[head + 1];
+ 154:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 155:lwIP/src/apps/dhcp_server/dhcp_server.c ****   while (next <= DHCP_OPTIONS_LEN);
+ 156:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 157:lwIP/src/apps/dhcp_server/dhcp_server.c ****   return NULL;
+ 158:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 159:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 160:lwIP/src/apps/dhcp_server/dhcp_server.c **** static void
+ 161:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_set_reply(struct dhcp_msg *msg, u8_t msg_type, struct dhcp_srv_entry *entry)
+ 162:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 163:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct dhcp_ip4_option* ip4_opt;
+ 164:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct dhcp_u32_option* u32_opt;
+ 165:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int opt_len = 0;
+ 166:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 167:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* update message to reply */
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->op = DHCP_BOOTREPLY;
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 170:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 171:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(msg->yiaddr, entry->ip4addr);
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->cookie = PP_HTONL(DHCP_MAGIC_COOKIE);
+ 173:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 174:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* options are rewritten */
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c ****   memset(&msg->options, 0, DHCP_OPTIONS_LEN);
+ 176:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 177:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* message type */
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = DHCP_OPTION_MESSAGE_TYPE;
+ 179:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 180:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = msg_type;
+ 181:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 182:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* subnet mask */
+ 183:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt = (void*)&msg->options[opt_len];
+ 184:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SUBNET_MASK;
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 187:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 188:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 189:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* router */
+ 190:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt = (void*)&msg->options[opt_len];
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_ROUTER;
+ 192:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 193:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->gw));
+ 194:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 195:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 196:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* server ID */
+ 197:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt = (void*)&msg->options[opt_len];
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SERVER_ID;
+ 199:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ARM GAS  /tmp/ccc8sFcY.s 			page 5
+
+
+ 201:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 202:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 203:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* lease time */
+ 204:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt = (void*)&msg->options[opt_len];
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->type = DHCP_OPTION_LEASE_TIME;
+ 206:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 207:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->dw = lwip_htonl(entry->lease);
+ 208:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_u32_option);
+ 209:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 210:lwIP/src/apps/dhcp_server/dhcp_server.c **** #if DNS_LOCAL_HOSTLIST
+ 211:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* dns servers data */
+ 212:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt = (void*)&msg->options[opt_len];
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_DNS_SERVER;
+ 214:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 215:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 216:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 217:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif /* DNS_LOCAL_HOSTLIST */
+ 218:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 219:lwIP/src/apps/dhcp_server/dhcp_server.c ****   /* end */
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = DHCP_OPTION_END;
+ 221:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 222:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 223:lwIP/src/apps/dhcp_server/dhcp_server.c **** static void
+ 224:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_srv_recv(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
+ 225:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+  30              		.loc 1 225 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 4, pretend = 0, frame = 8
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+ 226:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct pbuf *q;
+  34              		.loc 1 226 3 view .LVU1
+ 227:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 228:lwIP/src/apps/dhcp_server/dhcp_server.c ****   LWIP_UNUSED_ARG(arg);
+  35              		.loc 1 228 3 view .LVU2
+ 229:lwIP/src/apps/dhcp_server/dhcp_server.c ****   LWIP_UNUSED_ARG(addr);
+  36              		.loc 1 229 3 view .LVU3
+ 230:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 231:lwIP/src/apps/dhcp_server/dhcp_server.c ****   q = pbuf_alloc(PBUF_TRANSPORT, sizeof(struct dhcp_msg), PBUF_RAM);
+  37              		.loc 1 231 3 view .LVU4
+ 225:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct pbuf *q;
+  38              		.loc 1 225 1 is_stmt 0 view .LVU5
+  39 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  40              	.LCFI0:
+  41              		.cfi_def_cfa_offset 36
+  42              		.cfi_offset 4, -36
+  43              		.cfi_offset 5, -32
+  44              		.cfi_offset 6, -28
+  45              		.cfi_offset 7, -24
+  46              		.cfi_offset 8, -20
+  47              		.cfi_offset 9, -16
+  48              		.cfi_offset 10, -12
+  49              		.cfi_offset 11, -8
+  50              		.cfi_offset 14, -4
+  51 0004 83B0     		sub	sp, sp, #12
+  52              	.LCFI1:
+  53              		.cfi_def_cfa_offset 48
+ 225:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct pbuf *q;
+ARM GAS  /tmp/ccc8sFcY.s 			page 6
+
+
+  54              		.loc 1 225 1 view .LVU6
+  55 0006 0E46     		mov	r6, r1
+  56 0008 1546     		mov	r5, r2
+  57              		.loc 1 231 7 view .LVU7
+  58 000a 4FF49A71 		mov	r1, #308
+  59              	.LVL1:
+  60              		.loc 1 231 7 view .LVU8
+  61 000e 4FF42072 		mov	r2, #640
+  62              	.LVL2:
+  63              		.loc 1 231 7 view .LVU9
+  64 0012 3620     		movs	r0, #54
+  65              	.LVL3:
+ 225:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct pbuf *q;
+  66              		.loc 1 225 1 view .LVU10
+  67 0014 BDF83080 		ldrh	r8, [sp, #48]
+  68              		.loc 1 231 7 view .LVU11
+  69 0018 FFF7FEFF 		bl	pbuf_alloc
+  70              	.LVL4:
+ 232:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 233:lwIP/src/apps/dhcp_server/dhcp_server.c ****   if (q != NULL) {
+  71              		.loc 1 233 3 is_stmt 1 view .LVU12
+  72              		.loc 1 233 6 is_stmt 0 view .LVU13
+  73 001c 80B1     		cbz	r0, .L2
+  74              	.LBB39:
+ 234:lwIP/src/apps/dhcp_server/dhcp_server.c ****     struct dhcp_msg *msg = q->payload;
+  75              		.loc 1 234 5 is_stmt 1 view .LVU14
+ 235:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 236:lwIP/src/apps/dhcp_server/dhcp_server.c ****     /* Copy request contents
+ 237:lwIP/src/apps/dhcp_server/dhcp_server.c ****      * TODO add support for copying from segmented pbuf */
+ 238:lwIP/src/apps/dhcp_server/dhcp_server.c ****     pbuf_take(q, p->payload, LWIP_MIN(p->len, sizeof(struct dhcp_msg)));
+  76              		.loc 1 238 5 is_stmt 0 view .LVU15
+  77 001e 6A89     		ldrh	r2, [r5, #10]
+  78 0020 0446     		mov	r4, r0
+ 234:lwIP/src/apps/dhcp_server/dhcp_server.c ****     struct dhcp_msg *msg = q->payload;
+  79              		.loc 1 234 22 view .LVU16
+  80 0022 4768     		ldr	r7, [r0, #4]
+  81              	.LVL5:
+  82              		.loc 1 238 5 is_stmt 1 view .LVU17
+  83 0024 B2F59A7F 		cmp	r2, #308
+  84 0028 6968     		ldr	r1, [r5, #4]
+  85 002a 28BF     		it	cs
+  86 002c 4FF49A72 		movcs	r2, #308
+  87 0030 FFF7FEFF 		bl	pbuf_take
+  88              	.LVL6:
+ 239:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 240:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (msg->op == DHCP_BOOTREQUEST) {
+  89              		.loc 1 240 5 view .LVU18
+  90              		.loc 1 240 8 is_stmt 0 view .LVU19
+  91 0034 3B78     		ldrb	r3, [r7]	@ zero_extendqisi2
+  92 0036 012B     		cmp	r3, #1
+  93 0038 08D0     		beq	.L49
+  94              	.LVL7:
+  95              	.L3:
+ 241:lwIP/src/apps/dhcp_server/dhcp_server.c ****       struct dhcp_srv_entry *entry = dhcp_srv_get_entry(msg);
+ 242:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_p_t *reqaddr;
+ 243:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c ****       switch (msg->options[2]) {
+ARM GAS  /tmp/ccc8sFcY.s 			page 7
+
+
+ 245:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 246:lwIP/src/apps/dhcp_server/dhcp_server.c ****         case DHCP_DISCOVER:
+ 247:lwIP/src/apps/dhcp_server/dhcp_server.c ****           /* check if client is assigned already */
+ 248:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (entry == NULL) {
+ 249:lwIP/src/apps/dhcp_server/dhcp_server.c ****             /* otherwise try to get an unused address */
+ 250:lwIP/src/apps/dhcp_server/dhcp_server.c ****             entry = dhcp_srv_put_new_entry(msg);
+ 251:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 252:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (entry == NULL) {
+ 253:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 254:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 255:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 256:lwIP/src/apps/dhcp_server/dhcp_server.c ****           dhcp_srv_set_reply(msg, DHCP_OFFER, entry);
+ 257:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           udp_sendto(upcb, q, IP_ADDR_BROADCAST, port);
+ 259:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 260:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 261:lwIP/src/apps/dhcp_server/dhcp_server.c ****         case DHCP_REQUEST:
+ 262:lwIP/src/apps/dhcp_server/dhcp_server.c ****           /* if no offered entry, return */
+ 263:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (entry == NULL) {
+ 264:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 265:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 266:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 267:lwIP/src/apps/dhcp_server/dhcp_server.c ****           /* get the requested address */
+ 268:lwIP/src/apps/dhcp_server/dhcp_server.c ****           reqaddr = dhcp_srv_get_option(msg->options,
+ 269:lwIP/src/apps/dhcp_server/dhcp_server.c ****                                         DHCP_OPTION_REQUESTED_IP,
+ 270:lwIP/src/apps/dhcp_server/dhcp_server.c ****                                         sizeof(ip4_addr_p_t));
+ 271:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (reqaddr == NULL) {
+ 272:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 273:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 274:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 275:lwIP/src/apps/dhcp_server/dhcp_server.c ****           /* if they differ, return with error */
+ 276:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (!ip4_addr_cmp(&entry->ip4addr, reqaddr)) {
+ 277:lwIP/src/apps/dhcp_server/dhcp_server.c ****             dhcp_srv_free_entry(entry);
+ 278:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 279:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 280:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 281:lwIP/src/apps/dhcp_server/dhcp_server.c ****           dhcp_srv_set_reply(msg, DHCP_ACK, entry);
+ 282:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 283:lwIP/src/apps/dhcp_server/dhcp_server.c ****           udp_sendto(upcb, q, IP_ADDR_BROADCAST, port);
+ 284:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 285:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 286:lwIP/src/apps/dhcp_server/dhcp_server.c ****         case DHCP_RELEASE:
+ 287:lwIP/src/apps/dhcp_server/dhcp_server.c ****           if (entry != NULL) {
+ 288:lwIP/src/apps/dhcp_server/dhcp_server.c ****             /* free the used entry */
+ 289:lwIP/src/apps/dhcp_server/dhcp_server.c ****             dhcp_srv_free_entry(entry);
+ 290:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 291:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 292:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 293:lwIP/src/apps/dhcp_server/dhcp_server.c ****         default:
+ 294:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 295:lwIP/src/apps/dhcp_server/dhcp_server.c ****       }
+ 296:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 297:lwIP/src/apps/dhcp_server/dhcp_server.c ****     pbuf_free(q);
+  96              		.loc 1 297 5 is_stmt 1 view .LVU20
+  97 003a 2046     		mov	r0, r4
+  98 003c FFF7FEFF 		bl	pbuf_free
+  99              	.LVL8:
+ARM GAS  /tmp/ccc8sFcY.s 			page 8
+
+
+ 100              	.L2:
+ 101              		.loc 1 297 5 is_stmt 0 view .LVU21
+ 102              	.LBE39:
+ 298:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 299:lwIP/src/apps/dhcp_server/dhcp_server.c ****   pbuf_free(p);
+ 103              		.loc 1 299 3 is_stmt 1 view .LVU22
+ 104 0040 2846     		mov	r0, r5
+ 300:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 105              		.loc 1 300 1 is_stmt 0 view .LVU23
+ 106 0042 03B0     		add	sp, sp, #12
+ 107              	.LCFI2:
+ 108              		.cfi_remember_state
+ 109              		.cfi_def_cfa_offset 36
+ 110              		@ sp needed
+ 111 0044 BDE8F04F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 112              	.LCFI3:
+ 113              		.cfi_restore 14
+ 114              		.cfi_restore 11
+ 115              		.cfi_restore 10
+ 116              		.cfi_restore 9
+ 117              		.cfi_restore 8
+ 118              		.cfi_restore 7
+ 119              		.cfi_restore 6
+ 120              		.cfi_restore 5
+ 121              		.cfi_restore 4
+ 122              		.cfi_def_cfa_offset 0
+ 123              	.LVL9:
+ 299:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 124              		.loc 1 299 3 view .LVU24
+ 125 0048 FFF7FEBF 		b	pbuf_free
+ 126              	.LVL10:
+ 127              	.L49:
+ 128              	.LCFI4:
+ 129              		.cfi_restore_state
+ 130              	.LBB93:
+ 131              	.LBB40:
+ 132              	.LBB41:
+ 133              	.LBB42:
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 134              		.loc 1 97 15 is_stmt 1 view .LVU25
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 135              		.loc 1 97 22 is_stmt 0 view .LVU26
+ 136 004c DB4B     		ldr	r3, .L51
+ 137 004e D3F808A0 		ldr	r10, [r3, #8]
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 138              		.loc 1 97 3 view .LVU27
+ 139 0052 BAF1000F 		cmp	r10, #0
+ 140 0056 F0DD     		ble	.L3
+ 141 0058 07F11C01 		add	r1, r7, #28
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 142              		.loc 1 97 10 view .LVU28
+ 143 005c 0194     		str	r4, [sp, #4]
+ 144 005e 03F11409 		add	r9, r3, #20
+ 145 0062 4FF0000B 		mov	fp, #0
+ 146 0066 0C46     		mov	r4, r1
+ 147              	.LVL11:
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ARM GAS  /tmp/ccc8sFcY.s 			page 9
+
+
+ 148              		.loc 1 97 10 view .LVU29
+ 149 0068 05E0     		b	.L8
+ 150              	.LVL12:
+ 151              	.L4:
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 152              		.loc 1 97 33 view .LVU30
+ 153 006a 0BF1010B 		add	fp, fp, #1
+ 154              	.LVL13:
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 155              		.loc 1 97 15 is_stmt 1 view .LVU31
+ 156 006e 09F11009 		add	r9, r9, #16
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 157              		.loc 1 97 3 is_stmt 0 view .LVU32
+ 158 0072 D345     		cmp	fp, r10
+ 159 0074 1FD0     		beq	.L50
+ 160              	.LVL14:
+ 161              	.L8:
+  98:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 162              		.loc 1 98 5 is_stmt 1 view .LVU33
+  98:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 163              		.loc 1 98 9 is_stmt 0 view .LVU34
+ 164 0076 0622     		movs	r2, #6
+ 165 0078 2146     		mov	r1, r4
+ 166 007a 4846     		mov	r0, r9
+ 167 007c FFF7FEFF 		bl	memcmp
+ 168              	.LVL15:
+  97:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (memcmp(dss.entry[i].hwaddr, msg->chaddr, sizeof(dss.entry[0].hwaddr)) == 0) {
+ 169              		.loc 1 97 32 is_stmt 1 view .LVU35
+  98:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 170              		.loc 1 98 8 is_stmt 0 view .LVU36
+ 171 0080 0028     		cmp	r0, #0
+ 172 0082 F2D1     		bne	.L4
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 173              		.loc 1 99 14 view .LVU37
+ 174 0084 4FEA0B11 		lsl	r1, fp, #4
+ 175              	.LBE42:
+ 176              	.LBE41:
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 177              		.loc 1 244 27 view .LVU38
+ 178 0088 97F8F220 		ldrb	r2, [r7, #242]	@ zero_extendqisi2
+ 179              	.LBB45:
+ 180              	.LBB43:
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 181              		.loc 1 99 14 view .LVU39
+ 182 008c CB4B     		ldr	r3, .L51
+ 183 008e 01F10C0A 		add	r10, r1, #12
+ 184              	.LBE43:
+ 185              	.LBE45:
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 186              		.loc 1 244 7 view .LVU40
+ 187 0092 012A     		cmp	r2, #1
+ 188 0094 019C     		ldr	r4, [sp, #4]
+ 189              	.LBB46:
+ 190              	.LBB44:
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 191              		.loc 1 99 7 is_stmt 1 view .LVU41
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ARM GAS  /tmp/ccc8sFcY.s 			page 10
+
+
+ 192              		.loc 1 99 14 is_stmt 0 view .LVU42
+ 193 0096 9A44     		add	r10, r10, r3
+ 194              	.LVL16:
+  99:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 195              		.loc 1 99 14 view .LVU43
+ 196              	.LBE44:
+ 197              	.LBE46:
+ 242:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 198              		.loc 1 242 7 is_stmt 1 view .LVU44
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 199              		.loc 1 244 7 view .LVU45
+ 200 0098 3ED0     		beq	.L5
+ 201 009a 002A     		cmp	r2, #0
+ 202 009c CDD0     		beq	.L3
+ 203 009e 032A     		cmp	r2, #3
+ 204 00a0 00F09080 		beq	.L6
+ 205 00a4 072A     		cmp	r2, #7
+ 206 00a6 C8D1     		bne	.L3
+ 207              	.L7:
+ 287:lwIP/src/apps/dhcp_server/dhcp_server.c ****             /* free the used entry */
+ 208              		.loc 1 287 11 view .LVU46
+ 289:lwIP/src/apps/dhcp_server/dhcp_server.c ****           }
+ 209              		.loc 1 289 13 view .LVU47
+ 210              	.LVL17:
+ 211              	.LBB47:
+ 212              	.LBI47:
+ 132:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 213              		.loc 1 132 1 view .LVU48
+ 214              	.LBB48:
+ 134:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 215              		.loc 1 134 3 view .LVU49
+ 216 00a8 4FF0FF32 		mov	r2, #-1
+ 217 00ac C9F80020 		str	r2, [r9]
+ 218 00b0 A9F80420 		strh	r2, [r9, #4]	@ movhi
+ 135:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 219              		.loc 1 135 1 is_stmt 0 view .LVU50
+ 220 00b4 C1E7     		b	.L3
+ 221              	.LVL18:
+ 222              	.L50:
+ 135:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 223              		.loc 1 135 1 view .LVU51
+ 224              	.LBE48:
+ 225              	.LBE47:
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 226              		.loc 1 244 7 view .LVU52
+ 227 00b6 97F8F230 		ldrb	r3, [r7, #242]	@ zero_extendqisi2
+ 228 00ba 2146     		mov	r1, r4
+ 229 00bc 019C     		ldr	r4, [sp, #4]
+ 230              	.LVL19:
+ 242:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 231              		.loc 1 242 7 is_stmt 1 view .LVU53
+ 244:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 232              		.loc 1 244 7 view .LVU54
+ 233 00be 012B     		cmp	r3, #1
+ 234 00c0 BBD1     		bne	.L3
+ 235              	.LVL20:
+ 236              	.LBB49:
+ARM GAS  /tmp/ccc8sFcY.s 			page 11
+
+
+ 237              	.LBB50:
+ 238              	.LBB51:
+ 239              	.LBB52:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 240              		.loc 1 109 15 view .LVU55
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 241              		.loc 1 110 5 view .LVU56
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 242              		.loc 1 110 8 is_stmt 0 view .LVU57
+ 243 00c2 BE4A     		ldr	r2, .L51
+ 244 00c4 137D     		ldrb	r3, [r2, #20]	@ zero_extendqisi2
+ 245 00c6 FF2B     		cmp	r3, #255
+ 246 00c8 40F0F280 		bne	.L15
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 247              		.loc 1 109 48 is_stmt 1 view .LVU58
+ 248              	.LVL21:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 249              		.loc 1 109 15 view .LVU59
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 250              		.loc 1 110 5 view .LVU60
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 251              		.loc 1 110 8 is_stmt 0 view .LVU61
+ 252 00cc 537D     		ldrb	r3, [r2, #21]	@ zero_extendqisi2
+ 253 00ce FF2B     		cmp	r3, #255
+ 254 00d0 40F0EE80 		bne	.L15
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 255              		.loc 1 109 48 is_stmt 1 view .LVU62
+ 256              	.LVL22:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 257              		.loc 1 109 15 view .LVU63
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 258              		.loc 1 110 5 view .LVU64
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 259              		.loc 1 110 8 is_stmt 0 view .LVU65
+ 260 00d4 937D     		ldrb	r3, [r2, #22]	@ zero_extendqisi2
+ 261 00d6 FF2B     		cmp	r3, #255
+ 262 00d8 40F0EA80 		bne	.L15
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 263              		.loc 1 109 48 is_stmt 1 view .LVU66
+ 264              	.LVL23:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 265              		.loc 1 109 15 view .LVU67
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 266              		.loc 1 110 5 view .LVU68
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 267              		.loc 1 110 8 is_stmt 0 view .LVU69
+ 268 00dc D37D     		ldrb	r3, [r2, #23]	@ zero_extendqisi2
+ 269 00de FF2B     		cmp	r3, #255
+ 270 00e0 40F0E680 		bne	.L15
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 271              		.loc 1 109 48 is_stmt 1 view .LVU70
+ 272              	.LVL24:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 273              		.loc 1 109 15 view .LVU71
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 274              		.loc 1 110 5 view .LVU72
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ARM GAS  /tmp/ccc8sFcY.s 			page 12
+
+
+ 275              		.loc 1 110 8 is_stmt 0 view .LVU73
+ 276 00e4 137E     		ldrb	r3, [r2, #24]	@ zero_extendqisi2
+ 277 00e6 FF2B     		cmp	r3, #255
+ 278 00e8 40F0E280 		bne	.L15
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 279              		.loc 1 109 48 is_stmt 1 view .LVU74
+ 280              	.LVL25:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 281              		.loc 1 109 15 view .LVU75
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 282              		.loc 1 110 5 view .LVU76
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 283              		.loc 1 110 8 is_stmt 0 view .LVU77
+ 284 00ec 537E     		ldrb	r3, [r2, #25]	@ zero_extendqisi2
+ 285 00ee FF2B     		cmp	r3, #255
+ 286 00f0 40F0DE80 		bne	.L15
+ 287 00f4 4FF0000A 		mov	r10, #0
+ 288              	.LVL26:
+ 289              	.L10:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 290              		.loc 1 109 48 is_stmt 1 view .LVU78
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 291              		.loc 1 109 15 view .LVU79
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 292              		.loc 1 109 15 is_stmt 0 view .LVU80
+ 293              	.LBE52:
+ 294              	.LBE51:
+ 124:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 295              		.loc 1 124 7 is_stmt 1 view .LVU81
+ 296 00f8 0AF1010A 		add	r10, r10, #1
+ 297 00fc AF4A     		ldr	r2, .L51
+ 298 00fe 0868     		ldr	r0, [r1]	@ unaligned
+ 299 0100 4FEA0A1A 		lsl	r10, r10, #4
+ 300 0104 0AF10403 		add	r3, r10, #4
+ 125:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 301              		.loc 1 125 14 is_stmt 0 view .LVU82
+ 302 0108 AAF1040A 		sub	r10, r10, #4
+ 124:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 303              		.loc 1 124 7 view .LVU83
+ 304 010c D050     		str	r0, [r2, r3]
+ 305 010e 1046     		mov	r0, r2
+ 306 0110 1344     		add	r3, r3, r2
+ 307 0112 8A88     		ldrh	r2, [r1, #4]	@ unaligned
+ 125:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 308              		.loc 1 125 14 view .LVU84
+ 309 0114 8244     		add	r10, r10, r0
+ 124:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return &dss.entry[i];
+ 310              		.loc 1 124 7 view .LVU85
+ 311 0116 9A80     		strh	r2, [r3, #4]	@ unaligned
+ 125:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 312              		.loc 1 125 7 is_stmt 1 view .LVU86
+ 313              	.LVL27:
+ 314              	.L5:
+ 125:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 315              		.loc 1 125 7 is_stmt 0 view .LVU87
+ 316              	.LBE50:
+ 317              	.LBE49:
+ARM GAS  /tmp/ccc8sFcY.s 			page 13
+
+
+ 252:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 318              		.loc 1 252 11 is_stmt 1 view .LVU88
+ 256:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 319              		.loc 1 256 11 view .LVU89
+ 320 0118 DAF80000 		ldr	r0, [r10]
+ 321              	.LVL28:
+ 322              	.LBB62:
+ 323              	.LBI62:
+ 161:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 324              		.loc 1 161 1 view .LVU90
+ 325              	.LBB63:
+ 163:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct dhcp_u32_option* u32_opt;
+ 326              		.loc 1 163 3 view .LVU91
+ 164:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int opt_len = 0;
+ 327              		.loc 1 164 3 view .LVU92
+ 165:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 328              		.loc 1 165 3 view .LVU93
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 329              		.loc 1 168 3 view .LVU94
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 330              		.loc 1 172 15 is_stmt 0 view .LVU95
+ 331 011c 6323     		movs	r3, #99
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 332              		.loc 1 169 13 view .LVU96
+ 333 011e 0021     		movs	r1, #0
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 334              		.loc 1 172 15 view .LVU97
+ 335 0120 4FF0530C 		mov	ip, #83
+ 171:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->cookie = PP_HTONL(DHCP_MAGIC_COOKIE);
+ 336              		.loc 1 171 3 view .LVU98
+ 337 0124 3861     		str	r0, [r7, #16]	@ unaligned
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 338              		.loc 1 168 11 view .LVU99
+ 339 0126 0222     		movs	r2, #2
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 340              		.loc 1 172 15 view .LVU100
+ 341 0128 6FF07D00 		mvn	r0, #125
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 342              		.loc 1 169 13 view .LVU101
+ 343 012c B960     		str	r1, [r7, #8]	@ unaligned
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 344              		.loc 1 168 11 view .LVU102
+ 345 012e 3A70     		strb	r2, [r7]
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 346              		.loc 1 169 3 is_stmt 1 view .LVU103
+ 170:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(msg->yiaddr, entry->ip4addr);
+ 347              		.loc 1 170 3 view .LVU104
+ 171:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->cookie = PP_HTONL(DHCP_MAGIC_COOKIE);
+ 348              		.loc 1 171 3 view .LVU105
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 349              		.loc 1 172 3 view .LVU106
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 350              		.loc 1 175 3 is_stmt 0 view .LVU107
+ 351 0130 4422     		movs	r2, #68
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 352              		.loc 1 172 15 view .LVU108
+ 353 0132 87F8EC30 		strb	r3, [r7, #236]
+ARM GAS  /tmp/ccc8sFcY.s 			page 14
+
+
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 354              		.loc 1 191 17 view .LVU109
+ 355 0136 4FF00309 		mov	r9, #3
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 356              		.loc 1 172 15 view .LVU110
+ 357 013a 87F8EF30 		strb	r3, [r7, #239]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 358              		.loc 1 175 3 is_stmt 1 view .LVU111
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 359              		.loc 1 172 15 is_stmt 0 view .LVU112
+ 360 013e 87F8ED00 		strb	r0, [r7, #237]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 361              		.loc 1 175 3 view .LVU113
+ 362 0142 07F1F000 		add	r0, r7, #240
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 363              		.loc 1 172 15 view .LVU114
+ 364 0146 87F8EEC0 		strb	ip, [r7, #238]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 365              		.loc 1 175 3 view .LVU115
+ 366 014a FFF7FEFF 		bl	memset
+ 367              	.LVL29:
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 368              		.loc 1 178 3 is_stmt 1 view .LVU116
+ 179:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = msg_type;
+ 369              		.loc 1 179 3 view .LVU117
+ 180:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 370              		.loc 1 180 3 view .LVU118
+ 183:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SUBNET_MASK;
+ 371              		.loc 1 183 3 view .LVU119
+ 184:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 372              		.loc 1 184 3 view .LVU120
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 373              		.loc 1 186 3 is_stmt 0 view .LVU121
+ 374 014e 9B4B     		ldr	r3, .L51
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 375              		.loc 1 185 16 view .LVU122
+ 376 0150 0422     		movs	r2, #4
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 377              		.loc 1 198 17 view .LVU123
+ 378 0152 4FF0360C 		mov	ip, #54
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 379              		.loc 1 186 3 view .LVU124
+ 380 0156 5968     		ldr	r1, [r3, #4]
+ 381              	.LBE63:
+ 382              	.LBE62:
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 383              		.loc 1 258 11 view .LVU125
+ 384 0158 3046     		mov	r0, r6
+ 385              	.LBB72:
+ 386              	.LBB68:
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 387              		.loc 1 178 27 view .LVU126
+ 388 015a 994B     		ldr	r3, .L51+4
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 389              		.loc 1 205 17 view .LVU127
+ 390 015c 3326     		movs	r6, #51
+ 391              	.LVL30:
+ARM GAS  /tmp/ccc8sFcY.s 			page 15
+
+
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 392              		.loc 1 185 16 view .LVU128
+ 393 015e 87F8F420 		strb	r2, [r7, #244]
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 394              		.loc 1 178 27 view .LVU129
+ 395 0162 C7F8F030 		str	r3, [r7, #240]	@ unaligned
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 396              		.loc 1 185 3 is_stmt 1 view .LVU130
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 397              		.loc 1 186 3 view .LVU131
+ 398              	.LBE68:
+ 399              	.LBE72:
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 400              		.loc 1 258 11 is_stmt 0 view .LVU132
+ 401 0166 4346     		mov	r3, r8
+ 402              	.LBB73:
+ 403              	.LBB69:
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 404              		.loc 1 186 3 view .LVU133
+ 405 0168 D1F804E0 		ldr	lr, [r1, #4]
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 406              		.loc 1 213 17 view .LVU134
+ 407 016c 4FF00608 		mov	r8, #6
+ 192:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->gw));
+ 408              		.loc 1 192 16 view .LVU135
+ 409 0170 87F8FA20 		strb	r2, [r7, #250]
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 410              		.loc 1 191 17 view .LVU136
+ 411 0174 87F8F990 		strb	r9, [r7, #249]
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 412              		.loc 1 186 3 view .LVU137
+ 413 0178 C7F8F5E0 		str	lr, [r7, #245]	@ unaligned
+ 187:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 414              		.loc 1 187 3 is_stmt 1 view .LVU138
+ 415              	.LVL31:
+ 190:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_ROUTER;
+ 416              		.loc 1 190 3 view .LVU139
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 417              		.loc 1 191 3 view .LVU140
+ 192:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->gw));
+ 418              		.loc 1 192 3 view .LVU141
+ 193:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 419              		.loc 1 193 3 view .LVU142
+ 420 017c D1F808E0 		ldr	lr, [r1, #8]
+ 199:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 421              		.loc 1 199 16 is_stmt 0 view .LVU143
+ 422 0180 87F80021 		strb	r2, [r7, #256]
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 423              		.loc 1 198 17 view .LVU144
+ 424 0184 87F8FFC0 		strb	ip, [r7, #255]
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 425              		.loc 1 200 3 view .LVU145
+ 426 0188 D1F800C0 		ldr	ip, [r1]
+ 427              	.LBE69:
+ 428              	.LBE73:
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 429              		.loc 1 258 11 view .LVU146
+ARM GAS  /tmp/ccc8sFcY.s 			page 16
+
+
+ 430 018c 2146     		mov	r1, r4
+ 431              	.LBB74:
+ 432              	.LBB70:
+ 193:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 433              		.loc 1 193 3 view .LVU147
+ 434 018e C7F8FBE0 		str	lr, [r7, #251]	@ unaligned
+ 194:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 435              		.loc 1 194 3 is_stmt 1 view .LVU148
+ 436              	.LVL32:
+ 197:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SERVER_ID;
+ 437              		.loc 1 197 3 view .LVU149
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 438              		.loc 1 198 3 view .LVU150
+ 199:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 439              		.loc 1 199 3 view .LVU151
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 440              		.loc 1 200 3 view .LVU152
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 441              		.loc 1 220 27 is_stmt 0 view .LVU153
+ 442 0192 4FF0FF0E 		mov	lr, #255
+ 206:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->dw = lwip_htonl(entry->lease);
+ 443              		.loc 1 206 16 view .LVU154
+ 444 0196 87F80621 		strb	r2, [r7, #262]
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 445              		.loc 1 200 3 view .LVU155
+ 446 019a C7F801C1 		str	ip, [r7, #257]	@ unaligned
+ 201:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 447              		.loc 1 201 3 is_stmt 1 view .LVU156
+ 448              	.LVL33:
+ 204:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->type = DHCP_OPTION_LEASE_TIME;
+ 449              		.loc 1 204 3 view .LVU157
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 450              		.loc 1 205 3 view .LVU158
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 451              		.loc 1 205 17 is_stmt 0 view .LVU159
+ 452 019e 87F80561 		strb	r6, [r7, #261]
+ 206:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->dw = lwip_htonl(entry->lease);
+ 453              		.loc 1 206 3 is_stmt 1 view .LVU160
+ 207:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_u32_option);
+ 454              		.loc 1 207 3 view .LVU161
+ 455              	.LVL34:
+ 456              	.LBB64:
+ 457              	.LBI64:
+ 458              		.file 2 "STM32_XPD/CMSIS/Include/cmsis_gcc.h"
+   1:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*
+   8:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  10:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  12:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+ARM GAS  /tmp/ccc8sFcY.s 			page 17
+
+
+  14:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  16:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  *
+  18:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+  24:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  25:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  28:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  34:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  38:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+  39:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  43:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  46:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  49:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+  50:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  55:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  58:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  61:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  64:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  67:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  70:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+ARM GAS  /tmp/ccc8sFcY.s 			page 18
+
+
+  71:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  78:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  86:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+  94:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ 107:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 117:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 118:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 123:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 124:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 125:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ARM GAS  /tmp/ccc8sFcY.s 			page 19
+
+
+ 128:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 129:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 131:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 133:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 134:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 135:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 136:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 140:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 141:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 142:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 143:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 144:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 145:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 146:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 147:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
+ 148:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
+ 149:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Control Register value
+ 150:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 151:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_CONTROL(void)
+ 152:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 153:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 154:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 155:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 156:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 157:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 158:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 159:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 160:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 161:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 162:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
+ 163:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
+ 164:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               non-secure Control Register value
+ 165:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 166:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_CONTROL_NS(void)
+ 167:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 168:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 169:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 170:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control_ns" : "=r" (result) );
+ 171:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 172:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 173:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 174:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 175:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 176:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 177:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register
+ 178:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the Control Register.
+ 179:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 180:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 181:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
+ 182:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 183:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
+ 184:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ARM GAS  /tmp/ccc8sFcY.s 			page 20
+
+
+ 185:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 186:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 187:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 188:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 189:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register (non-secure)
+ 190:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the non-secure Control Register when in secure state.
+ 191:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 192:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 193:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_CONTROL_NS(uint32_t control)
+ 194:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 195:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control_ns, %0" : : "r" (control) : "memory");
+ 196:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 197:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 198:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 199:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 200:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 201:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get IPSR Register
+ 202:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
+ 203:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
+ 204:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 205:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
+ 206:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 207:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 208:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 209:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 210:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 211:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 212:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 213:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 214:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 215:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get APSR Register
+ 216:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the APSR Register.
+ 217:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
+ 218:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 219:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
+ 220:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 221:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 222:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 223:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 224:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 225:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 226:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 227:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 228:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 229:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get xPSR Register
+ 230:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the xPSR Register.
+ 231:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               xPSR Register value
+ 232:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 233:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_xPSR(void)
+ 234:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 235:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 236:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 237:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 238:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 239:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 240:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 241:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccc8sFcY.s 			page 21
+
+
+ 242:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 243:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer
+ 244:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer (PSP).
+ 245:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 246:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 247:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSP(void)
+ 248:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 249:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 250:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 251:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+ 252:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 253:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 254:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 255:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 256:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 257:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 258:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer (non-secure)
+ 259:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
+ 260:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 261:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 262:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
+ 263:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 264:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 265:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 266:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp_ns"  : "=r" (result) );
+ 267:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 268:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 269:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 270:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 271:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 272:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 273:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer
+ 274:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
+ 275:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 276:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 277:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
+ 278:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 279:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
+ 280:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 281:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 282:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 283:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 284:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 285:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 286:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer (PSP) when in secure sta
+ 287:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 288:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 289:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSP_NS(uint32_t topOfProcStack)
+ 290:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 291:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp_ns, %0" : : "r" (topOfProcStack) : );
+ 292:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 293:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 294:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 295:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 296:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 297:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer
+ 298:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer (MSP).
+ARM GAS  /tmp/ccc8sFcY.s 			page 22
+
+
+ 299:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 300:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 301:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSP(void)
+ 302:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 303:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 304:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 305:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp" : "=r" (result) );
+ 306:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 307:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 308:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 309:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 310:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 311:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 312:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer (non-secure)
+ 313:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer (MSP) when in secure stat
+ 314:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 315:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 316:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
+ 317:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 318:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 319:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 320:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
+ 321:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 322:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 323:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 324:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 325:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 326:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 327:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer
+ 328:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer (MSP).
+ 329:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 330:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 331:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
+ 332:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 333:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
+ 334:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 335:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 336:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 337:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 338:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 339:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer (non-secure)
+ 340:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer (MSP) when in secure state.
+ 341:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 342:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 343:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSP_NS(uint32_t topOfMainStack)
+ 344:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 345:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
+ 346:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 347:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 348:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 349:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 350:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 351:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 352:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Stack Pointer (non-secure)
+ 353:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Stack Pointer (SP) when in secure state.
+ 354:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               SP Register value
+ 355:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccc8sFcY.s 			page 23
+
+
+ 356:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_SP_NS(void)
+ 357:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 358:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 359:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 360:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, sp_ns" : "=r" (result) );
+ 361:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 362:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 363:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 364:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 365:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 366:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Stack Pointer (non-secure)
+ 367:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Stack Pointer (SP) when in secure state.
+ 368:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfStack  Stack Pointer value to set
+ 369:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 370:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_SP_NS(uint32_t topOfStack)
+ 371:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 372:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR sp_ns, %0" : : "r" (topOfStack) : );
+ 373:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 374:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 375:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 376:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 377:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 378:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask
+ 379:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the priority mask bit from the Priority Mask Register.
+ 380:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 381:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 382:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PRIMASK(void)
+ 383:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 384:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 385:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 386:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask" : "=r" (result) :: "memory");
+ 387:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 388:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 389:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 390:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 391:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 392:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 393:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask (non-secure)
+ 394:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the non-secure priority mask bit from the Priority Mask Reg
+ 395:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 396:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 397:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PRIMASK_NS(void)
+ 398:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 399:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 400:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 401:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask_ns" : "=r" (result) :: "memory");
+ 402:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 403:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 404:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 405:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 406:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 407:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 408:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask
+ 409:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Priority Mask Register.
+ 410:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 411:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 412:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PRIMASK(uint32_t priMask)
+ARM GAS  /tmp/ccc8sFcY.s 			page 24
+
+
+ 413:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 414:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+ 415:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 416:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 417:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 418:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 419:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 420:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask (non-secure)
+ 421:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Priority Mask Register when in secure state.
+ 422:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 423:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 424:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PRIMASK_NS(uint32_t priMask)
+ 425:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 426:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
+ 427:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 428:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 429:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 430:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 431:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 432:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 433:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    )
+ 434:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 435:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Enable FIQ
+ 436:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 437:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 438:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 439:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_fault_irq(void)
+ 440:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 441:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie f" : : : "memory");
+ 442:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 443:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 444:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 445:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 446:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Disable FIQ
+ 447:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Disables FIQ interrupts by setting the F-bit in the CPSR.
+ 448:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 449:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 450:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_fault_irq(void)
+ 451:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 452:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid f" : : : "memory");
+ 453:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 454:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 455:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 456:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 457:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority
+ 458:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Base Priority register.
+ 459:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 460:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 461:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_BASEPRI(void)
+ 462:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 463:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 464:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 465:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri" : "=r" (result) );
+ 466:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 467:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 468:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 469:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccc8sFcY.s 			page 25
+
+
+ 470:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 471:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 472:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority (non-secure)
+ 473:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Base Priority register when in secure state.
+ 474:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 475:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 476:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_BASEPRI_NS(void)
+ 477:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 478:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 479:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 480:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri_ns" : "=r" (result) );
+ 481:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 482:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 483:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 484:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 485:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 486:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 487:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority
+ 488:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register.
+ 489:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 490:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 491:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI(uint32_t basePri)
+ 492:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 493:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri, %0" : : "r" (basePri) : "memory");
+ 494:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 495:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 496:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 497:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 498:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 499:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority (non-secure)
+ 500:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Base Priority register when in secure state.
+ 501:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 502:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 503:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_BASEPRI_NS(uint32_t basePri)
+ 504:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 505:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_ns, %0" : : "r" (basePri) : "memory");
+ 506:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 507:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 508:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 509:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 510:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 511:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority with condition
+ 512:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register only if BASEPRI masking is disable
+ 513:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            or the new value increases the BASEPRI priority level.
+ 514:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 515:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 516:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI_MAX(uint32_t basePri)
+ 517:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 518:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_max, %0" : : "r" (basePri) : "memory");
+ 519:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 520:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 521:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 522:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 523:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask
+ 524:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Fault Mask register.
+ 525:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 526:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ARM GAS  /tmp/ccc8sFcY.s 			page 26
+
+
+ 527:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FAULTMASK(void)
+ 528:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 529:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 530:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 531:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask" : "=r" (result) );
+ 532:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 533:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 534:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 535:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 536:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 537:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 538:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask (non-secure)
+ 539:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Fault Mask register when in secure state.
+ 540:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 541:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 542:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_FAULTMASK_NS(void)
+ 543:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 544:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 545:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 546:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask_ns" : "=r" (result) );
+ 547:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 548:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 549:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 550:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 551:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 552:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 553:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask
+ 554:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Fault Mask register.
+ 555:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 556:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 557:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FAULTMASK(uint32_t faultMask)
+ 558:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 559:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask, %0" : : "r" (faultMask) : "memory");
+ 560:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 561:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 562:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 563:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 564:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 565:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask (non-secure)
+ 566:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Fault Mask register when in secure state.
+ 567:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 568:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 569:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_FAULTMASK_NS(uint32_t faultMask)
+ 570:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 571:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask_ns, %0" : : "r" (faultMask) : "memory");
+ 572:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 573:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 574:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 575:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 576:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 577:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    ) */
+ 578:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 579:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 580:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 581:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    )
+ 582:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 583:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ARM GAS  /tmp/ccc8sFcY.s 			page 27
+
+
+ 584:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit
+ 585:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 586:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 587:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 588:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 589:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer Limit (PSPLIM).
+ 590:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 591:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 592:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSPLIM(void)
+ 593:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 594:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 595:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 596:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 597:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 598:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 599:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 600:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim"  : "=r" (result) );
+ 601:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 602:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 603:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 604:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 605:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3))
+ 606:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 607:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit (non-secure)
+ 608:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 609:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 610:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 611:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer Limit (PSPLIM) when in
+ 612:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 613:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 614:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSPLIM_NS(void)
+ 615:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 616:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 617:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 618:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 619:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 620:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 621:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim_ns"  : "=r" (result) );
+ 622:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 623:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 624:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 625:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 626:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 627:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 628:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 629:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer Limit
+ 630:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 631:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 632:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 633:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   
+ 634:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer Limit (PSPLIM).
+ 635:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 636:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 637:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSPLIM(uint32_t ProcStackPtrLimit)
+ 638:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 639:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 640:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ARM GAS  /tmp/ccc8sFcY.s 			page 28
+
+
+ 641:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 642:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 643:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 644:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim, %0" : : "r" (ProcStackPtrLimit));
+ 645:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 646:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 647:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 648:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 649:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 650:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 651:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 652:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 653:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 654:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 655:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer Limit (PSPLIM) when in s
+ 656:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 657:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 658:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSPLIM_NS(uint32_t ProcStackPtrLimit)
+ 659:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 660:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 661:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 662:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 663:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 664:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim_ns, %0\n" : : "r" (ProcStackPtrLimit));
+ 665:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 666:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 667:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 668:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 669:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 670:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 671:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit
+ 672:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 673:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 674:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 675:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 676:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer Limit (MSPLIM).
+ 677:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 678:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 679:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSPLIM(void)
+ 680:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 681:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 682:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 683:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 684:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 685:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 686:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 687:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim" : "=r" (result) );
+ 688:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 689:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 690:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 691:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 692:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 693:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 694:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 695:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit (non-secure)
+ 696:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 697:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ARM GAS  /tmp/ccc8sFcY.s 			page 29
+
+
+ 698:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 699:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer Limit(MSPLIM) when in sec
+ 700:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 701:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 702:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSPLIM_NS(void)
+ 703:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 704:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 705:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 706:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 707:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 708:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 709:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim_ns" : "=r" (result) );
+ 710:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return result;
+ 711:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 712:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 713:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 714:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 715:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 716:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 717:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit
+ 718:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 719:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 720:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   mode.
+ 721:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 722:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer Limit (MSPLIM).
+ 723:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer Limit value to set
+ 724:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 725:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSPLIM(uint32_t MainStackPtrLimit)
+ 726:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 727:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 728:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 729:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 730:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 731:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 732:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim, %0" : : "r" (MainStackPtrLimit));
+ 733:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 734:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 735:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 736:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 737:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 738:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 739:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit (non-secure)
+ 740:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 741:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 742:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 743:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer Limit (MSPLIM) when in secu
+ 744:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer value to set
+ 745:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 746:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSPLIM_NS(uint32_t MainStackPtrLimit)
+ 747:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 748:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 749:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 750:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 751:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 752:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim_ns, %0" : : "r" (MainStackPtrLimit));
+ 753:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 754:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ARM GAS  /tmp/ccc8sFcY.s 			page 30
+
+
+ 755:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 756:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 757:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 758:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    ) */
+ 759:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 760:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 761:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 762:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Get FPSCR
+ 763:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Floating Point Status/Control register.
+ 764:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Floating Point Status/Control register value
+ 765:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 766:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FPSCR(void)
+ 767:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 768:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 769:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 770:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_get_fpscr) 
+ 771:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 772:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 773:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 774:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_arm_get_fpscr();
+ 775:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 776:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 777:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 778:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMRS %0, fpscr" : "=r" (result) );
+ 779:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 780:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 781:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 782:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return(0U);
+ 783:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 784:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 785:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 786:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 787:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 788:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Set FPSCR
+ 789:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Floating Point Status/Control register.
+ 790:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    fpscr  Floating Point Status/Control value to set
+ 791:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 792:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
+ 793:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 794:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 795:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 796:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_set_fpscr)
+ 797:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 798:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 799:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 800:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __builtin_arm_set_fpscr(fpscr);
+ 801:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 802:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMSR fpscr, %0" : : "r" (fpscr) : "vfpcc", "memory");
+ 803:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 804:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 805:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   (void)fpscr;
+ 806:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 807:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 808:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 809:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 810:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /*@} end of CMSIS_Core_RegAccFunctions */
+ 811:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  /tmp/ccc8sFcY.s 			page 31
+
+
+ 812:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 813:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* ##########################  Core Instruction Access  ######################### */
+ 814:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+ 815:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   Access to dedicated instructions
+ 816:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   @{
+ 817:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** */
+ 818:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 819:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /* Define macros for porting to both thumb1 and thumb2.
+ 820:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * For thumb1, use low register (r0-r7), specified by constraint "l"
+ 821:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  * Otherwise, use general registers, specified by constraint "r" */
+ 822:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if defined (__thumb__) && !defined (__thumb2__)
+ 823:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=l" (r)
+ 824:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+l" (r)
+ 825:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "l" (r)
+ 826:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #else
+ 827:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=r" (r)
+ 828:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+r" (r)
+ 829:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "r" (r)
+ 830:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #endif
+ 831:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 832:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 833:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   No Operation
+ 834:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details No Operation does nothing. This instruction can be used for code alignment purposes.
+ 835:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 836:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __NOP()                             __ASM volatile ("nop")
+ 837:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 838:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 839:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Interrupt
+ 840:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Interrupt is a hint instruction that suspends execution until one of a number o
+ 841:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 842:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFI()                             __ASM volatile ("wfi")
+ 843:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 844:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 845:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 846:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Event
+ 847:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Wait For Event is a hint instruction that permits the processor to enter
+ 848:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            a low-power state until one of a number of events occurs.
+ 849:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 850:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __WFE()                             __ASM volatile ("wfe")
+ 851:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 852:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 853:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 854:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Send Event
+ 855:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 856:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 857:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #define __SEV()                             __ASM volatile ("sev")
+ 858:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 859:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 860:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 861:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Instruction Synchronization Barrier
+ 862:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 863:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            so that all instructions following the ISB are fetched from cache or memory,
+ 864:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            after the instruction has been completed.
+ 865:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 866:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __ISB(void)
+ 867:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 868:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("isb 0xF":::"memory");
+ARM GAS  /tmp/ccc8sFcY.s 			page 32
+
+
+ 869:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 870:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 871:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 872:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 873:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Synchronization Barrier
+ 874:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Acts as a special kind of Data Memory Barrier.
+ 875:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            It completes when all explicit memory accesses before this instruction complete.
+ 876:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 877:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DSB(void)
+ 878:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 879:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dsb 0xF":::"memory");
+ 880:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 881:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 882:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 883:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 884:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Data Memory Barrier
+ 885:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Ensures the apparent order of the explicit memory operations before
+ 886:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****            and after the instruction, without ensuring their completion.
+ 887:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 888:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DMB(void)
+ 889:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 890:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dmb 0xF":::"memory");
+ 891:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** }
+ 892:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 893:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** 
+ 894:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** /**
+ 895:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \brief   Reverse byte order (32 bit)
+ 896:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \details Reverses the byte order in unsigned integer value. For example, 0x12345678 becomes 0x785
+ 897:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \param [in]    value  Value to reverse
+ 898:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   \return               Reversed value
+ 899:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****  */
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __REV(uint32_t value)
+ 459              		.loc 2 900 31 view .LVU162
+ 460              	.LBB65:
+ 901:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 902:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** #if (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+ 903:STM32_XPD/CMSIS/Include/cmsis_gcc.h ****   return __builtin_bswap32(value);
+ 461              		.loc 2 903 3 view .LVU163
+ 462              		.loc 2 903 10 is_stmt 0 view .LVU164
+ 463 01a2 DAF80460 		ldr	r6, [r10, #4]
+ 464              	.LBE65:
+ 465              	.LBE64:
+ 214:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 466              		.loc 1 214 16 view .LVU165
+ 467 01a6 87F80C21 		strb	r2, [r7, #268]
+ 468              	.LBB67:
+ 469              	.LBB66:
+ 470              		.loc 2 903 10 view .LVU166
+ 471 01aa 36BA     		rev	r6, r6
+ 472              		.loc 2 903 10 view .LVU167
+ 473              	.LBE66:
+ 474              	.LBE67:
+ 475              	.LBE70:
+ 476              	.LBE74:
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 477              		.loc 1 258 11 view .LVU168
+ 478 01ac 854A     		ldr	r2, .L51+8
+ARM GAS  /tmp/ccc8sFcY.s 			page 33
+
+
+ 479              	.LBB75:
+ 480              	.LBB71:
+ 215:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 481              		.loc 1 215 3 view .LVU169
+ 482 01ae C7F80DC1 		str	ip, [r7, #269]	@ unaligned
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 483              		.loc 1 213 17 view .LVU170
+ 484 01b2 87F80B81 		strb	r8, [r7, #267]
+ 207:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_u32_option);
+ 485              		.loc 1 207 15 view .LVU171
+ 486 01b6 C7F80761 		str	r6, [r7, #263]	@ unaligned
+ 208:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 487              		.loc 1 208 3 is_stmt 1 view .LVU172
+ 488              	.LVL35:
+ 212:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_DNS_SERVER;
+ 489              		.loc 1 212 3 view .LVU173
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 490              		.loc 1 213 3 view .LVU174
+ 214:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 491              		.loc 1 214 3 view .LVU175
+ 215:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 492              		.loc 1 215 3 view .LVU176
+ 216:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif /* DNS_LOCAL_HOSTLIST */
+ 493              		.loc 1 216 3 view .LVU177
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 494              		.loc 1 220 3 view .LVU178
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 495              		.loc 1 220 27 is_stmt 0 view .LVU179
+ 496 01ba 87F811E1 		strb	lr, [r7, #273]
+ 497              	.LVL36:
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 498              		.loc 1 220 27 view .LVU180
+ 499              	.LBE71:
+ 500              	.LBE75:
+ 258:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 501              		.loc 1 258 11 is_stmt 1 view .LVU181
+ 502 01be FFF7FEFF 		bl	udp_sendto
+ 503              	.LVL37:
+ 259:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 504              		.loc 1 259 11 view .LVU182
+ 505 01c2 3AE7     		b	.L3
+ 506              	.LVL38:
+ 507              	.L6:
+ 263:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 508              		.loc 1 263 11 view .LVU183
+ 268:lwIP/src/apps/dhcp_server/dhcp_server.c ****                                         DHCP_OPTION_REQUESTED_IP,
+ 509              		.loc 1 268 11 view .LVU184
+ 510              	.LBB76:
+ 511              	.LBB77:
+ 140:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 512              		.loc 1 140 37 is_stmt 0 view .LVU185
+ 513 01c4 97F8F120 		ldrb	r2, [r7, #241]	@ zero_extendqisi2
+ 514              	.LBE77:
+ 515              	.LBE76:
+ 268:lwIP/src/apps/dhcp_server/dhcp_server.c ****                                         DHCP_OPTION_REQUESTED_IP,
+ 516              		.loc 1 268 44 view .LVU186
+ 517 01c8 07F1F00C 		add	ip, r7, #240
+ARM GAS  /tmp/ccc8sFcY.s 			page 34
+
+
+ 518              	.LVL39:
+ 519              	.LBB79:
+ 520              	.LBI76:
+ 138:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 521              		.loc 1 138 1 is_stmt 1 view .LVU187
+ 522              	.LBB78:
+ 140:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 523              		.loc 1 140 3 view .LVU188
+ 140:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 524              		.loc 1 140 19 is_stmt 0 view .LVU189
+ 525 01cc 0232     		adds	r2, r2, #2
+ 526              	.LVL40:
+ 140:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 527              		.loc 1 140 19 view .LVU190
+ 528 01ce 08E0     		b	.L14
+ 529              	.LVL41:
+ 530              	.L11:
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 531              		.loc 1 153 24 view .LVU191
+ 532 01d0 9EF80130 		ldrb	r3, [lr, #1]	@ zero_extendqisi2
+ 152:lwIP/src/apps/dhcp_server/dhcp_server.c ****     next += 2 + options[head + 1];
+ 533              		.loc 1 152 10 view .LVU192
+ 534 01d4 1046     		mov	r0, r2
+ 535 01d6 0233     		adds	r3, r3, #2
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 536              		.loc 1 153 10 view .LVU193
+ 537 01d8 1A44     		add	r2, r2, r3
+ 538              	.LVL42:
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 539              		.loc 1 153 10 view .LVU194
+ 540 01da 92B2     		uxth	r2, r2
+ 541              	.LVL43:
+ 155:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 542              		.loc 1 155 9 is_stmt 1 view .LVU195
+ 155:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 543              		.loc 1 155 3 is_stmt 0 view .LVU196
+ 544 01dc 442A     		cmp	r2, #68
+ 545 01de 3FF62CAF 		bhi	.L3
+ 546              	.L14:
+ 547              	.LVL44:
+ 142:lwIP/src/apps/dhcp_server/dhcp_server.c ****     /* find the option by type */
+ 548              		.loc 1 142 3 is_stmt 1 view .LVU197
+ 144:lwIP/src/apps/dhcp_server/dhcp_server.c ****       /* check if the size is correct */
+ 549              		.loc 1 144 5 view .LVU198
+ 152:lwIP/src/apps/dhcp_server/dhcp_server.c ****     next += 2 + options[head + 1];
+ 550              		.loc 1 152 5 view .LVU199
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 551              		.loc 1 153 5 view .LVU200
+ 144:lwIP/src/apps/dhcp_server/dhcp_server.c ****       /* check if the size is correct */
+ 552              		.loc 1 144 8 is_stmt 0 view .LVU201
+ 553 01e2 1CF80030 		ldrb	r3, [ip, r0]	@ zero_extendqisi2
+ 153:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 554              		.loc 1 153 24 view .LVU202
+ 555 01e6 0CEB020E 		add	lr, ip, r2
+ 144:lwIP/src/apps/dhcp_server/dhcp_server.c ****       /* check if the size is correct */
+ 556              		.loc 1 144 8 view .LVU203
+ 557 01ea 322B     		cmp	r3, #50
+ARM GAS  /tmp/ccc8sFcY.s 			page 35
+
+
+ 558 01ec F0D1     		bne	.L11
+ 146:lwIP/src/apps/dhcp_server/dhcp_server.c ****         /* return the pointer to the option data */
+ 559              		.loc 1 146 7 is_stmt 1 view .LVU204
+ 146:lwIP/src/apps/dhcp_server/dhcp_server.c ****         /* return the pointer to the option data */
+ 560              		.loc 1 146 18 is_stmt 0 view .LVU205
+ 561 01ee 6044     		add	r0, r0, ip
+ 146:lwIP/src/apps/dhcp_server/dhcp_server.c ****         /* return the pointer to the option data */
+ 562              		.loc 1 146 10 view .LVU206
+ 563 01f0 90F801B0 		ldrb	fp, [r0, #1]	@ zero_extendqisi2
+ 564 01f4 BBF1040F 		cmp	fp, #4
+ 565 01f8 7FF41FAF 		bne	.L3
+ 148:lwIP/src/apps/dhcp_server/dhcp_server.c ****       }
+ 566              		.loc 1 148 9 is_stmt 1 view .LVU207
+ 567              	.LVL45:
+ 148:lwIP/src/apps/dhcp_server/dhcp_server.c ****       }
+ 568              		.loc 1 148 9 is_stmt 0 view .LVU208
+ 569              	.LBE78:
+ 570              	.LBE79:
+ 271:lwIP/src/apps/dhcp_server/dhcp_server.c ****             break;
+ 571              		.loc 1 271 11 is_stmt 1 view .LVU209
+ 276:lwIP/src/apps/dhcp_server/dhcp_server.c ****             dhcp_srv_free_entry(entry);
+ 572              		.loc 1 276 11 view .LVU210
+ 276:lwIP/src/apps/dhcp_server/dhcp_server.c ****             dhcp_srv_free_entry(entry);
+ 573              		.loc 1 276 16 is_stmt 0 view .LVU211
+ 574 01fc 6F4B     		ldr	r3, .L51
+ 575 01fe D0F80200 		ldr	r0, [r0, #2]	@ unaligned
+ 576 0202 1944     		add	r1, r1, r3
+ 577 0204 CA68     		ldr	r2, [r1, #12]
+ 276:lwIP/src/apps/dhcp_server/dhcp_server.c ****             dhcp_srv_free_entry(entry);
+ 578              		.loc 1 276 14 view .LVU212
+ 579 0206 8242     		cmp	r2, r0
+ 580 0208 7FF44EAF 		bne	.L7
+ 281:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 581              		.loc 1 281 11 is_stmt 1 view .LVU213
+ 582              	.LVL46:
+ 583              	.LBB80:
+ 584              	.LBI80:
+ 161:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 585              		.loc 1 161 1 view .LVU214
+ 586              	.LBB81:
+ 163:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct dhcp_u32_option* u32_opt;
+ 587              		.loc 1 163 3 view .LVU215
+ 164:lwIP/src/apps/dhcp_server/dhcp_server.c ****   int opt_len = 0;
+ 588              		.loc 1 164 3 view .LVU216
+ 165:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 589              		.loc 1 165 3 view .LVU217
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 590              		.loc 1 168 3 view .LVU218
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 591              		.loc 1 172 15 is_stmt 0 view .LVU219
+ 592 020c 6323     		movs	r3, #99
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 593              		.loc 1 168 11 view .LVU220
+ 594 020e 4FF0020E 		mov	lr, #2
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 595              		.loc 1 169 13 view .LVU221
+ 596 0212 0021     		movs	r1, #0
+ARM GAS  /tmp/ccc8sFcY.s 			page 36
+
+
+ 171:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->cookie = PP_HTONL(DHCP_MAGIC_COOKIE);
+ 597              		.loc 1 171 3 view .LVU222
+ 598 0214 3A61     		str	r2, [r7, #16]	@ unaligned
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 599              		.loc 1 175 3 view .LVU223
+ 600 0216 6046     		mov	r0, ip
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 601              		.loc 1 172 15 view .LVU224
+ 602 0218 6FF07D02 		mvn	r2, #125
+ 603 021c 4FF0530C 		mov	ip, #83
+ 168:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->secs = 0;
+ 604              		.loc 1 168 11 view .LVU225
+ 605 0220 87F800E0 		strb	lr, [r7]
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 606              		.loc 1 169 3 is_stmt 1 view .LVU226
+ 170:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(msg->yiaddr, entry->ip4addr);
+ 607              		.loc 1 170 3 view .LVU227
+ 169:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->flags = 0;
+ 608              		.loc 1 169 13 is_stmt 0 view .LVU228
+ 609 0224 B960     		str	r1, [r7, #8]	@ unaligned
+ 171:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->cookie = PP_HTONL(DHCP_MAGIC_COOKIE);
+ 610              		.loc 1 171 3 is_stmt 1 view .LVU229
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 611              		.loc 1 172 3 view .LVU230
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 612              		.loc 1 198 17 is_stmt 0 view .LVU231
+ 613 0226 4FF03609 		mov	r9, #54
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 614              		.loc 1 172 15 view .LVU232
+ 615 022a 87F8EC30 		strb	r3, [r7, #236]
+ 616 022e 87F8EF30 		strb	r3, [r7, #239]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 617              		.loc 1 175 3 is_stmt 1 view .LVU233
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 618              		.loc 1 172 15 is_stmt 0 view .LVU234
+ 619 0232 87F8ED20 		strb	r2, [r7, #237]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 620              		.loc 1 175 3 view .LVU235
+ 621 0236 4422     		movs	r2, #68
+ 172:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 622              		.loc 1 172 15 view .LVU236
+ 623 0238 87F8EEC0 		strb	ip, [r7, #238]
+ 175:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 624              		.loc 1 175 3 view .LVU237
+ 625 023c FFF7FEFF 		bl	memset
+ 626              	.LVL47:
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 627              		.loc 1 178 3 is_stmt 1 view .LVU238
+ 179:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = msg_type;
+ 628              		.loc 1 179 3 view .LVU239
+ 180:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 629              		.loc 1 180 3 view .LVU240
+ 183:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SUBNET_MASK;
+ 630              		.loc 1 183 3 view .LVU241
+ 184:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 631              		.loc 1 184 3 view .LVU242
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ARM GAS  /tmp/ccc8sFcY.s 			page 37
+
+
+ 632              		.loc 1 186 3 is_stmt 0 view .LVU243
+ 633 0240 5E4B     		ldr	r3, .L51
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 634              		.loc 1 185 16 view .LVU244
+ 635 0242 87F8F4B0 		strb	fp, [r7, #244]
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 636              		.loc 1 191 17 view .LVU245
+ 637 0246 4FF0030C 		mov	ip, #3
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 638              		.loc 1 186 3 view .LVU246
+ 639 024a 5A68     		ldr	r2, [r3, #4]
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 640              		.loc 1 205 17 view .LVU247
+ 641 024c 4FF0330E 		mov	lr, #51
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 642              		.loc 1 178 27 view .LVU248
+ 643 0250 5D4B     		ldr	r3, .L51+12
+ 644              	.LBE81:
+ 645              	.LBE80:
+ 283:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 646              		.loc 1 283 11 view .LVU249
+ 647 0252 3046     		mov	r0, r6
+ 648              	.LBB89:
+ 649              	.LBB86:
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 650              		.loc 1 220 27 view .LVU250
+ 651 0254 FF26     		movs	r6, #255
+ 652              	.LVL48:
+ 178:lwIP/src/apps/dhcp_server/dhcp_server.c ****   msg->options[opt_len++] = 1;
+ 653              		.loc 1 178 27 view .LVU251
+ 654 0256 C7F8F030 		str	r3, [r7, #240]	@ unaligned
+ 185:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->netmask));
+ 655              		.loc 1 185 3 is_stmt 1 view .LVU252
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 656              		.loc 1 186 3 view .LVU253
+ 657              	.LBE86:
+ 658              	.LBE89:
+ 283:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 659              		.loc 1 283 11 is_stmt 0 view .LVU254
+ 660 025a 4346     		mov	r3, r8
+ 661              	.LBB90:
+ 662              	.LBB87:
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 663              		.loc 1 186 3 view .LVU255
+ 664 025c 5168     		ldr	r1, [r2, #4]
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 665              		.loc 1 191 17 view .LVU256
+ 666 025e 87F8F9C0 		strb	ip, [r7, #249]
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 667              		.loc 1 213 17 view .LVU257
+ 668 0262 4FF0060C 		mov	ip, #6
+ 192:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->gw));
+ 669              		.loc 1 192 16 view .LVU258
+ 670 0266 87F8FAB0 		strb	fp, [r7, #250]
+ 186:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 671              		.loc 1 186 3 view .LVU259
+ 672 026a C7F8F510 		str	r1, [r7, #245]	@ unaligned
+ARM GAS  /tmp/ccc8sFcY.s 			page 38
+
+
+ 187:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 673              		.loc 1 187 3 is_stmt 1 view .LVU260
+ 674              	.LVL49:
+ 190:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_ROUTER;
+ 675              		.loc 1 190 3 view .LVU261
+ 191:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 676              		.loc 1 191 3 view .LVU262
+ 192:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->gw));
+ 677              		.loc 1 192 3 view .LVU263
+ 193:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 678              		.loc 1 193 3 view .LVU264
+ 679 026e 9168     		ldr	r1, [r2, #8]
+ 199:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 680              		.loc 1 199 16 is_stmt 0 view .LVU265
+ 681 0270 87F800B1 		strb	fp, [r7, #256]
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 682              		.loc 1 198 17 view .LVU266
+ 683 0274 87F8FF90 		strb	r9, [r7, #255]
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 684              		.loc 1 200 3 view .LVU267
+ 685 0278 D2F80080 		ldr	r8, [r2]
+ 193:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 686              		.loc 1 193 3 view .LVU268
+ 687 027c C7F8FB10 		str	r1, [r7, #251]	@ unaligned
+ 194:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 688              		.loc 1 194 3 is_stmt 1 view .LVU269
+ 689              	.LVL50:
+ 197:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_SERVER_ID;
+ 690              		.loc 1 197 3 view .LVU270
+ 198:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 691              		.loc 1 198 3 view .LVU271
+ 199:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 692              		.loc 1 199 3 view .LVU272
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 693              		.loc 1 200 3 view .LVU273
+ 694              	.LBE87:
+ 695              	.LBE90:
+ 283:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 696              		.loc 1 283 11 is_stmt 0 view .LVU274
+ 697 0280 2146     		mov	r1, r4
+ 698              	.LBB91:
+ 699              	.LBB88:
+ 200:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 700              		.loc 1 200 3 view .LVU275
+ 701 0282 C7F80181 		str	r8, [r7, #257]	@ unaligned
+ 201:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 702              		.loc 1 201 3 is_stmt 1 view .LVU276
+ 703              	.LVL51:
+ 204:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->type = DHCP_OPTION_LEASE_TIME;
+ 704              		.loc 1 204 3 view .LVU277
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 705              		.loc 1 205 3 view .LVU278
+ 206:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->dw = lwip_htonl(entry->lease);
+ 706              		.loc 1 206 16 is_stmt 0 view .LVU279
+ 707 0286 87F806B1 		strb	fp, [r7, #262]
+ 205:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->len = sizeof(u32_opt->dw);
+ 708              		.loc 1 205 17 view .LVU280
+ARM GAS  /tmp/ccc8sFcY.s 			page 39
+
+
+ 709 028a 87F805E1 		strb	lr, [r7, #261]
+ 206:lwIP/src/apps/dhcp_server/dhcp_server.c ****   u32_opt->dw = lwip_htonl(entry->lease);
+ 710              		.loc 1 206 3 is_stmt 1 view .LVU281
+ 207:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_u32_option);
+ 711              		.loc 1 207 3 view .LVU282
+ 712              	.LVL52:
+ 713              	.LBB82:
+ 714              	.LBI82:
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 715              		.loc 2 900 31 view .LVU283
+ 716              	.LBB83:
+ 717              		.loc 2 903 3 view .LVU284
+ 718              		.loc 2 903 10 is_stmt 0 view .LVU285
+ 719 028e DAF80420 		ldr	r2, [r10, #4]
+ 720              	.LBE83:
+ 721              	.LBE82:
+ 215:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 722              		.loc 1 215 3 view .LVU286
+ 723 0292 C7F80D81 		str	r8, [r7, #269]	@ unaligned
+ 724              	.LVL53:
+ 725              	.LBB85:
+ 726              	.LBB84:
+ 727              		.loc 2 903 10 view .LVU287
+ 728 0296 12BA     		rev	r2, r2
+ 729              		.loc 2 903 10 view .LVU288
+ 730              	.LBE84:
+ 731              	.LBE85:
+ 214:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 732              		.loc 1 214 16 view .LVU289
+ 733 0298 87F80CB1 		strb	fp, [r7, #268]
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 734              		.loc 1 213 17 view .LVU290
+ 735 029c 87F80BC1 		strb	ip, [r7, #267]
+ 207:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_u32_option);
+ 736              		.loc 1 207 15 view .LVU291
+ 737 02a0 C7F80721 		str	r2, [r7, #263]	@ unaligned
+ 208:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 738              		.loc 1 208 3 is_stmt 1 view .LVU292
+ 739              	.LVL54:
+ 212:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->type = DHCP_OPTION_DNS_SERVER;
+ 740              		.loc 1 212 3 view .LVU293
+ 213:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_opt->len = sizeof(ip4_opt->addr);
+ 741              		.loc 1 213 3 view .LVU294
+ 214:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ip4_addr_copy(ip4_opt->addr, ip_2_ip4(dss.netif->ip_addr));
+ 742              		.loc 1 214 3 view .LVU295
+ 215:lwIP/src/apps/dhcp_server/dhcp_server.c ****   opt_len += sizeof(struct dhcp_ip4_option);
+ 743              		.loc 1 215 3 view .LVU296
+ 216:lwIP/src/apps/dhcp_server/dhcp_server.c **** #endif /* DNS_LOCAL_HOSTLIST */
+ 744              		.loc 1 216 3 view .LVU297
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 745              		.loc 1 220 3 view .LVU298
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 746              		.loc 1 220 27 is_stmt 0 view .LVU299
+ 747 02a4 87F81161 		strb	r6, [r7, #273]
+ 748              	.LVL55:
+ 220:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 749              		.loc 1 220 27 view .LVU300
+ARM GAS  /tmp/ccc8sFcY.s 			page 40
+
+
+ 750              	.LBE88:
+ 751              	.LBE91:
+ 283:lwIP/src/apps/dhcp_server/dhcp_server.c ****           break;
+ 752              		.loc 1 283 11 is_stmt 1 view .LVU301
+ 753 02a8 464A     		ldr	r2, .L51+8
+ 754 02aa FFF7FEFF 		bl	udp_sendto
+ 755              	.LVL56:
+ 284:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 756              		.loc 1 284 11 view .LVU302
+ 757 02ae C4E6     		b	.L3
+ 758              	.LVL57:
+ 759              	.L15:
+ 760              	.LBB92:
+ 761              	.LBB61:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 762              		.loc 1 121 32 view .LVU303
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 763              		.loc 1 121 15 view .LVU304
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 764              		.loc 1 121 3 is_stmt 0 view .LVU305
+ 765 02b0 BAF1010F 		cmp	r10, #1
+ 766 02b4 3FF4C1AE 		beq	.L3
+ 767              	.LVL58:
+ 768              	.LBB57:
+ 769              	.LBB53:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 770              		.loc 1 109 15 is_stmt 1 view .LVU306
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 771              		.loc 1 110 5 view .LVU307
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 772              		.loc 1 110 8 is_stmt 0 view .LVU308
+ 773 02b8 404A     		ldr	r2, .L51
+ 774 02ba 92F82430 		ldrb	r3, [r2, #36]	@ zero_extendqisi2
+ 775 02be FF2B     		cmp	r3, #255
+ 776 02c0 16D1     		bne	.L16
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 777              		.loc 1 109 48 is_stmt 1 view .LVU309
+ 778              	.LVL59:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 779              		.loc 1 109 15 view .LVU310
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 780              		.loc 1 110 5 view .LVU311
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 781              		.loc 1 110 8 is_stmt 0 view .LVU312
+ 782 02c2 92F82530 		ldrb	r3, [r2, #37]	@ zero_extendqisi2
+ 783 02c6 FF2B     		cmp	r3, #255
+ 784 02c8 12D1     		bne	.L16
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 785              		.loc 1 109 48 is_stmt 1 view .LVU313
+ 786              	.LVL60:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 787              		.loc 1 109 15 view .LVU314
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 788              		.loc 1 110 5 view .LVU315
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 789              		.loc 1 110 8 is_stmt 0 view .LVU316
+ 790 02ca 92F82630 		ldrb	r3, [r2, #38]	@ zero_extendqisi2
+ARM GAS  /tmp/ccc8sFcY.s 			page 41
+
+
+ 791 02ce FF2B     		cmp	r3, #255
+ 792 02d0 0ED1     		bne	.L16
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 793              		.loc 1 109 48 is_stmt 1 view .LVU317
+ 794              	.LVL61:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 795              		.loc 1 109 15 view .LVU318
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 796              		.loc 1 110 5 view .LVU319
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 797              		.loc 1 110 8 is_stmt 0 view .LVU320
+ 798 02d2 92F82730 		ldrb	r3, [r2, #39]	@ zero_extendqisi2
+ 799 02d6 FF2B     		cmp	r3, #255
+ 800 02d8 0AD1     		bne	.L16
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 801              		.loc 1 109 48 is_stmt 1 view .LVU321
+ 802              	.LVL62:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 803              		.loc 1 109 15 view .LVU322
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 804              		.loc 1 110 5 view .LVU323
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 805              		.loc 1 110 8 is_stmt 0 view .LVU324
+ 806 02da 92F82830 		ldrb	r3, [r2, #40]	@ zero_extendqisi2
+ 807 02de FF2B     		cmp	r3, #255
+ 808 02e0 06D1     		bne	.L16
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 809              		.loc 1 109 48 is_stmt 1 view .LVU325
+ 810              	.LVL63:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 811              		.loc 1 109 15 view .LVU326
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 812              		.loc 1 110 5 view .LVU327
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 813              		.loc 1 110 8 is_stmt 0 view .LVU328
+ 814 02e2 92F82930 		ldrb	r3, [r2, #41]	@ zero_extendqisi2
+ 815 02e6 FF2B     		cmp	r3, #255
+ 816 02e8 02D1     		bne	.L16
+ 817              	.LBE53:
+ 818              	.LBE57:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 819              		.loc 1 121 33 view .LVU329
+ 820 02ea 4FF0010A 		mov	r10, #1
+ 821 02ee 03E7     		b	.L10
+ 822              	.LVL64:
+ 823              	.L16:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 824              		.loc 1 121 32 is_stmt 1 view .LVU330
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 825              		.loc 1 121 15 view .LVU331
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 826              		.loc 1 121 3 is_stmt 0 view .LVU332
+ 827 02f0 BAF1020F 		cmp	r10, #2
+ 828 02f4 3FF4A1AE 		beq	.L3
+ 829              	.LVL65:
+ 830              	.LBB58:
+ 831              	.LBB54:
+ARM GAS  /tmp/ccc8sFcY.s 			page 42
+
+
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 832              		.loc 1 109 15 is_stmt 1 view .LVU333
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 833              		.loc 1 110 5 view .LVU334
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 834              		.loc 1 110 8 is_stmt 0 view .LVU335
+ 835 02f8 304A     		ldr	r2, .L51
+ 836 02fa 92F83430 		ldrb	r3, [r2, #52]	@ zero_extendqisi2
+ 837 02fe FF2B     		cmp	r3, #255
+ 838 0300 16D1     		bne	.L17
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 839              		.loc 1 109 48 is_stmt 1 view .LVU336
+ 840              	.LVL66:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 841              		.loc 1 109 15 view .LVU337
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 842              		.loc 1 110 5 view .LVU338
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 843              		.loc 1 110 8 is_stmt 0 view .LVU339
+ 844 0302 92F83530 		ldrb	r3, [r2, #53]	@ zero_extendqisi2
+ 845 0306 FF2B     		cmp	r3, #255
+ 846 0308 12D1     		bne	.L17
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 847              		.loc 1 109 48 is_stmt 1 view .LVU340
+ 848              	.LVL67:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 849              		.loc 1 109 15 view .LVU341
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 850              		.loc 1 110 5 view .LVU342
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 851              		.loc 1 110 8 is_stmt 0 view .LVU343
+ 852 030a 92F83630 		ldrb	r3, [r2, #54]	@ zero_extendqisi2
+ 853 030e FF2B     		cmp	r3, #255
+ 854 0310 0ED1     		bne	.L17
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 855              		.loc 1 109 48 is_stmt 1 view .LVU344
+ 856              	.LVL68:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 857              		.loc 1 109 15 view .LVU345
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 858              		.loc 1 110 5 view .LVU346
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 859              		.loc 1 110 8 is_stmt 0 view .LVU347
+ 860 0312 92F83730 		ldrb	r3, [r2, #55]	@ zero_extendqisi2
+ 861 0316 FF2B     		cmp	r3, #255
+ 862 0318 0AD1     		bne	.L17
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 863              		.loc 1 109 48 is_stmt 1 view .LVU348
+ 864              	.LVL69:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 865              		.loc 1 109 15 view .LVU349
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 866              		.loc 1 110 5 view .LVU350
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 867              		.loc 1 110 8 is_stmt 0 view .LVU351
+ 868 031a 92F83830 		ldrb	r3, [r2, #56]	@ zero_extendqisi2
+ 869 031e FF2B     		cmp	r3, #255
+ARM GAS  /tmp/ccc8sFcY.s 			page 43
+
+
+ 870 0320 06D1     		bne	.L17
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 871              		.loc 1 109 48 is_stmt 1 view .LVU352
+ 872              	.LVL70:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 873              		.loc 1 109 15 view .LVU353
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 874              		.loc 1 110 5 view .LVU354
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 875              		.loc 1 110 8 is_stmt 0 view .LVU355
+ 876 0322 92F83930 		ldrb	r3, [r2, #57]	@ zero_extendqisi2
+ 877 0326 FF2B     		cmp	r3, #255
+ 878 0328 02D1     		bne	.L17
+ 879              	.LBE54:
+ 880              	.LBE58:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 881              		.loc 1 121 33 view .LVU356
+ 882 032a 4FF0020A 		mov	r10, #2
+ 883 032e E3E6     		b	.L10
+ 884              	.LVL71:
+ 885              	.L17:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 886              		.loc 1 121 32 is_stmt 1 view .LVU357
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 887              		.loc 1 121 15 view .LVU358
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 888              		.loc 1 121 3 is_stmt 0 view .LVU359
+ 889 0330 BAF1030F 		cmp	r10, #3
+ 890 0334 3FF481AE 		beq	.L3
+ 891              	.LVL72:
+ 892              	.LBB59:
+ 893              	.LBB55:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 894              		.loc 1 109 15 is_stmt 1 view .LVU360
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 895              		.loc 1 110 5 view .LVU361
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 896              		.loc 1 110 8 is_stmt 0 view .LVU362
+ 897 0338 204A     		ldr	r2, .L51
+ 898 033a 92F84430 		ldrb	r3, [r2, #68]	@ zero_extendqisi2
+ 899 033e FF2B     		cmp	r3, #255
+ 900 0340 16D1     		bne	.L18
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 901              		.loc 1 109 48 is_stmt 1 view .LVU363
+ 902              	.LVL73:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 903              		.loc 1 109 15 view .LVU364
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 904              		.loc 1 110 5 view .LVU365
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 905              		.loc 1 110 8 is_stmt 0 view .LVU366
+ 906 0342 92F84530 		ldrb	r3, [r2, #69]	@ zero_extendqisi2
+ 907 0346 FF2B     		cmp	r3, #255
+ 908 0348 12D1     		bne	.L18
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 909              		.loc 1 109 48 is_stmt 1 view .LVU367
+ 910              	.LVL74:
+ARM GAS  /tmp/ccc8sFcY.s 			page 44
+
+
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 911              		.loc 1 109 15 view .LVU368
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 912              		.loc 1 110 5 view .LVU369
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 913              		.loc 1 110 8 is_stmt 0 view .LVU370
+ 914 034a 92F84630 		ldrb	r3, [r2, #70]	@ zero_extendqisi2
+ 915 034e FF2B     		cmp	r3, #255
+ 916 0350 0ED1     		bne	.L18
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 917              		.loc 1 109 48 is_stmt 1 view .LVU371
+ 918              	.LVL75:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 919              		.loc 1 109 15 view .LVU372
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 920              		.loc 1 110 5 view .LVU373
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 921              		.loc 1 110 8 is_stmt 0 view .LVU374
+ 922 0352 92F84730 		ldrb	r3, [r2, #71]	@ zero_extendqisi2
+ 923 0356 FF2B     		cmp	r3, #255
+ 924 0358 0AD1     		bne	.L18
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 925              		.loc 1 109 48 is_stmt 1 view .LVU375
+ 926              	.LVL76:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 927              		.loc 1 109 15 view .LVU376
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 928              		.loc 1 110 5 view .LVU377
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 929              		.loc 1 110 8 is_stmt 0 view .LVU378
+ 930 035a 92F84830 		ldrb	r3, [r2, #72]	@ zero_extendqisi2
+ 931 035e FF2B     		cmp	r3, #255
+ 932 0360 06D1     		bne	.L18
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 933              		.loc 1 109 48 is_stmt 1 view .LVU379
+ 934              	.LVL77:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 935              		.loc 1 109 15 view .LVU380
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 936              		.loc 1 110 5 view .LVU381
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 937              		.loc 1 110 8 is_stmt 0 view .LVU382
+ 938 0362 92F84930 		ldrb	r3, [r2, #73]	@ zero_extendqisi2
+ 939 0366 FF2B     		cmp	r3, #255
+ 940 0368 02D1     		bne	.L18
+ 941              	.LBE55:
+ 942              	.LBE59:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 943              		.loc 1 121 33 view .LVU383
+ 944 036a 4FF0030A 		mov	r10, #3
+ 945 036e C3E6     		b	.L10
+ 946              	.LVL78:
+ 947              	.L18:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 948              		.loc 1 121 32 is_stmt 1 view .LVU384
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 949              		.loc 1 121 15 view .LVU385
+ARM GAS  /tmp/ccc8sFcY.s 			page 45
+
+
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 950              		.loc 1 121 3 is_stmt 0 view .LVU386
+ 951 0370 BAF1040F 		cmp	r10, #4
+ 952 0374 3FF461AE 		beq	.L3
+ 953              	.LVL79:
+ 954              	.LBB60:
+ 955              	.LBB56:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 956              		.loc 1 109 15 is_stmt 1 view .LVU387
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 957              		.loc 1 110 5 view .LVU388
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 958              		.loc 1 110 8 is_stmt 0 view .LVU389
+ 959 0378 104A     		ldr	r2, .L51
+ 960 037a 92F85430 		ldrb	r3, [r2, #84]	@ zero_extendqisi2
+ 961 037e FF2B     		cmp	r3, #255
+ 962 0380 7FF45BAE 		bne	.L3
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 963              		.loc 1 109 48 is_stmt 1 view .LVU390
+ 964              	.LVL80:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 965              		.loc 1 109 15 view .LVU391
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 966              		.loc 1 110 5 view .LVU392
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 967              		.loc 1 110 8 is_stmt 0 view .LVU393
+ 968 0384 92F85530 		ldrb	r3, [r2, #85]	@ zero_extendqisi2
+ 969 0388 FF2B     		cmp	r3, #255
+ 970 038a 7FF456AE 		bne	.L3
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 971              		.loc 1 109 48 is_stmt 1 view .LVU394
+ 972              	.LVL81:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 973              		.loc 1 109 15 view .LVU395
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 974              		.loc 1 110 5 view .LVU396
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 975              		.loc 1 110 8 is_stmt 0 view .LVU397
+ 976 038e 92F85630 		ldrb	r3, [r2, #86]	@ zero_extendqisi2
+ 977 0392 FF2B     		cmp	r3, #255
+ 978 0394 7FF451AE 		bne	.L3
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 979              		.loc 1 109 48 is_stmt 1 view .LVU398
+ 980              	.LVL82:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 981              		.loc 1 109 15 view .LVU399
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 982              		.loc 1 110 5 view .LVU400
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 983              		.loc 1 110 8 is_stmt 0 view .LVU401
+ 984 0398 92F85730 		ldrb	r3, [r2, #87]	@ zero_extendqisi2
+ 985 039c FF2B     		cmp	r3, #255
+ 986 039e 7FF44CAE 		bne	.L3
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 987              		.loc 1 109 48 is_stmt 1 view .LVU402
+ 988              	.LVL83:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ARM GAS  /tmp/ccc8sFcY.s 			page 46
+
+
+ 989              		.loc 1 109 15 view .LVU403
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 990              		.loc 1 110 5 view .LVU404
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 991              		.loc 1 110 8 is_stmt 0 view .LVU405
+ 992 03a2 92F85830 		ldrb	r3, [r2, #88]	@ zero_extendqisi2
+ 993 03a6 FF2B     		cmp	r3, #255
+ 994 03a8 7FF447AE 		bne	.L3
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 995              		.loc 1 109 48 is_stmt 1 view .LVU406
+ 996              	.LVL84:
+ 109:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (entry->hwaddr[i] != hwaddr_free_val) {
+ 997              		.loc 1 109 15 view .LVU407
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 998              		.loc 1 110 5 view .LVU408
+ 110:lwIP/src/apps/dhcp_server/dhcp_server.c ****       return 0;
+ 999              		.loc 1 110 8 is_stmt 0 view .LVU409
+ 1000 03ac 92F85930 		ldrb	r3, [r2, #89]	@ zero_extendqisi2
+ 1001 03b0 FF2B     		cmp	r3, #255
+ 1002 03b2 7FF442AE 		bne	.L3
+ 1003              	.LBE56:
+ 1004              	.LBE60:
+ 121:lwIP/src/apps/dhcp_server/dhcp_server.c ****     if (dhcp_srv_is_entry_free(&dss.entry[i])) {
+ 1005              		.loc 1 121 33 view .LVU410
+ 1006 03b6 4FF0040A 		mov	r10, #4
+ 1007 03ba 9DE6     		b	.L10
+ 1008              	.L52:
+ 1009              		.align	2
+ 1010              	.L51:
+ 1011 03bc 00000000 		.word	.LANCHOR0
+ 1012 03c0 35010201 		.word	16908597
+ 1013 03c4 00000000 		.word	ip_addr_broadcast
+ 1014 03c8 35010501 		.word	17105205
+ 1015              	.LBE61:
+ 1016              	.LBE92:
+ 1017              	.LBE40:
+ 1018              	.LBE93:
+ 1019              		.cfi_endproc
+ 1020              	.LFE111:
+ 1022              		.section	.rodata.dhcp_server_init.str1.4,"aMS",%progbits,1
+ 1023              		.align	2
+ 1024              	.LC0:
+ 1025 0000 61646472 		.ascii	"addr_range <= DHCP_SERVER_MAX_CLIENTS\000"
+ 1025      5F72616E 
+ 1025      6765203C 
+ 1025      3D204448 
+ 1025      43505F53 
+ 1026 0026 0000     		.align	2
+ 1027              	.LC1:
+ 1028 0028 6E657469 		.ascii	"netif->ip_addr != addr_start\000"
+ 1028      662D3E69 
+ 1028      705F6164 
+ 1028      64722021 
+ 1028      3D206164 
+ 1029              		.section	.text.dhcp_server_init,"ax",%progbits
+ 1030              		.align	1
+ 1031              		.p2align 2,,3
+ARM GAS  /tmp/ccc8sFcY.s 			page 47
+
+
+ 1032              		.global	dhcp_server_init
+ 1033              		.syntax unified
+ 1034              		.thumb
+ 1035              		.thumb_func
+ 1036              		.fpu fpv4-sp-d16
+ 1038              	dhcp_server_init:
+ 1039              	.LVL85:
+ 1040              	.LFB112:
+ 301:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 302:lwIP/src/apps/dhcp_server/dhcp_server.c **** /** @ingroup dhcp_server
+ 303:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * Initialize DHCP server.
+ 304:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @param netif the interface acting as the DHCP server
+ 305:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @param addr_start first address of the DHCP-offered IP address range
+ 306:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @param addr_range amount of consecutive addresses to offer
+ 307:lwIP/src/apps/dhcp_server/dhcp_server.c ****  * @return OK if the UDP port setup succeeded
+ 308:lwIP/src/apps/dhcp_server/dhcp_server.c ****  */
+ 309:lwIP/src/apps/dhcp_server/dhcp_server.c **** err_t
+ 310:lwIP/src/apps/dhcp_server/dhcp_server.c **** dhcp_server_init(struct netif *netif, const ip4_addr_t *addr_start, u8_t addr_range)
+ 311:lwIP/src/apps/dhcp_server/dhcp_server.c **** {
+ 1041              		.loc 1 311 1 is_stmt 1 view -0
+ 1042              		.cfi_startproc
+ 1043              		@ args = 0, pretend = 0, frame = 0
+ 1044              		@ frame_needed = 0, uses_anonymous_args = 0
+ 312:lwIP/src/apps/dhcp_server/dhcp_server.c ****   err_t ret;
+ 1045              		.loc 1 312 3 view .LVU412
+ 313:lwIP/src/apps/dhcp_server/dhcp_server.c ****   struct udp_pcb *pcb;
+ 1046              		.loc 1 313 3 view .LVU413
+ 314:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****   LWIP_ASSERT("addr_range <= DHCP_SERVER_MAX_CLIENTS",
+ 1047              		.loc 1 315 3 view .LVU414
+ 1048              		.loc 1 315 3 view .LVU415
+ 1049 0000 052A     		cmp	r2, #5
+ 311:lwIP/src/apps/dhcp_server/dhcp_server.c ****   err_t ret;
+ 1050              		.loc 1 311 1 is_stmt 0 view .LVU416
+ 1051 0002 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 1052              	.LCFI5:
+ 1053              		.cfi_def_cfa_offset 32
+ 1054              		.cfi_offset 3, -32
+ 1055              		.cfi_offset 4, -28
+ 1056              		.cfi_offset 5, -24
+ 1057              		.cfi_offset 6, -20
+ 1058              		.cfi_offset 7, -16
+ 1059              		.cfi_offset 8, -12
+ 1060              		.cfi_offset 9, -8
+ 1061              		.cfi_offset 14, -4
+ 1062              		.loc 1 315 3 view .LVU417
+ 1063 0006 40D8     		bhi	.L67
+ 1064 0008 1746     		mov	r7, r2
+ 316:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****   LWIP_ASSERT("netif->ip_addr != addr_start",
+ 1065              		.loc 1 317 3 discriminator 2 view .LVU418
+ 1066 000a 0B68     		ldr	r3, [r1]
+ 1067 000c 0268     		ldr	r2, [r0]
+ 1068              	.LVL86:
+ 1069              		.loc 1 317 3 discriminator 2 view .LVU419
+ 1070 000e 8146     		mov	r9, r0
+ 1071 0010 8846     		mov	r8, r1
+ARM GAS  /tmp/ccc8sFcY.s 			page 48
+
+
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1072              		.loc 1 315 3 is_stmt 1 discriminator 2 view .LVU420
+ 1073              		.loc 1 317 3 discriminator 2 view .LVU421
+ 1074              		.loc 1 317 3 discriminator 2 view .LVU422
+ 1075 0012 9A42     		cmp	r2, r3
+ 1076 0014 35D0     		beq	.L68
+ 1077              		.loc 1 317 3 discriminator 2 view .LVU423
+ 318:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 319:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 320:lwIP/src/apps/dhcp_server/dhcp_server.c ****   pcb = udp_new_ip_type(IPADDR_TYPE_V4);
+ 1078              		.loc 1 320 3 discriminator 2 view .LVU424
+ 1079              		.loc 1 320 9 is_stmt 0 discriminator 2 view .LVU425
+ 1080 0016 0020     		movs	r0, #0
+ 1081              	.LVL87:
+ 1082              		.loc 1 320 9 discriminator 2 view .LVU426
+ 1083 0018 FFF7FEFF 		bl	udp_new_ip_type
+ 1084              	.LVL88:
+ 321:lwIP/src/apps/dhcp_server/dhcp_server.c ****   if (pcb == NULL) {
+ 1085              		.loc 1 321 3 is_stmt 1 discriminator 2 view .LVU427
+ 1086              		.loc 1 321 6 is_stmt 0 discriminator 2 view .LVU428
+ 1087 001c 0646     		mov	r6, r0
+ 1088 001e 0028     		cmp	r0, #0
+ 1089 0020 3DD0     		beq	.L62
+ 322:lwIP/src/apps/dhcp_server/dhcp_server.c ****     return ERR_MEM;
+ 323:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 324:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 325:lwIP/src/apps/dhcp_server/dhcp_server.c ****   ret = udp_bind(pcb, IP_ANY_TYPE, LWIP_IANA_PORT_DHCP_SERVER);
+ 1090              		.loc 1 325 3 is_stmt 1 view .LVU429
+ 1091              		.loc 1 325 9 is_stmt 0 view .LVU430
+ 1092 0022 4322     		movs	r2, #67
+ 1093 0024 1F49     		ldr	r1, .L70
+ 1094 0026 FFF7FEFF 		bl	udp_bind
+ 1095              	.LVL89:
+ 326:lwIP/src/apps/dhcp_server/dhcp_server.c ****   if (ret != ERR_OK) {
+ 1096              		.loc 1 326 3 is_stmt 1 view .LVU431
+ 1097              		.loc 1 326 6 is_stmt 0 view .LVU432
+ 1098 002a 0446     		mov	r4, r0
+ 1099 002c 88BB     		cbnz	r0, .L69
+ 1100              	.LBB94:
+ 327:lwIP/src/apps/dhcp_server/dhcp_server.c ****     udp_remove(pcb);
+ 328:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 329:lwIP/src/apps/dhcp_server/dhcp_server.c ****   else {
+ 330:lwIP/src/apps/dhcp_server/dhcp_server.c ****     u8_t i;
+ 1101              		.loc 1 330 5 is_stmt 1 view .LVU433
+ 331:lwIP/src/apps/dhcp_server/dhcp_server.c ****     dss.netif = netif;
+ 1102              		.loc 1 331 5 view .LVU434
+ 1103              		.loc 1 331 15 is_stmt 0 view .LVU435
+ 1104 002e 1E4D     		ldr	r5, .L70+4
+ 332:lwIP/src/apps/dhcp_server/dhcp_server.c ****     dss.entries = addr_range;
+ 1105              		.loc 1 332 17 view .LVU436
+ 1106 0030 C5E90197 		strd	r9, r7, [r5, #4]
+ 333:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 334:lwIP/src/apps/dhcp_server/dhcp_server.c ****     /* initialize entry IPs sequentially, HW addresses to free */
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****     for (i = 0; i < dss.entries; i++) {
+ 1107              		.loc 1 335 5 is_stmt 1 view .LVU437
+ 1108              	.LVL90:
+ 1109              		.loc 1 335 17 view .LVU438
+ARM GAS  /tmp/ccc8sFcY.s 			page 49
+
+
+ 1110              		.loc 1 335 5 is_stmt 0 view .LVU439
+ 1111 0034 EFB1     		cbz	r7, .L60
+ 1112 0036 8646     		mov	lr, r0
+ 1113              		.loc 1 335 12 view .LVU440
+ 1114 0038 0346     		mov	r3, r0
+ 1115              		.loc 1 335 19 view .LVU441
+ 1116 003a 0246     		mov	r2, r0
+ 336:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 337:lwIP/src/apps/dhcp_server/dhcp_server.c ****       dss.entry[i].lease = DHCP_SERVER_LEASE_TIME;
+ 1117              		.loc 1 337 26 view .LVU442
+ 1118 003c 4FF4616C 		mov	ip, #3600
+ 338:lwIP/src/apps/dhcp_server/dhcp_server.c ****       memset(dss.entry[i].hwaddr, hwaddr_free_val, sizeof(dss.entry[0].hwaddr));
+ 1119              		.loc 1 338 7 view .LVU443
+ 1120 0040 4FF0FF37 		mov	r7, #-1
+ 1121              	.LVL91:
+ 1122              	.L61:
+ 336:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1123              		.loc 1 336 7 is_stmt 1 discriminator 3 view .LVU444
+ 1124              	.LBB95:
+ 1125              	.LBI95:
+ 900:STM32_XPD/CMSIS/Include/cmsis_gcc.h **** {
+ 1126              		.loc 2 900 31 discriminator 3 view .LVU445
+ 1127              	.LBE95:
+ 1128              	.LBE94:
+ 1129              		.loc 2 903 3 discriminator 3 view .LVU446
+ 1130              	.LBB96:
+ 1131              		.loc 1 338 26 is_stmt 0 discriminator 3 view .LVU447
+ 1132 0044 1001     		lsls	r0, r2, #4
+ 336:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1133              		.loc 1 336 7 discriminator 3 view .LVU448
+ 1134 0046 D8F80010 		ldr	r1, [r8]
+ 1135 004a 05EB0212 		add	r2, r5, r2, lsl #4
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1136              		.loc 1 335 35 discriminator 3 view .LVU449
+ 1137 004e 0133     		adds	r3, r3, #1
+ 1138              	.LVL92:
+ 1139              		.loc 1 338 26 discriminator 3 view .LVU450
+ 1140 0050 1430     		adds	r0, r0, #20
+ 336:lwIP/src/apps/dhcp_server/dhcp_server.c ****       dss.entry[i].lease = DHCP_SERVER_LEASE_TIME;
+ 1141              		.loc 1 336 7 discriminator 3 view .LVU451
+ 1142 0052 7144     		add	r1, r1, lr
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1143              		.loc 1 335 35 discriminator 3 view .LVU452
+ 1144 0054 DBB2     		uxtb	r3, r3
+ 337:lwIP/src/apps/dhcp_server/dhcp_server.c ****       memset(dss.entry[i].hwaddr, hwaddr_free_val, sizeof(dss.entry[0].hwaddr));
+ 1145              		.loc 1 337 26 discriminator 3 view .LVU453
+ 1146 0056 C2F810C0 		str	ip, [r2, #16]
+ 1147              		.loc 1 338 26 discriminator 3 view .LVU454
+ 1148 005a 05EB000E 		add	lr, r5, r0
+ 336:lwIP/src/apps/dhcp_server/dhcp_server.c ****       dss.entry[i].lease = DHCP_SERVER_LEASE_TIME;
+ 1149              		.loc 1 336 7 discriminator 3 view .LVU455
+ 1150 005e D160     		str	r1, [r2, #12]
+ 337:lwIP/src/apps/dhcp_server/dhcp_server.c ****       memset(dss.entry[i].hwaddr, hwaddr_free_val, sizeof(dss.entry[0].hwaddr));
+ 1151              		.loc 1 337 7 is_stmt 1 discriminator 3 view .LVU456
+ 1152              		.loc 1 338 7 discriminator 3 view .LVU457
+ 1153 0060 2F50     		str	r7, [r5, r0]
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ARM GAS  /tmp/ccc8sFcY.s 			page 50
+
+
+ 1154              		.loc 1 335 19 is_stmt 0 discriminator 3 view .LVU458
+ 1155 0062 1A46     		mov	r2, r3
+ 1156              		.loc 1 338 7 discriminator 3 view .LVU459
+ 1157 0064 AEF80470 		strh	r7, [lr, #4]	@ movhi
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1158              		.loc 1 335 34 is_stmt 1 discriminator 3 view .LVU460
+ 1159              	.LVL93:
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1160              		.loc 1 335 17 discriminator 3 view .LVU461
+ 1161 0068 93FA83FE 		rev	lr, r3
+ 335:lwIP/src/apps/dhcp_server/dhcp_server.c ****       ip4_addr_set_u32(&dss.entry[i].ip4addr, ip4_addr_get_u32(addr_start) + lwip_htonl(i));
+ 1162              		.loc 1 335 5 is_stmt 0 discriminator 3 view .LVU462
+ 1163 006c A968     		ldr	r1, [r5, #8]
+ 1164 006e 8B42     		cmp	r3, r1
+ 1165 0070 E8DB     		blt	.L61
+ 1166              	.LVL94:
+ 1167              	.L60:
+ 339:lwIP/src/apps/dhcp_server/dhcp_server.c ****     }
+ 340:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 341:lwIP/src/apps/dhcp_server/dhcp_server.c ****     udp_recv(pcb, dhcp_srv_recv, NULL);
+ 1168              		.loc 1 341 5 is_stmt 1 view .LVU463
+ 1169 0072 3046     		mov	r0, r6
+ 1170 0074 0022     		movs	r2, #0
+ 1171 0076 0D49     		ldr	r1, .L70+8
+ 1172 0078 FFF7FEFF 		bl	udp_recv
+ 1173              	.LVL95:
+ 1174              	.L58:
+ 1175              		.loc 1 341 5 is_stmt 0 view .LVU464
+ 1176              	.LBE96:
+ 342:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 343:lwIP/src/apps/dhcp_server/dhcp_server.c **** 
+ 344:lwIP/src/apps/dhcp_server/dhcp_server.c ****   return ret;
+ 345:lwIP/src/apps/dhcp_server/dhcp_server.c **** }
+ 1177              		.loc 1 345 1 view .LVU465
+ 1178 007c 2046     		mov	r0, r4
+ 1179 007e BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 1180              	.LVL96:
+ 1181              	.L68:
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1182              		.loc 1 317 3 is_stmt 1 discriminator 1 view .LVU466
+ 1183 0082 0B48     		ldr	r0, .L70+12
+ 1184              	.LVL97:
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1185              		.loc 1 317 3 is_stmt 0 discriminator 1 view .LVU467
+ 1186 0084 FFF7FEFF 		bl	printf
+ 1187              	.LVL98:
+ 1188              	.L57:
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1189              		.loc 1 317 3 is_stmt 1 discriminator 2 view .LVU468
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1190              		.loc 1 317 3 discriminator 2 view .LVU469
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1191              		.loc 1 317 3 discriminator 2 view .LVU470
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1192              		.loc 1 317 3 discriminator 2 view .LVU471
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1193              		.loc 1 317 3 discriminator 2 view .LVU472
+ARM GAS  /tmp/ccc8sFcY.s 			page 51
+
+
+ 317:lwIP/src/apps/dhcp_server/dhcp_server.c ****               !ip4_addr_cmp(&ip_2_ip4(netif->ip_addr), addr_start));
+ 1194              		.loc 1 317 3 discriminator 2 view .LVU473
+ 1195 0088 FEE7     		b	.L57
+ 1196              	.LVL99:
+ 1197              	.L67:
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1198              		.loc 1 315 3 discriminator 1 view .LVU474
+ 1199 008a 0A48     		ldr	r0, .L70+16
+ 1200              	.LVL100:
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1201              		.loc 1 315 3 is_stmt 0 discriminator 1 view .LVU475
+ 1202 008c FFF7FEFF 		bl	printf
+ 1203              	.LVL101:
+ 1204              	.L55:
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1205              		.loc 1 315 3 is_stmt 1 discriminator 1 view .LVU476
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1206              		.loc 1 315 3 discriminator 1 view .LVU477
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1207              		.loc 1 315 3 discriminator 1 view .LVU478
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1208              		.loc 1 315 3 discriminator 1 view .LVU479
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1209              		.loc 1 315 3 discriminator 1 view .LVU480
+ 315:lwIP/src/apps/dhcp_server/dhcp_server.c ****               addr_range <= LWIP_ARRAYSIZE(dss.entry));
+ 1210              		.loc 1 315 3 discriminator 1 view .LVU481
+ 1211 0090 FEE7     		b	.L55
+ 1212              	.LVL102:
+ 1213              	.L69:
+ 327:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 1214              		.loc 1 327 5 view .LVU482
+ 1215 0092 3046     		mov	r0, r6
+ 1216              	.LVL103:
+ 327:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 1217              		.loc 1 327 5 is_stmt 0 view .LVU483
+ 1218 0094 FFF7FEFF 		bl	udp_remove
+ 1219              	.LVL104:
+ 1220              		.loc 1 345 1 view .LVU484
+ 1221 0098 2046     		mov	r0, r4
+ 1222 009a BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 1223              	.LVL105:
+ 1224              	.L62:
+ 322:lwIP/src/apps/dhcp_server/dhcp_server.c ****   }
+ 1225              		.loc 1 322 12 view .LVU485
+ 1226 009e 4FF0FF34 		mov	r4, #-1
+ 1227 00a2 EBE7     		b	.L58
+ 1228              	.L71:
+ 1229              		.align	2
+ 1230              	.L70:
+ 1231 00a4 00000000 		.word	ip_addr_any
+ 1232 00a8 00000000 		.word	.LANCHOR0
+ 1233 00ac 00000000 		.word	dhcp_srv_recv
+ 1234 00b0 28000000 		.word	.LC1
+ 1235 00b4 00000000 		.word	.LC0
+ 1236              		.cfi_endproc
+ 1237              	.LFE112:
+ 1239              		.section	.bss.dss,"aw",%nobits
+ARM GAS  /tmp/ccc8sFcY.s 			page 52
+
+
+ 1240              		.align	2
+ 1241              		.set	.LANCHOR0,. + 0
+ 1244              	dss:
+ 1245 0000 00000000 		.space	92
+ 1245      00000000 
+ 1245      00000000 
+ 1245      00000000 
+ 1245      00000000 
+ 1246              		.text
+ 1247              	.Letext0:
+ 1248              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1249              		.file 4 "/usr/arm-none-eabi/include/sys/lock.h"
+ 1250              		.file 5 "/usr/arm-none-eabi/include/sys/_types.h"
+ 1251              		.file 6 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 1252              		.file 7 "/usr/arm-none-eabi/include/sys/reent.h"
+ 1253              		.file 8 "/usr/arm-none-eabi/include/stdlib.h"
+ 1254              		.file 9 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1255              		.file 10 "lwIP/src/include/lwip/arch.h"
+ 1256              		.file 11 "/usr/arm-none-eabi/include/ctype.h"
+ 1257              		.file 12 "lwIP/src/include/lwip/err.h"
+ 1258              		.file 13 "lwIP/src/include/lwip/ip4_addr.h"
+ 1259              		.file 14 "lwIP/src/include/lwip/ip_addr.h"
+ 1260              		.file 15 "lwIP/src/include/lwip/pbuf.h"
+ 1261              		.file 16 "lwIP/src/include/lwip/priv/memp_priv.h"
+ 1262              		.file 17 "lwIP/src/include/lwip/memp.h"
+ 1263              		.file 18 "lwIP/src/include/lwip/netif.h"
+ 1264              		.file 19 "lwIP/src/include/lwip/dns.h"
+ 1265              		.file 20 "lwIP/src/include/lwip/prot/ip4.h"
+ 1266              		.file 21 "lwIP/src/include/lwip/ip.h"
+ 1267              		.file 22 "lwIP/src/include/lwip/udp.h"
+ 1268              		.file 23 "lwIP/src/include/lwip/timeouts.h"
+ 1269              		.file 24 "lwIP/src/include/lwip/prot/dhcp.h"
+ 1270              		.file 25 "lwIP/src/include/lwip/prot/iana.h"
+ 1271              		.file 26 "/usr/arm-none-eabi/include/stdio.h"
+ 1272              		.file 27 "<built-in>"
+ARM GAS  /tmp/ccc8sFcY.s 			page 53
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 dhcp_server.c
+     /tmp/ccc8sFcY.s:18     .text.dhcp_srv_recv:0000000000000000 $t
+     /tmp/ccc8sFcY.s:26     .text.dhcp_srv_recv:0000000000000000 dhcp_srv_recv
+     /tmp/ccc8sFcY.s:1011   .text.dhcp_srv_recv:00000000000003bc $d
+     /tmp/ccc8sFcY.s:1023   .rodata.dhcp_server_init.str1.4:0000000000000000 $d
+     /tmp/ccc8sFcY.s:1030   .text.dhcp_server_init:0000000000000000 $t
+     /tmp/ccc8sFcY.s:1038   .text.dhcp_server_init:0000000000000000 dhcp_server_init
+     /tmp/ccc8sFcY.s:1231   .text.dhcp_server_init:00000000000000a4 $d
+     /tmp/ccc8sFcY.s:1240   .bss.dss:0000000000000000 $d
+     /tmp/ccc8sFcY.s:1244   .bss.dss:0000000000000000 dss
+
+UNDEFINED SYMBOLS
+pbuf_alloc
+pbuf_take
+pbuf_free
+memcmp
+memset
+udp_sendto
+ip_addr_broadcast
+udp_new_ip_type
+udp_bind
+udp_recv
+printf
+udp_remove
+ip_addr_any

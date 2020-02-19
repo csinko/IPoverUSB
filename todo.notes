@@ -1,0 +1,18 @@
+bsp_io.h
+  -Input/verify correct pins for USB, Button, and LEDs in bsp_io.h
+
+bsp_system.c
+  -Determine clock configurations for USB/System
+
+bsp_usb.c
+  -Setup NVIC/USB configuration settings
+
+startup assembly file
+  -Add the correct one, add it to the makefile?
+
+stm32_flash.ld
+  -Add correct linker script
+
+
+
+

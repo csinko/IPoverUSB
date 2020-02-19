@@ -1,0 +1,908 @@
+ARM GAS  /tmp/ccNsyR55.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_rcc_pc.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.I2C_ulClockFreq_Hz,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	I2C_ulClockFreq_Hz
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	I2C_ulClockFreq_Hz:
+  28              	.LVL0:
+  29              	.LFB190:
+  30              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * @file    xpd_rcc_pc.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * @version 0.2
+   6:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * @brief   STM32 eXtensible Peripheral Drivers RCC Peripheral Clocks Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_rcc.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_i2c.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_pwr.h>
+  26:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_rtc.h>
+  27:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_tim.h>
+  28:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_usart.h>
+ARM GAS  /tmp/ccNsyR55.s 			page 2
+
+
+  29:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #include <xpd_utils.h>
+  30:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  31:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @ingroup I2C_Clock_Source
+  32:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @defgroup I2C_Clock_Source_Exported_Functions I2C Clock Source Exported Functions
+  33:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @{ */
+  34:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  35:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+  36:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Returns the input clock frequency of the I2C.
+  37:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @param hi2c: pointer to the I2C handle structure
+  38:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @return The clock frequency of the I2C in Hz
+  39:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+  40:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** uint32_t I2C_ulClockFreq_Hz(I2C_HandleType * hi2c)
+  41:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+  31              		.loc 1 41 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  42:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     return RCC_ulClockFreq_Hz(PCLK1);
+  36              		.loc 1 42 5 view .LVU1
+  37              		.loc 1 42 12 is_stmt 0 view .LVU2
+  38 0000 0420     		movs	r0, #4
+  39              	.LVL1:
+  40              		.loc 1 42 12 view .LVU3
+  41 0002 FFF7FEBF 		b	RCC_ulClockFreq_Hz
+  42              	.LVL2:
+  43              		.cfi_endproc
+  44              	.LFE190:
+  46 0006 00BF     		.section	.text.XPD_RTC_eClockConfig,"ax",%progbits
+  47              		.align	1
+  48              		.p2align 2,,3
+  49              		.global	XPD_RTC_eClockConfig
+  50              		.syntax unified
+  51              		.thumb
+  52              		.thumb_func
+  53              		.fpu fpv4-sp-d16
+  55              	XPD_RTC_eClockConfig:
+  56              	.LVL3:
+  57              	.LFB191:
+  43:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+  44:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  45:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @} */
+  46:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  47:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @ingroup RTC_Clock_Source
+  48:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @defgroup RTC_Clock_Source_Exported_Functions RTC Clock Source Exported Functions
+  49:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @{ */
+  50:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  51:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+  52:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Sets the new source clock for the RTC.
+  53:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @param eClockSource: the new source clock which should be configured
+  54:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @return Result of the operation
+  55:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+  56:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** XPD_ReturnType XPD_RTC_eClockConfig(RTC_ClockSourceType eClockSource)
+  57:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+  58              		.loc 1 57 1 is_stmt 1 view -0
+  59              		.cfi_startproc
+  60              		@ args = 0, pretend = 0, frame = 8
+ARM GAS  /tmp/ccNsyR55.s 			page 3
+
+
+  61              		@ frame_needed = 0, uses_anonymous_args = 0
+  58:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulBDCR;
+  62              		.loc 1 58 5 view .LVU5
+  59:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     XPD_ReturnType eResult;
+  63              		.loc 1 59 5 view .LVU6
+  60:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulTimeout = RCC_DBP_TIMEOUT;
+  64              		.loc 1 60 5 view .LVU7
+  57:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulBDCR;
+  65              		.loc 1 57 1 is_stmt 0 view .LVU8
+  66 0000 30B5     		push	{r4, r5, lr}
+  67              	.LCFI0:
+  68              		.cfi_def_cfa_offset 12
+  69              		.cfi_offset 4, -12
+  70              		.cfi_offset 5, -8
+  71              		.cfi_offset 14, -4
+  72              		.loc 1 60 14 view .LVU9
+  73 0002 6423     		movs	r3, #100
+  57:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulBDCR;
+  74              		.loc 1 57 1 view .LVU10
+  75 0004 83B0     		sub	sp, sp, #12
+  76              	.LCFI1:
+  77              		.cfi_def_cfa_offset 24
+  61:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  62:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* enable write access to backup domain */
+  63:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     PWR->CR1 |= PWR_CR1_DBP;
+  78              		.loc 1 63 14 view .LVU11
+  79 0006 204C     		ldr	r4, .L15
+  57:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulBDCR;
+  80              		.loc 1 57 1 view .LVU12
+  81 0008 0546     		mov	r5, r0
+  60:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  82              		.loc 1 60 14 view .LVU13
+  83 000a 0193     		str	r3, [sp, #4]
+  84              		.loc 1 63 5 is_stmt 1 view .LVU14
+  85              		.loc 1 63 14 is_stmt 0 view .LVU15
+  86 000c 2368     		ldr	r3, [r4]
+  87 000e 43F48073 		orr	r3, r3, #256
+  88 0012 2360     		str	r3, [r4]
+  64:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  65:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* wait for backup domain write protection disable */
+  66:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     eResult = XPD_eWaitForMatch(&PWR->CR1, PWR_CR1_DBP, PWR_CR1_DBP, &ulTimeout);
+  89              		.loc 1 66 5 is_stmt 1 view .LVU16
+  90              	.LVL4:
+  91              	.LBB7:
+  92              	.LBI7:
+  93              		.file 2 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+   1:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+   2:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @file    xpd_utils.h
+   4:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * @brief   STM32 eXtensible Peripheral Drivers Utilities
+   8:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+   9:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  11:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+ARM GAS  /tmp/ccNsyR55.s 			page 4
+
+
+  12:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  15:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   *
+  17:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****   */
+  23:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef __XPD_UTILS_H_
+  24:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define __XPD_UTILS_H_
+  25:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  26:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifdef __cplusplus
+  27:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** extern "C"
+  28:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  29:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  30:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  31:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #include <xpd_common.h>
+  32:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  33:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Utils XPD Utilities
+  34:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  35:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  36:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Types XPD Exported Types
+  37:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  38:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  39:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @brief Time service functions structure */
+  40:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** typedef struct
+  41:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+  42:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Init)         (uint32_t ulCoreFreq_Hz);
+  43:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Prepares the time service for operation */
+  44:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  45:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     void            (*Block_ms)     (uint32_t ulBlocktime_ms);
+  46:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks the thread for the specified time */
+  47:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  48:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*MatchBlock_ms)(volatile uint32_t* pulVarAddress,
+  49:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  50:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  51:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  52:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address matches the input ulMatch, or until times 
+  53:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  54:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_ReturnType  (*DiffBlock_ms) (volatile uint32_t* pulVarAddress,
+  55:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulBitSelector,
+  56:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t ulMatch,
+  57:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****                                      uint32_t * pulTimeout);
+  58:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     /*!< Blocks until the masked value read from address differs from the input ulMatch, or until t
+  59:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  60:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }XPD_TimeServiceType;
+  61:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  62:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  63:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  64:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @defgroup XPD_Exported_Macros XPD Exported Macros
+  65:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  66:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  67:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_ENTER_CRITICAL
+  68:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ARM GAS  /tmp/ccNsyR55.s 			page 5
+
+
+  69:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Enters a critical section by disabling interrupts.
+  70:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  71:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  72:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_ENTER_CRITICAL(HANDLE)
+  73:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  74:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  75:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #ifndef XPD_EXIT_CRITICAL
+  76:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  77:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Leaves a critical section by enabling interrupts.
+  78:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param HANDLE: pointer to the requester handle
+  79:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+  80:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #define         XPD_EXIT_CRITICAL(HANDLE)
+  81:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** #endif
+  82:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  83:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @} */
+  84:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  85:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions
+  86:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  87:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  88:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /** @addtogroup XPD_Exported_Functions_Timer
+  89:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @{ */
+  90:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** const XPD_TimeServiceType* XPD_pxTimeService(void);
+  91:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vSetTimeService     (const XPD_TimeServiceType* pxTimeService);
+  92:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vResetTimeService   (void);
+  93:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  94:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** void            XPD_vDelay_us           (uint32_t ulMicroseconds);
+  95:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+  96:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+  97:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Initialize the timer of the XPD time service.
+  98:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulCoreFreq_Hz: the new core frequency in Hz
+  99:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 100:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vInitTimer(uint32_t ulCoreFreq_Hz)
+ 101:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 102:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Init(ulCoreFreq_Hz);
+ 103:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 104:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 105:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 106:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Insert a delay of a specified time in the execution.
+ 107:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBlocktime_ms: the amount of delay in ms
+ 108:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 109:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE void XPD_vDelay_ms(uint32_t ulBlocktime_ms)
+ 110:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 111:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     XPD_pxTimeService()->Block_ms(ulBlocktime_ms);
+ 112:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** }
+ 113:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** 
+ 114:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** /**
+ 115:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @brief Waits until the masked value at address matches the input, or until timeout.
+ 116:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulVarAddress: the word address that needs to be monitored
+ 117:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulBitSelector: a bit mask that selects which bits should be considered
+ 118:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param ulMatch: the expected value to wait for
+ 119:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @param pulTimeout: pointer to the timeout in ms
+ 120:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  * @return TIMEOUT if timed out, or OK if ulMatch occurred within the deadline
+ 121:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****  */
+ 122:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** __STATIC_INLINE XPD_ReturnType XPD_eWaitForMatch(
+  94              		.loc 2 122 32 view .LVU17
+  95              	.LBB8:
+ 123:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ARM GAS  /tmp/ccNsyR55.s 			page 6
+
+
+ 124:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulBitSelector,
+ 125:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t            ulMatch,
+ 126:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         uint32_t *          pulTimeout)
+ 127:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h **** {
+ 128:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****     return XPD_pxTimeService()->MatchBlock_ms(pulVarAddress, ulBitSelector,
+  96              		.loc 2 128 5 view .LVU18
+  97              		.loc 2 128 12 is_stmt 0 view .LVU19
+  98 0014 FFF7FEFF 		bl	XPD_pxTimeService
+  99              	.LVL5:
+ 100              		.loc 2 128 12 view .LVU20
+ 101 0018 4FF48072 		mov	r2, #256
+ 102 001c 0346     		mov	r3, r0
+ 103 001e 2046     		mov	r0, r4
+ 104 0020 1146     		mov	r1, r2
+ 105 0022 9C68     		ldr	r4, [r3, #8]
+ 106 0024 01AB     		add	r3, sp, #4
+ 107              	.LVL6:
+ 108              		.loc 2 128 12 view .LVU21
+ 109 0026 A047     		blx	r4
+ 110              	.LVL7:
+ 111              		.loc 2 128 12 view .LVU22
+ 112              	.LBE8:
+ 113              	.LBE7:
+  67:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  68:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* reset the backup domain only if the RTC clock source selection is modified */
+  69:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     if ((eResult == XPD_OK) && ((RCC->BDCR & RCC_BDCR_RTCSEL) >> RCC_BDCR_RTCSEL_Msk) != eClockSour
+ 114              		.loc 1 69 5 is_stmt 1 view .LVU23
+ 115              		.loc 1 69 8 is_stmt 0 view .LVU24
+ 116 0028 E8B9     		cbnz	r0, .L4
+ 117              		.loc 1 69 37 discriminator 1 view .LVU25
+ 118 002a 184A     		ldr	r2, .L15+4
+ 119 002c 136F     		ldr	r3, [r2, #112]
+ 120              		.loc 1 69 29 discriminator 1 view .LVU26
+ 121 002e D5B1     		cbz	r5, .L4
+  70:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+  71:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* store the content of BDCR register before the reset of backup domain */
+  72:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         ulBDCR = (RCC->BDCR & ~(RCC_BDCR_RTCSEL));
+ 122              		.loc 1 72 9 is_stmt 1 view .LVU27
+ 123              		.loc 1 72 22 is_stmt 0 view .LVU28
+ 124 0030 116F     		ldr	r1, [r2, #112]
+  73:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  74:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* RTC clock selection can be changed only if the backup domain is reset */
+  75:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR |= RCC_BDCR_BDRST;
+ 125              		.loc 1 75 19 view .LVU29
+ 126 0032 136F     		ldr	r3, [r2, #112]
+  72:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 127              		.loc 1 72 16 view .LVU30
+ 128 0034 21F44074 		bic	r4, r1, #768
+ 129              	.LVL8:
+ 130              		.loc 1 75 9 is_stmt 1 view .LVU31
+ 131              		.loc 1 75 19 is_stmt 0 view .LVU32
+ 132 0038 43F48033 		orr	r3, r3, #65536
+ 133 003c 1367     		str	r3, [r2, #112]
+  76:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR &= ~RCC_BDCR_BDRST; 
+ 134              		.loc 1 76 9 is_stmt 1 view .LVU33
+ 135              		.loc 1 76 19 is_stmt 0 view .LVU34
+ 136 003e 136F     		ldr	r3, [r2, #112]
+ARM GAS  /tmp/ccNsyR55.s 			page 7
+
+
+ 137 0040 23F48033 		bic	r3, r3, #65536
+ 138 0044 1367     		str	r3, [r2, #112]
+  77:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  78:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* restore the Content of BDCR register */
+  79:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR = ulBDCR;
+ 139              		.loc 1 79 9 is_stmt 1 view .LVU35
+  80:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  81:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* wait for LSERDY if LSE was enabled */
+  82:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         if ((ulBDCR & RCC_BDCR_LSERDY) != 0)
+ 140              		.loc 1 82 12 is_stmt 0 view .LVU36
+ 141 0046 8B07     		lsls	r3, r1, #30
+  79:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 142              		.loc 1 79 19 view .LVU37
+ 143 0048 1467     		str	r4, [r2, #112]
+ 144              		.loc 1 82 9 is_stmt 1 view .LVU38
+ 145              		.loc 1 82 12 is_stmt 0 view .LVU39
+ 146 004a 0ED4     		bmi	.L14
+ 147              	.LVL9:
+ 148              	.L5:
+  83:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+  84:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             ulTimeout = RCC_LSE_TIMEOUT;
+  85:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  86:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             eResult = XPD_eWaitForMatch(&RCC->BDCR,
+  87:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                     RCC_BDCR_LSERDY, RCC_BDCR_LSERDY, &ulTimeout);
+  88:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+  89:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  90:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef HSE_VALUE_Hz
+  91:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* if HSE is clock source, must set divider in order to get 1 MHz */
+  92:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         if (eClockSource == RTC_CLOCKSOURCE_HSE)
+ 149              		.loc 1 92 9 is_stmt 1 view .LVU40
+ 150              		.loc 1 92 12 is_stmt 0 view .LVU41
+ 151 004c 032D     		cmp	r5, #3
+ 152 004e 19D0     		beq	.L7
+  93:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+  94:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             uint32_t ulRTCPRE = HSE_VALUE_Hz / 1000000;
+  95:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+  96:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             /* check if 1 MHz can be configured */
+  97:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             if ((ulRTCPRE < 2) || (ulRTCPRE > 31) ||
+  98:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ((ulRTCPRE * 1000000) != HSE_VALUE_Hz))
+  99:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 return XPD_ERROR;
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             else
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 RCC->CFGR &= ~RCC_CFGR_RTCPRE;
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 RCC->CFGR |= (ulRTCPRE << RCC_CFGR_RTCPRE_Pos) & RCC_CFGR_RTCPRE_Msk;
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* set clock source if no error was encountered */
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR &= ~RCC_BDCR_RTCSEL;
+ 153              		.loc 1 111 9 is_stmt 1 view .LVU42
+ 154              		.loc 1 111 19 is_stmt 0 view .LVU43
+ 155 0050 0E4A     		ldr	r2, .L15+4
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR |= (eClockSource << RCC_BDCR_RTCSEL_Pos) & RCC_BDCR_RTCSEL_Msk;
+ 156              		.loc 1 112 36 view .LVU44
+ARM GAS  /tmp/ccNsyR55.s 			page 8
+
+
+ 157 0052 2B02     		lsls	r3, r5, #8
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR |= (eClockSource << RCC_BDCR_RTCSEL_Pos) & RCC_BDCR_RTCSEL_Msk;
+ 158              		.loc 1 111 19 view .LVU45
+ 159 0054 116F     		ldr	r1, [r2, #112]
+ 160              		.loc 1 112 60 view .LVU46
+ 161 0056 03F44073 		and	r3, r3, #768
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         RCC->BDCR |= (eClockSource << RCC_BDCR_RTCSEL_Pos) & RCC_BDCR_RTCSEL_Msk;
+ 162              		.loc 1 111 19 view .LVU47
+ 163 005a 21F44071 		bic	r1, r1, #768
+ 164 005e 1167     		str	r1, [r2, #112]
+ 165              		.loc 1 112 9 is_stmt 1 view .LVU48
+ 166              		.loc 1 112 19 is_stmt 0 view .LVU49
+ 167 0060 116F     		ldr	r1, [r2, #112]
+ 168 0062 0B43     		orrs	r3, r3, r1
+ 169 0064 1367     		str	r3, [r2, #112]
+ 170              	.LVL10:
+ 171              	.L4:
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     return eResult;
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+ 172              		.loc 1 115 1 view .LVU50
+ 173 0066 03B0     		add	sp, sp, #12
+ 174              	.LCFI2:
+ 175              		.cfi_remember_state
+ 176              		.cfi_def_cfa_offset 12
+ 177              		@ sp needed
+ 178 0068 30BD     		pop	{r4, r5, pc}
+ 179              	.LVL11:
+ 180              	.L14:
+ 181              	.LCFI3:
+ 182              		.cfi_restore_state
+  84:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 183              		.loc 1 84 13 is_stmt 1 view .LVU51
+  84:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 184              		.loc 1 84 23 is_stmt 0 view .LVU52
+ 185 006a 41F28833 		movw	r3, #5000
+ 186 006e 0193     		str	r3, [sp, #4]
+  86:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                     RCC_BDCR_LSERDY, RCC_BDCR_LSERDY, &ulTimeout);
+ 187              		.loc 1 86 13 is_stmt 1 view .LVU53
+ 188              	.LVL12:
+ 189              	.LBB9:
+ 190              	.LBI9:
+ 122:STM32_XPD/STM32H7_XPD/inc/xpd_utils.h ****         volatile uint32_t * pulVarAddress,
+ 191              		.loc 2 122 32 view .LVU54
+ 192              	.LBB10:
+ 193              		.loc 2 128 5 view .LVU55
+ 194              		.loc 2 128 12 is_stmt 0 view .LVU56
+ 195 0070 FFF7FEFF 		bl	XPD_pxTimeService
+ 196              	.LVL13:
+ 197              		.loc 2 128 12 view .LVU57
+ 198 0074 0222     		movs	r2, #2
+ 199 0076 0146     		mov	r1, r0
+ 200 0078 01AB     		add	r3, sp, #4
+ 201              	.LVL14:
+ 202              		.loc 2 128 12 view .LVU58
+ 203 007a 0548     		ldr	r0, .L15+8
+ 204 007c 8C68     		ldr	r4, [r1, #8]
+ARM GAS  /tmp/ccNsyR55.s 			page 9
+
+
+ 205              	.LVL15:
+ 206              		.loc 2 128 12 view .LVU59
+ 207 007e 1146     		mov	r1, r2
+ 208 0080 A047     		blx	r4
+ 209              	.LVL16:
+ 210              		.loc 2 128 12 view .LVU60
+ 211 0082 E3E7     		b	.L5
+ 212              	.L7:
+ 213              		.loc 2 128 12 view .LVU61
+ 214              	.LBE10:
+ 215              	.LBE9:
+ 216              	.LBB11:
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 217              		.loc 1 100 24 view .LVU62
+ 218 0084 0120     		movs	r0, #1
+ 219              	.LVL17:
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 220              		.loc 1 100 24 view .LVU63
+ 221 0086 EEE7     		b	.L4
+ 222              	.L16:
+ 223              		.align	2
+ 224              	.L15:
+ 225 0088 00480258 		.word	1476544512
+ 226 008c 00440258 		.word	1476543488
+ 227 0090 70440258 		.word	1476543600
+ 228              	.LBE11:
+ 229              		.cfi_endproc
+ 230              	.LFE191:
+ 232              		.section	.text.XPD_RTC_ulClockFreq_Hz,"ax",%progbits
+ 233              		.align	1
+ 234              		.p2align 2,,3
+ 235              		.global	XPD_RTC_ulClockFreq_Hz
+ 236              		.syntax unified
+ 237              		.thumb
+ 238              		.thumb_func
+ 239              		.fpu fpv4-sp-d16
+ 241              	XPD_RTC_ulClockFreq_Hz:
+ 242              	.LFB192:
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Returns the input clock frequency of the RTC.
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @return The clock frequency of the RTC in Hz
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** uint32_t XPD_RTC_ulClockFreq_Hz(void)
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+ 243              		.loc 1 122 1 is_stmt 1 view -0
+ 244              		.cfi_startproc
+ 245              		@ args = 0, pretend = 0, frame = 0
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              		@ link register save eliminated.
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t eSrcClk;
+ 248              		.loc 1 123 5 view .LVU65
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* Get the current RTC source */
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     eSrcClk = (RCC->BDCR & RCC_BDCR_RTCSEL_Msk) >> RCC_BDCR_RTCSEL_Pos;
+ 249              		.loc 1 126 5 view .LVU66
+ 250              		.loc 1 126 19 is_stmt 0 view .LVU67
+ARM GAS  /tmp/ccNsyR55.s 			page 10
+
+
+ 251 0000 0D4A     		ldr	r2, .L27
+ 252 0002 136F     		ldr	r3, [r2, #112]
+ 253              		.loc 1 126 13 view .LVU68
+ 254 0004 C3F30123 		ubfx	r3, r3, #8, #2
+ 255              	.LVL18:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef LSE_VALUE_Hz
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* Check if LSE is ready and if RTC clock selection is LSE */
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     if ((eSrcClk == RTC_CLOCKSOURCE_LSE) && (RCC->BDCR & RCC_BDCR_LSERDY) != 0)
+ 131:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 132:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         return LSE_VALUE_Hz;
+ 133:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 134:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     else
+ 135:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif
+ 136:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* Check if LSI is ready and if RTC clock selection is LSI */
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     if ((eSrcClk == RTC_CLOCKSOURCE_LSI) && (RCC->CSR & RCC_CSR_LSIRDY) != 0)
+ 256              		.loc 1 137 5 is_stmt 1 view .LVU69
+ 257              		.loc 1 137 8 is_stmt 0 view .LVU70
+ 258 0008 022B     		cmp	r3, #2
+ 259 000a 0ED0     		beq	.L26
+ 138:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         return LSI_VALUE_Hz;
+ 140:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 141:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef HSE_VALUE_Hz
+ 142:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* Check if HSE is ready  and if RTC clock selection is HSE / x */
+ 143:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     else if ((eSrcClk == RTC_CLOCKSOURCE_HSE) && (RCC->CR & RCC_CR_HSERDY) != 0)
+ 260              		.loc 1 143 10 is_stmt 1 view .LVU71
+ 261              		.loc 1 143 13 is_stmt 0 view .LVU72
+ 262 000c 032B     		cmp	r3, #3
+ 263 000e 0AD1     		bne	.L20
+ 264              		.loc 1 143 54 discriminator 1 view .LVU73
+ 265 0010 1068     		ldr	r0, [r2]
+ 266              		.loc 1 143 47 discriminator 1 view .LVU74
+ 267 0012 10F40030 		ands	r0, r0, #131072
+ 268 0016 07D0     		beq	.L17
+ 144:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 145:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         return HSE_VALUE_Hz / ((RCC->CFGR & RCC_CFGR_RTCPRE_Msk) >> RCC_CFGR_RTCPRE_Pos);
+ 269              		.loc 1 145 9 is_stmt 1 view .LVU75
+ 270              		.loc 1 145 36 is_stmt 0 view .LVU76
+ 271 0018 1369     		ldr	r3, [r2, #16]
+ 272              	.LVL19:
+ 273              		.loc 1 145 29 view .LVU77
+ 274 001a 0848     		ldr	r0, .L27+4
+ 275              		.loc 1 145 66 view .LVU78
+ 276 001c C3F30523 		ubfx	r3, r3, #8, #6
+ 277              		.loc 1 145 29 view .LVU79
+ 278 0020 B0FBF3F0 		udiv	r0, r0, r3
+ 279 0024 7047     		bx	lr
+ 280              	.LVL20:
+ 281              	.L20:
+ 146:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 147:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif
+ 148:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* Clock not enabled for RTC */
+ 149:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     else
+ 150:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 151:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         return 0;
+ 282              		.loc 1 151 16 view .LVU80
+ARM GAS  /tmp/ccNsyR55.s 			page 11
+
+
+ 283 0026 0020     		movs	r0, #0
+ 284              	.L17:
+ 152:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 153:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+ 285              		.loc 1 153 1 view .LVU81
+ 286 0028 7047     		bx	lr
+ 287              	.L26:
+ 137:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 288              		.loc 1 137 49 discriminator 1 view .LVU82
+ 289 002a 506F     		ldr	r0, [r2, #116]
+ 139:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 290              		.loc 1 139 16 discriminator 1 view .LVU83
+ 291 002c 10F00200 		ands	r0, r0, #2
+ 292 0030 18BF     		it	ne
+ 293 0032 4FF4FA40 		movne	r0, #32000
+ 294 0036 7047     		bx	lr
+ 295              	.L28:
+ 296              		.align	2
+ 297              	.L27:
+ 298 0038 00440258 		.word	1476543488
+ 299 003c 00B4C404 		.word	80000000
+ 300              		.cfi_endproc
+ 301              	.LFE192:
+ 303              		.section	.text.TIM_ulClockFreq_Hz,"ax",%progbits
+ 304              		.align	1
+ 305              		.p2align 2,,3
+ 306              		.global	TIM_ulClockFreq_Hz
+ 307              		.syntax unified
+ 308              		.thumb
+ 309              		.thumb_func
+ 310              		.fpu fpv4-sp-d16
+ 312              	TIM_ulClockFreq_Hz:
+ 313              	.LVL21:
+ 314              	.LFB193:
+ 154:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 155:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @} */
+ 156:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 157:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @ingroup TIM_Clock_Source
+ 158:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @defgroup TIM_Clock_Source_Exported_Functions TIM Clock Source Exported Functions
+ 159:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @{ */
+ 160:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 161:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef RCC_DCKCFGR_TIMPRE
+ 162:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+ 163:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Sets the new source clock for the timers.
+ 164:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @param eClockSource: the new source clock which should be configured
+ 165:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+ 166:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** void TIM_vClockConfig(TIM_ClockSourceType eClockSource)
+ 167:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+ 168:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     RCC->CFGR &= ~RCC_CFGR_TIMPRE;
+ 169:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     RCC->CFGR |= (eClockSource << RCC_CFGR_TIMPRE_Pos) & RCC_CFGR_TIMPRE_Msk;
+ 170:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+ 171:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif /* RCC_DCKCFGR_TIMPRE */
+ 172:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 173:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+ 174:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Returns the input clock frequency of the timer.
+ 175:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @param htim: pointer to the TIM handle structure
+ 176:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @return The clock frequency of the timer in Hz
+ARM GAS  /tmp/ccNsyR55.s 			page 12
+
+
+ 177:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+ 178:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** uint32_t TIM_ulClockFreq_Hz(TIM_HandleType * htim)
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+ 315              		.loc 1 179 1 is_stmt 1 view -0
+ 316              		.cfi_startproc
+ 317              		@ args = 0, pretend = 0, frame = 0
+ 318              		@ frame_needed = 0, uses_anonymous_args = 0
+ 180:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulFreq;
+ 319              		.loc 1 180 5 view .LVU85
+ 181:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 182:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     /* decide which APB bus the TIM is on */
+ 183:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     if (((uint32_t)htim->Inst) < APB2PERIPH_BASE)
+ 320              		.loc 1 183 5 view .LVU86
+ 321              		.loc 1 183 8 is_stmt 0 view .LVU87
+ 322 0000 0268     		ldr	r2, [r0]
+ 179:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     uint32_t ulFreq;
+ 323              		.loc 1 179 1 view .LVU88
+ 324 0002 08B5     		push	{r3, lr}
+ 325              	.LCFI4:
+ 326              		.cfi_def_cfa_offset 8
+ 327              		.cfi_offset 3, -8
+ 328              		.cfi_offset 14, -4
+ 329              		.loc 1 183 8 view .LVU89
+ 330 0004 0B4B     		ldr	r3, .L40
+ 331 0006 9A42     		cmp	r2, r3
+ 332 0008 09D8     		bhi	.L30
+ 184:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 185:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef RCC_DCKCFGR_TIMPRE
+ 186:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* if the TIMPRE bit is set, the TIM clock is HCLK when PPREx is DIV1, 2 or 4
+ 187:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****          * otherwise it is 4 * PCLKx */
+ 188:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         if ((RCC->CFGR & RCC_CFGR_TIMPRE_Msk) != 0)
+ 189:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+ 190:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             if (((RCC->D2CFGR & RCC_D2CFGR_D2PPRE1_Msk) >> RCC_D2CFGR_D2PPRE1_Pos) < 6) /* CLK_DIV8
+ 191:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 192:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq = RCC_ulClockFreq_Hz(HCLK);
+ 193:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 194:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             else
+ 195:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 196:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq = 4 * RCC_ulClockFreq_Hz(PCLK1);
+ 197:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 198:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+ 199:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         else
+ 200:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif
+ 201:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+ 202:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             ulFreq = RCC_ulClockFreq_Hz(PCLK1);
+ 333              		.loc 1 202 13 is_stmt 1 view .LVU90
+ 334              		.loc 1 202 22 is_stmt 0 view .LVU91
+ 335 000a 0420     		movs	r0, #4
+ 336              	.LVL22:
+ 337              		.loc 1 202 22 view .LVU92
+ 338 000c FFF7FEFF 		bl	RCC_ulClockFreq_Hz
+ 339              	.LVL23:
+ 203:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 204:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             /* if APB clock is divided, timer frequency is doubled */
+ 205:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             if ((RCC->CFGR & RCC_D2CFGR_D2PPRE1) != 0)
+ 340              		.loc 1 205 21 view .LVU93
+ 341 0010 094B     		ldr	r3, .L40+4
+ARM GAS  /tmp/ccNsyR55.s 			page 13
+
+
+ 342              	.LVL24:
+ 343              		.loc 1 205 13 is_stmt 1 view .LVU94
+ 344              		.loc 1 205 21 is_stmt 0 view .LVU95
+ 345 0012 1B69     		ldr	r3, [r3, #16]
+ 346              		.loc 1 205 16 view .LVU96
+ 347 0014 13F0700F 		tst	r3, #112
+ 348 0018 00D0     		beq	.L29
+ 206:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 207:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq *= 2;
+ 208:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 209:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+ 210:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 211:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     else
+ 212:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     {
+ 213:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #ifdef RCC_DCKCFGR_TIMPRE
+ 214:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         /* if the TIMPRE bit is set, the TIM clock is HCLK when PPREx is DIV1, 2 or 4
+ 215:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****          * otherwise it is 4 * PCLKx */
+ 216:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         if ((RCC->CFGR & RCC_CFGR_TIMPRE_Msk) != 0)
+ 217:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+ 218:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             if (((RCC->D2CFGR & RCC_D2CFGR_D2PPRE2_Msk) >> RCC_D2CFGR_D2PPRE2_Pos) < 6) /* CLK_DIV8
+ 219:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 220:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq = RCC_ulClockFreq_Hz(HCLK);
+ 221:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 222:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             else
+ 223:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 224:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq = 4 * RCC_ulClockFreq_Hz(PCLK2);
+ 225:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 226:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+ 227:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         else
+ 228:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** #endif
+ 229:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         {
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             ulFreq = RCC_ulClockFreq_Hz(PCLK2);
+ 231:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 232:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             /* if APB clock is divided, timer frequency is doubled */
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             if ((RCC->CFGR & RCC_D2CFGR_D2PPRE2) != 0)
+ 234:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****                 ulFreq *= 2;
+ 349              		.loc 1 235 17 is_stmt 1 view .LVU97
+ 350              		.loc 1 235 24 is_stmt 0 view .LVU98
+ 351 001a 4000     		lsls	r0, r0, #1
+ 352              	.LVL25:
+ 236:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 237:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****         }
+ 238:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     }
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     return ulFreq;
+ 353              		.loc 1 239 5 is_stmt 1 view .LVU99
+ 354              	.L29:
+ 240:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+ 355              		.loc 1 240 1 is_stmt 0 view .LVU100
+ 356 001c 08BD     		pop	{r3, pc}
+ 357              	.LVL26:
+ 358              	.L30:
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 359              		.loc 1 230 13 is_stmt 1 view .LVU101
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 360              		.loc 1 230 22 is_stmt 0 view .LVU102
+ 361 001e 0820     		movs	r0, #8
+ARM GAS  /tmp/ccNsyR55.s 			page 14
+
+
+ 362              	.LVL27:
+ 230:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 363              		.loc 1 230 22 view .LVU103
+ 364 0020 FFF7FEFF 		bl	RCC_ulClockFreq_Hz
+ 365              	.LVL28:
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 366              		.loc 1 233 21 view .LVU104
+ 367 0024 044B     		ldr	r3, .L40+4
+ 368              	.LVL29:
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 369              		.loc 1 233 13 is_stmt 1 view .LVU105
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 370              		.loc 1 233 21 is_stmt 0 view .LVU106
+ 371 0026 1B69     		ldr	r3, [r3, #16]
+ 233:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             {
+ 372              		.loc 1 233 16 view .LVU107
+ 373 0028 13F4E06F 		tst	r3, #1792
+ 374 002c F6D0     		beq	.L29
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 375              		.loc 1 235 17 is_stmt 1 view .LVU108
+ 235:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****             }
+ 376              		.loc 1 235 24 is_stmt 0 view .LVU109
+ 377 002e 4000     		lsls	r0, r0, #1
+ 378              	.LVL30:
+ 239:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** }
+ 379              		.loc 1 239 5 is_stmt 1 view .LVU110
+ 380 0030 F4E7     		b	.L29
+ 381              	.L41:
+ 382 0032 00BF     		.align	2
+ 383              	.L40:
+ 384 0034 FFFF0040 		.word	1073807359
+ 385 0038 00440258 		.word	1476543488
+ 386              		.cfi_endproc
+ 387              	.LFE193:
+ 389              		.section	.text.USART_ulClockFreq_Hz,"ax",%progbits
+ 390              		.align	1
+ 391              		.p2align 2,,3
+ 392              		.global	USART_ulClockFreq_Hz
+ 393              		.syntax unified
+ 394              		.thumb
+ 395              		.thumb_func
+ 396              		.fpu fpv4-sp-d16
+ 398              	USART_ulClockFreq_Hz:
+ 399              	.LVL31:
+ 400              	.LFB194:
+ 241:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 242:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @} */
+ 243:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 244:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /** @ingroup USART_Clock_Source
+ 245:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @defgroup USART_Clock_Source_Exported_Functions USART Clock Source Exported Functions
+ 246:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @{ */
+ 247:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** 
+ 248:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** /**
+ 249:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @brief Returns the input clock frequency of the USART.
+ 250:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @param husart: pointer to the USART handle structure
+ 251:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  * @return The clock frequency of the USART in Hz
+ 252:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****  */
+ARM GAS  /tmp/ccNsyR55.s 			page 15
+
+
+ 253:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** uint32_t USART_ulClockFreq_Hz(USART_HandleType * husart)
+ 254:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c **** {
+ 401              		.loc 1 254 1 view -0
+ 402              		.cfi_startproc
+ 403              		@ args = 0, pretend = 0, frame = 0
+ 404              		@ frame_needed = 0, uses_anonymous_args = 0
+ 405              		@ link register save eliminated.
+ 255:STM32_XPD/STM32H7_XPD/src/xpd_rcc_pc.c ****     return RCC_ulClockFreq_Hz((((uint32_t)husart->Inst) < APB2PERIPH_BASE) ? PCLK1 : PCLK2);
+ 406              		.loc 1 255 5 view .LVU112
+ 407              		.loc 1 255 12 is_stmt 0 view .LVU113
+ 408 0000 034B     		ldr	r3, .L45
+ 409 0002 0068     		ldr	r0, [r0]
+ 410              	.LVL32:
+ 411              		.loc 1 255 12 view .LVU114
+ 412 0004 9842     		cmp	r0, r3
+ 413 0006 94BF     		ite	ls
+ 414 0008 0420     		movls	r0, #4
+ 415 000a 0820     		movhi	r0, #8
+ 416 000c FFF7FEBF 		b	RCC_ulClockFreq_Hz
+ 417              	.LVL33:
+ 418              	.L46:
+ 419              		.align	2
+ 420              	.L45:
+ 421 0010 FFFF0040 		.word	1073807359
+ 422              		.cfi_endproc
+ 423              	.LFE194:
+ 425              		.text
+ 426              	.Letext0:
+ 427              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 428              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 429              		.file 5 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 430              		.file 6 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 431              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 432              		.file 8 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 433              		.file 9 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc.h"
+ 434              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ 435              		.file 11 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ 436              		.file 12 "STM32_XPD/STM32H7_XPD/inc/xpd_dma.h"
+ 437              		.file 13 "STM32_XPD/STM32H7_XPD/inc/xpd_i2c.h"
+ 438              		.file 14 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_pc.h"
+ 439              		.file 15 "STM32_XPD/STM32H7_XPD/inc/xpd_tim.h"
+ 440              		.file 16 "STM32_XPD/STM32H7_XPD/inc/xpd_usart.h"
+ARM GAS  /tmp/ccNsyR55.s 			page 16
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_rcc_pc.c
+     /tmp/ccNsyR55.s:18     .text.I2C_ulClockFreq_Hz:0000000000000000 $t
+     /tmp/ccNsyR55.s:27     .text.I2C_ulClockFreq_Hz:0000000000000000 I2C_ulClockFreq_Hz
+     /tmp/ccNsyR55.s:47     .text.XPD_RTC_eClockConfig:0000000000000000 $t
+     /tmp/ccNsyR55.s:55     .text.XPD_RTC_eClockConfig:0000000000000000 XPD_RTC_eClockConfig
+     /tmp/ccNsyR55.s:225    .text.XPD_RTC_eClockConfig:0000000000000088 $d
+     /tmp/ccNsyR55.s:233    .text.XPD_RTC_ulClockFreq_Hz:0000000000000000 $t
+     /tmp/ccNsyR55.s:241    .text.XPD_RTC_ulClockFreq_Hz:0000000000000000 XPD_RTC_ulClockFreq_Hz
+     /tmp/ccNsyR55.s:298    .text.XPD_RTC_ulClockFreq_Hz:0000000000000038 $d
+     /tmp/ccNsyR55.s:304    .text.TIM_ulClockFreq_Hz:0000000000000000 $t
+     /tmp/ccNsyR55.s:312    .text.TIM_ulClockFreq_Hz:0000000000000000 TIM_ulClockFreq_Hz
+     /tmp/ccNsyR55.s:384    .text.TIM_ulClockFreq_Hz:0000000000000034 $d
+     /tmp/ccNsyR55.s:390    .text.USART_ulClockFreq_Hz:0000000000000000 $t
+     /tmp/ccNsyR55.s:398    .text.USART_ulClockFreq_Hz:0000000000000000 USART_ulClockFreq_Hz
+     /tmp/ccNsyR55.s:421    .text.USART_ulClockFreq_Hz:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+RCC_ulClockFreq_Hz
+XPD_pxTimeService

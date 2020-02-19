@@ -1,0 +1,168 @@
+ARM GAS  /tmp/ccI0nQzT.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"bsp_system.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.SystemClock_Config,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	SystemClock_Config
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	SystemClock_Config:
+  28              	.LFB158:
+  29              		.file 1 "BSP_STM32H7xx/bsp_system.c"
+   1:BSP_STM32H7xx/bsp_system.c **** /**
+   2:BSP_STM32H7xx/bsp_system.c ****   ******************************************************************************
+   3:BSP_STM32H7xx/bsp_system.c ****   * @file    bsp_system.c
+   4:BSP_STM32H7xx/bsp_system.c ****   * @author  Cameron Sinko (Adapted from Benedek Kupper)
+   5:BSP_STM32H7xx/bsp_system.c ****   * @version 0.1
+   6:BSP_STM32H7xx/bsp_system.c ****   * @date    2020-01-23
+   7:BSP_STM32H7xx/bsp_system.c ****   * @brief   IPoverUSB BSP for system clocking for STM32H7
+   8:BSP_STM32H7xx/bsp_system.c ****   *
+   9:BSP_STM32H7xx/bsp_system.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:BSP_STM32H7xx/bsp_system.c ****   *
+  11:BSP_STM32H7xx/bsp_system.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:BSP_STM32H7xx/bsp_system.c ****   * you may not use this file except in compliance with the License.
+  13:BSP_STM32H7xx/bsp_system.c ****   * You may obtain a copy of the License at
+  14:BSP_STM32H7xx/bsp_system.c ****   *
+  15:BSP_STM32H7xx/bsp_system.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:BSP_STM32H7xx/bsp_system.c ****   *
+  17:BSP_STM32H7xx/bsp_system.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:BSP_STM32H7xx/bsp_system.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:BSP_STM32H7xx/bsp_system.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:BSP_STM32H7xx/bsp_system.c ****   * See the License for the specific language governing permissions and
+  21:BSP_STM32H7xx/bsp_system.c ****   * limitations under the License.
+  22:BSP_STM32H7xx/bsp_system.c ****   */
+  23:BSP_STM32H7xx/bsp_system.c **** #include <bsp_system.h>
+  24:BSP_STM32H7xx/bsp_system.c **** #include <xpd_rcc.h>
+  25:BSP_STM32H7xx/bsp_system.c **** 
+  26:BSP_STM32H7xx/bsp_system.c **** static const RCC_PLL_InitType pllconf = {
+  27:BSP_STM32H7xx/bsp_system.c ****     .State = ENABLE,
+  28:BSP_STM32H7xx/bsp_system.c ****     .Source = HSE,  /* 8000000 */
+  29:BSP_STM32H7xx/bsp_system.c ****     .M = 8,
+ARM GAS  /tmp/ccI0nQzT.s 			page 2
+
+
+  30:BSP_STM32H7xx/bsp_system.c ****     .N = 336,
+  31:BSP_STM32H7xx/bsp_system.c ****     .P = 2,         /* HSE / 8 * 336 / 2 = PLLP = 168000000 -> SYSCLK */
+  32:BSP_STM32H7xx/bsp_system.c ****     .Q = 7          /* HSE / 8 * 336 / 7 = PLLQ =  48000000 -> USB */
+  33:BSP_STM32H7xx/bsp_system.c **** };
+  34:BSP_STM32H7xx/bsp_system.c **** 
+  35:BSP_STM32H7xx/bsp_system.c **** /* System clocks configuration */
+  36:BSP_STM32H7xx/bsp_system.c **** void SystemClock_Config(void)
+  37:BSP_STM32H7xx/bsp_system.c **** {
+  30              		.loc 1 37 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  38:BSP_STM32H7xx/bsp_system.c ****     RCC_eHSE_Config(OSC_ON);
+  34              		.loc 1 38 5 view .LVU1
+  37:BSP_STM32H7xx/bsp_system.c ****     RCC_eHSE_Config(OSC_ON);
+  35              		.loc 1 37 1 is_stmt 0 view .LVU2
+  36 0000 08B5     		push	{r3, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 3, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 38 5 view .LVU3
+  42 0002 0120     		movs	r0, #1
+  43 0004 FFF7FEFF 		bl	RCC_eHSE_Config
+  44              	.LVL0:
+  39:BSP_STM32H7xx/bsp_system.c ****     RCC_ePLL_Config(&pllconf);
+  45              		.loc 1 39 5 is_stmt 1 view .LVU4
+  46 0008 0748     		ldr	r0, .L4
+  47 000a FFF7FEFF 		bl	RCC_ePLL_Config
+  48              	.LVL1:
+  40:BSP_STM32H7xx/bsp_system.c **** 
+  41:BSP_STM32H7xx/bsp_system.c ****     /* System clocks configuration */
+  42:BSP_STM32H7xx/bsp_system.c ****     RCC_eHCLK_Config(PLL, CLK_DIV1, 5);
+  49              		.loc 1 42 5 view .LVU5
+  50 000e 0522     		movs	r2, #5
+  51 0010 0021     		movs	r1, #0
+  52 0012 0220     		movs	r0, #2
+  53 0014 FFF7FEFF 		bl	RCC_eHCLK_Config
+  54              	.LVL2:
+  43:BSP_STM32H7xx/bsp_system.c **** 
+  44:BSP_STM32H7xx/bsp_system.c ****     RCC_vPCLK1_Config(CLK_DIV4);
+  55              		.loc 1 44 5 view .LVU6
+  56 0018 0220     		movs	r0, #2
+  57 001a FFF7FEFF 		bl	RCC_vPCLK1_Config
+  58              	.LVL3:
+  45:BSP_STM32H7xx/bsp_system.c ****     RCC_vPCLK2_Config(CLK_DIV2);
+  59              		.loc 1 45 5 view .LVU7
+  60 001e 0120     		movs	r0, #1
+  46:BSP_STM32H7xx/bsp_system.c **** }
+  61              		.loc 1 46 1 is_stmt 0 view .LVU8
+  62 0020 BDE80840 		pop	{r3, lr}
+  63              	.LCFI1:
+  64              		.cfi_restore 14
+  65              		.cfi_restore 3
+  66              		.cfi_def_cfa_offset 0
+  45:BSP_STM32H7xx/bsp_system.c ****     RCC_vPCLK2_Config(CLK_DIV2);
+  67              		.loc 1 45 5 view .LVU9
+ARM GAS  /tmp/ccI0nQzT.s 			page 3
+
+
+  68 0024 FFF7FEBF 		b	RCC_vPCLK2_Config
+  69              	.LVL4:
+  70              	.L5:
+  71              		.align	2
+  72              	.L4:
+  73 0028 00000000 		.word	.LANCHOR0
+  74              		.cfi_endproc
+  75              	.LFE158:
+  77              		.section	.rodata.pllconf,"a"
+  78              		.align	2
+  79              		.set	.LANCHOR0,. + 0
+  82              	pllconf:
+  83 0000 5001     		.short	336
+  84 0002 08       		.byte	8
+  85 0003 02       		.byte	2
+  86 0004 07       		.byte	7
+  87 0005 01       		.byte	1
+  88 0006 01       		.byte	1
+  89 0007 00       		.space	1
+  90              		.text
+  91              	.Letext0:
+  92              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+  93              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+  94              		.file 4 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+  95              		.file 5 "STM32_XPD/CMSIS/Include/core_cm7.h"
+  96              		.file 6 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+  97              		.file 7 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+  98              		.file 8 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ARM GAS  /tmp/ccI0nQzT.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bsp_system.c
+     /tmp/ccI0nQzT.s:18     .text.SystemClock_Config:0000000000000000 $t
+     /tmp/ccI0nQzT.s:27     .text.SystemClock_Config:0000000000000000 SystemClock_Config
+     /tmp/ccI0nQzT.s:73     .text.SystemClock_Config:0000000000000028 $d
+     /tmp/ccI0nQzT.s:78     .rodata.pllconf:0000000000000000 $d
+     /tmp/ccI0nQzT.s:82     .rodata.pllconf:0000000000000000 pllconf
+
+UNDEFINED SYMBOLS
+RCC_eHSE_Config
+RCC_ePLL_Config
+RCC_eHCLK_Config
+RCC_vPCLK1_Config
+RCC_vPCLK2_Config

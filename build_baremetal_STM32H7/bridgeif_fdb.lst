@@ -1,0 +1,970 @@
+ARM GAS  /tmp/ccMlmk1M.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"bridgeif_fdb.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.rodata.bridgeif_age_tmr.str1.4,"aMS",%progbits,1
+  18              		.align	2
+  19              	.LC0:
+  20 0000 696E7661 		.ascii	"invalid arg\000"
+  20      6C696420 
+  20      61726700 
+  21              		.section	.text.bridgeif_age_tmr,"ax",%progbits
+  22              		.align	1
+  23              		.p2align 2,,3
+  24              		.arch armv7e-m
+  25              		.syntax unified
+  26              		.thumb
+  27              		.thumb_func
+  28              		.fpu fpv4-sp-d16
+  30              	bridgeif_age_tmr:
+  31              	.LVL0:
+  32              	.LFB108:
+  33              		.file 1 "lwIP/src/netif/bridgeif_fdb.c"
+   1:lwIP/src/netif/bridgeif_fdb.c **** /**
+   2:lwIP/src/netif/bridgeif_fdb.c ****  * @file
+   3:lwIP/src/netif/bridgeif_fdb.c ****  * lwIP netif implementing an FDB for IEEE 802.1D MAC Bridge
+   4:lwIP/src/netif/bridgeif_fdb.c ****  */
+   5:lwIP/src/netif/bridgeif_fdb.c **** 
+   6:lwIP/src/netif/bridgeif_fdb.c **** /*
+   7:lwIP/src/netif/bridgeif_fdb.c ****  * Copyright (c) 2017 Simon Goldschmidt.
+   8:lwIP/src/netif/bridgeif_fdb.c ****  * All rights reserved.
+   9:lwIP/src/netif/bridgeif_fdb.c ****  *
+  10:lwIP/src/netif/bridgeif_fdb.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  11:lwIP/src/netif/bridgeif_fdb.c ****  * are permitted provided that the following conditions are met:
+  12:lwIP/src/netif/bridgeif_fdb.c ****  *
+  13:lwIP/src/netif/bridgeif_fdb.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  14:lwIP/src/netif/bridgeif_fdb.c ****  *    this list of conditions and the following disclaimer.
+  15:lwIP/src/netif/bridgeif_fdb.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  16:lwIP/src/netif/bridgeif_fdb.c ****  *    this list of conditions and the following disclaimer in the documentation
+  17:lwIP/src/netif/bridgeif_fdb.c ****  *    and/or other materials provided with the distribution.
+  18:lwIP/src/netif/bridgeif_fdb.c ****  * 3. The name of the author may not be used to endorse or promote products
+  19:lwIP/src/netif/bridgeif_fdb.c ****  *    derived from this software without specific prior written permission.
+  20:lwIP/src/netif/bridgeif_fdb.c ****  *
+  21:lwIP/src/netif/bridgeif_fdb.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  22:lwIP/src/netif/bridgeif_fdb.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  23:lwIP/src/netif/bridgeif_fdb.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+ARM GAS  /tmp/ccMlmk1M.s 			page 2
+
+
+  24:lwIP/src/netif/bridgeif_fdb.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  25:lwIP/src/netif/bridgeif_fdb.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  26:lwIP/src/netif/bridgeif_fdb.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  27:lwIP/src/netif/bridgeif_fdb.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  28:lwIP/src/netif/bridgeif_fdb.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  29:lwIP/src/netif/bridgeif_fdb.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  30:lwIP/src/netif/bridgeif_fdb.c ****  * OF SUCH DAMAGE.
+  31:lwIP/src/netif/bridgeif_fdb.c ****  *
+  32:lwIP/src/netif/bridgeif_fdb.c ****  * This file is part of the lwIP TCP/IP stack.
+  33:lwIP/src/netif/bridgeif_fdb.c ****  *
+  34:lwIP/src/netif/bridgeif_fdb.c ****  * Author: Simon Goldschmidt <goldsimon@gmx.de>
+  35:lwIP/src/netif/bridgeif_fdb.c ****  *
+  36:lwIP/src/netif/bridgeif_fdb.c ****  */
+  37:lwIP/src/netif/bridgeif_fdb.c **** 
+  38:lwIP/src/netif/bridgeif_fdb.c **** /**
+  39:lwIP/src/netif/bridgeif_fdb.c ****  * @defgroup bridgeif_fdb FDB example code
+  40:lwIP/src/netif/bridgeif_fdb.c ****  * @ingroup bridgeif
+  41:lwIP/src/netif/bridgeif_fdb.c ****  * This file implements an example for an FDB (Forwarding DataBase)
+  42:lwIP/src/netif/bridgeif_fdb.c ****  */
+  43:lwIP/src/netif/bridgeif_fdb.c **** 
+  44:lwIP/src/netif/bridgeif_fdb.c **** #include "netif/bridgeif.h"
+  45:lwIP/src/netif/bridgeif_fdb.c **** #include "lwip/sys.h"
+  46:lwIP/src/netif/bridgeif_fdb.c **** #include "lwip/mem.h"
+  47:lwIP/src/netif/bridgeif_fdb.c **** #include "lwip/timeouts.h"
+  48:lwIP/src/netif/bridgeif_fdb.c **** #include <string.h>
+  49:lwIP/src/netif/bridgeif_fdb.c **** 
+  50:lwIP/src/netif/bridgeif_fdb.c **** #define BRIDGEIF_AGE_TIMER_MS 1000
+  51:lwIP/src/netif/bridgeif_fdb.c **** 
+  52:lwIP/src/netif/bridgeif_fdb.c **** #define BR_FDB_TIMEOUT_SEC  (60*5) /* 5 minutes FDB timeout */
+  53:lwIP/src/netif/bridgeif_fdb.c **** 
+  54:lwIP/src/netif/bridgeif_fdb.c **** typedef struct bridgeif_dfdb_entry_s {
+  55:lwIP/src/netif/bridgeif_fdb.c ****   u8_t used;
+  56:lwIP/src/netif/bridgeif_fdb.c ****   u8_t port;
+  57:lwIP/src/netif/bridgeif_fdb.c ****   u32_t ts;
+  58:lwIP/src/netif/bridgeif_fdb.c ****   struct eth_addr addr;
+  59:lwIP/src/netif/bridgeif_fdb.c **** } bridgeif_dfdb_entry_t;
+  60:lwIP/src/netif/bridgeif_fdb.c **** 
+  61:lwIP/src/netif/bridgeif_fdb.c **** typedef struct bridgeif_dfdb_s {
+  62:lwIP/src/netif/bridgeif_fdb.c ****   u16_t max_fdb_entries;
+  63:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_entry_t *fdb;
+  64:lwIP/src/netif/bridgeif_fdb.c **** } bridgeif_dfdb_t;
+  65:lwIP/src/netif/bridgeif_fdb.c **** 
+  66:lwIP/src/netif/bridgeif_fdb.c **** /**
+  67:lwIP/src/netif/bridgeif_fdb.c ****  * @ingroup bridgeif_fdb
+  68:lwIP/src/netif/bridgeif_fdb.c ****  * A real simple and slow implementation of an auto-learning forwarding database that
+  69:lwIP/src/netif/bridgeif_fdb.c ****  * remembers known src mac addresses to know which port to send frames destined for that
+  70:lwIP/src/netif/bridgeif_fdb.c ****  * mac address.
+  71:lwIP/src/netif/bridgeif_fdb.c ****  *
+  72:lwIP/src/netif/bridgeif_fdb.c ****  * ATTENTION: This is meant as an example only, in real-world use, you should 
+  73:lwIP/src/netif/bridgeif_fdb.c ****  * provide a better implementation :-)
+  74:lwIP/src/netif/bridgeif_fdb.c ****  */
+  75:lwIP/src/netif/bridgeif_fdb.c **** void
+  76:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_fdb_update_src(void *fdb_ptr, struct eth_addr *src_addr, u8_t port_idx)
+  77:lwIP/src/netif/bridgeif_fdb.c **** {
+  78:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+  79:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)fdb_ptr;
+  80:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_DECL_PROTECT(lev);
+ARM GAS  /tmp/ccMlmk1M.s 			page 3
+
+
+  81:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_PROTECT(lev);
+  82:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+  83:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  84:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+  85:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+  86:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+  87:lwIP/src/netif/bridgeif_fdb.c ****                                          src_addr->addr[0], src_addr->addr[1], src_addr->addr[2], s
+  88:lwIP/src/netif/bridgeif_fdb.c ****                                          port_idx, i));
+  89:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_PROTECT(lev);
+  90:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+  91:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+  92:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+  93:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+  94:lwIP/src/netif/bridgeif_fdb.c ****         return;
+  95:lwIP/src/netif/bridgeif_fdb.c ****       }
+  96:lwIP/src/netif/bridgeif_fdb.c ****     }
+  97:lwIP/src/netif/bridgeif_fdb.c ****   }
+  98:lwIP/src/netif/bridgeif_fdb.c ****   /* not found, allocate new entry from free */
+  99:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+ 100:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 101:lwIP/src/netif/bridgeif_fdb.c ****     if (!e->used || !e->ts) {
+ 102:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 103:lwIP/src/netif/bridgeif_fdb.c ****       /* check again when protected */
+ 104:lwIP/src/netif/bridgeif_fdb.c ****       if (!e->used || !e->ts) {
+ 105:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: create src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 106:lwIP/src/netif/bridgeif_fdb.c ****                                          src_addr->addr[0], src_addr->addr[1], src_addr->addr[2], s
+ 107:lwIP/src/netif/bridgeif_fdb.c ****                                          port_idx, i));
+ 108:lwIP/src/netif/bridgeif_fdb.c ****         memcpy(&e->addr, src_addr, sizeof(struct eth_addr));
+ 109:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+ 110:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 111:lwIP/src/netif/bridgeif_fdb.c ****         e->used = 1;
+ 112:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ 113:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 114:lwIP/src/netif/bridgeif_fdb.c ****         return;
+ 115:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 116:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_UNPROTECT(lev);
+ 117:lwIP/src/netif/bridgeif_fdb.c ****     }
+ 118:lwIP/src/netif/bridgeif_fdb.c ****   }
+ 119:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_UNPROTECT(lev);
+ 120:lwIP/src/netif/bridgeif_fdb.c ****   /* not found, no free entry -> flood */
+ 121:lwIP/src/netif/bridgeif_fdb.c **** }
+ 122:lwIP/src/netif/bridgeif_fdb.c **** 
+ 123:lwIP/src/netif/bridgeif_fdb.c **** /** 
+ 124:lwIP/src/netif/bridgeif_fdb.c ****  * @ingroup bridgeif_fdb
+ 125:lwIP/src/netif/bridgeif_fdb.c ****  * Walk our list of auto-learnt fdb entries and return a port to forward or BR_FLOOD if unknown 
+ 126:lwIP/src/netif/bridgeif_fdb.c ****  */
+ 127:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_portmask_t
+ 128:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_fdb_get_dst_ports(void *fdb_ptr, struct eth_addr *dst_addr)
+ 129:lwIP/src/netif/bridgeif_fdb.c **** {
+ 130:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 131:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)fdb_ptr;
+ 132:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_DECL_PROTECT(lev);
+ 133:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_PROTECT(lev);
+ 134:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+ 135:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 136:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+ 137:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ARM GAS  /tmp/ccMlmk1M.s 			page 4
+
+
+ 138:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 139:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 140:lwIP/src/netif/bridgeif_fdb.c ****         return ret;
+ 141:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 142:lwIP/src/netif/bridgeif_fdb.c ****     }
+ 143:lwIP/src/netif/bridgeif_fdb.c ****   }
+ 144:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_UNPROTECT(lev);
+ 145:lwIP/src/netif/bridgeif_fdb.c ****   return BR_FLOOD;
+ 146:lwIP/src/netif/bridgeif_fdb.c **** }
+ 147:lwIP/src/netif/bridgeif_fdb.c **** 
+ 148:lwIP/src/netif/bridgeif_fdb.c **** /**
+ 149:lwIP/src/netif/bridgeif_fdb.c ****  * @ingroup bridgeif_fdb
+ 150:lwIP/src/netif/bridgeif_fdb.c ****  * Aging implementation of our simple fdb
+ 151:lwIP/src/netif/bridgeif_fdb.c ****  */
+ 152:lwIP/src/netif/bridgeif_fdb.c **** static void
+ 153:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_fdb_age_one_second(void *fdb_ptr)
+ 154:lwIP/src/netif/bridgeif_fdb.c **** {
+ 155:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 156:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb;
+ 157:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_DECL_PROTECT(lev);
+ 158:lwIP/src/netif/bridgeif_fdb.c **** 
+ 159:lwIP/src/netif/bridgeif_fdb.c ****   fdb = (bridgeif_dfdb_t *)fdb_ptr;
+ 160:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_PROTECT(lev);
+ 161:lwIP/src/netif/bridgeif_fdb.c **** 
+ 162:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+ 163:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 164:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+ 165:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 166:lwIP/src/netif/bridgeif_fdb.c ****       /* check again when protected */
+ 167:lwIP/src/netif/bridgeif_fdb.c ****       if (e->used && e->ts) {
+ 168:lwIP/src/netif/bridgeif_fdb.c ****         if (--e->ts == 0) {
+ 169:lwIP/src/netif/bridgeif_fdb.c ****           e->used = 0;
+ 170:lwIP/src/netif/bridgeif_fdb.c ****         }
+ 171:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 172:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_UNPROTECT(lev);
+ 173:lwIP/src/netif/bridgeif_fdb.c ****     }
+ 174:lwIP/src/netif/bridgeif_fdb.c ****   }
+ 175:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_UNPROTECT(lev);
+ 176:lwIP/src/netif/bridgeif_fdb.c **** }
+ 177:lwIP/src/netif/bridgeif_fdb.c **** 
+ 178:lwIP/src/netif/bridgeif_fdb.c **** /** Timer callback for fdb aging, called once per second */
+ 179:lwIP/src/netif/bridgeif_fdb.c **** static void
+ 180:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_age_tmr(void *arg)
+ 181:lwIP/src/netif/bridgeif_fdb.c **** {
+  34              		.loc 1 181 1 view -0
+  35              		.cfi_startproc
+  36              		@ args = 0, pretend = 0, frame = 0
+  37              		@ frame_needed = 0, uses_anonymous_args = 0
+ 182:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)arg;
+  38              		.loc 1 182 3 view .LVU1
+ 183:lwIP/src/netif/bridgeif_fdb.c **** 
+ 184:lwIP/src/netif/bridgeif_fdb.c ****   LWIP_ASSERT("invalid arg", arg != NULL);
+  39              		.loc 1 184 3 view .LVU2
+  40              		.loc 1 184 3 view .LVU3
+ 181:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)arg;
+  41              		.loc 1 181 1 is_stmt 0 view .LVU4
+  42 0000 10B5     		push	{r4, lr}
+ARM GAS  /tmp/ccMlmk1M.s 			page 5
+
+
+  43              	.LCFI0:
+  44              		.cfi_def_cfa_offset 8
+  45              		.cfi_offset 4, -8
+  46              		.cfi_offset 14, -4
+  47              		.loc 1 184 3 view .LVU5
+  48 0002 B8B1     		cbz	r0, .L2
+  49              	.LVL1:
+  50              	.LBB5:
+  51              	.LBB6:
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  52              		.loc 1 162 15 is_stmt 1 view .LVU6
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  53              		.loc 1 162 22 is_stmt 0 view .LVU7
+  54 0004 0188     		ldrh	r1, [r0]
+  55 0006 0246     		mov	r2, r0
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  56              		.loc 1 162 3 view .LVU8
+  57 0008 69B1     		cbz	r1, .L4
+  58 000a 4368     		ldr	r3, [r0, #4]
+  59 000c 03EB0111 		add	r1, r3, r1, lsl #4
+  60              	.LVL2:
+  61              	.L9:
+  62              	.LBB7:
+ 163:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+  63              		.loc 1 163 5 is_stmt 1 view .LVU9
+ 164:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+  64              		.loc 1 164 5 view .LVU10
+ 172:lwIP/src/netif/bridgeif_fdb.c ****     }
+  65              		.loc 1 172 36 view .LVU11
+  66              	.LBE7:
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  67              		.loc 1 162 41 view .LVU12
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  68              		.loc 1 162 15 view .LVU13
+  69              	.LBB8:
+ 164:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+  70              		.loc 1 164 8 is_stmt 0 view .LVU14
+  71 0010 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+  72 0012 28B1     		cbz	r0, .L7
+ 165:lwIP/src/netif/bridgeif_fdb.c ****       /* check again when protected */
+  73              		.loc 1 165 34 is_stmt 1 view .LVU15
+ 167:lwIP/src/netif/bridgeif_fdb.c ****         if (--e->ts == 0) {
+  74              		.loc 1 167 7 view .LVU16
+ 168:lwIP/src/netif/bridgeif_fdb.c ****           e->used = 0;
+  75              		.loc 1 168 9 view .LVU17
+ 164:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+  76              		.loc 1 164 21 is_stmt 0 view .LVU18
+  77 0014 5C68     		ldr	r4, [r3, #4]
+ 168:lwIP/src/netif/bridgeif_fdb.c ****           e->used = 0;
+  78              		.loc 1 168 13 view .LVU19
+  79 0016 601E     		subs	r0, r4, #1
+ 164:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+  80              		.loc 1 164 17 view .LVU20
+  81 0018 14B1     		cbz	r4, .L7
+ 169:lwIP/src/netif/bridgeif_fdb.c ****         }
+  82              		.loc 1 169 11 is_stmt 1 view .LVU21
+ 168:lwIP/src/netif/bridgeif_fdb.c ****           e->used = 0;
+ARM GAS  /tmp/ccMlmk1M.s 			page 6
+
+
+  83              		.loc 1 168 12 is_stmt 0 view .LVU22
+  84 001a 5860     		str	r0, [r3, #4]
+  85 001c 00B9     		cbnz	r0, .L7
+ 169:lwIP/src/netif/bridgeif_fdb.c ****         }
+  86              		.loc 1 169 19 view .LVU23
+  87 001e 1870     		strb	r0, [r3]
+  88              	.L7:
+  89 0020 1033     		adds	r3, r3, #16
+  90              	.LVL3:
+ 169:lwIP/src/netif/bridgeif_fdb.c ****         }
+  91              		.loc 1 169 19 view .LVU24
+  92              	.LBE8:
+ 162:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+  93              		.loc 1 162 3 view .LVU25
+  94 0022 9942     		cmp	r1, r3
+  95 0024 F4D1     		bne	.L9
+  96              	.LVL4:
+  97              	.L4:
+ 175:lwIP/src/netif/bridgeif_fdb.c **** }
+  98              		.loc 1 175 31 is_stmt 1 view .LVU26
+  99              	.LBE6:
+ 100              	.LBE5:
+ 185:lwIP/src/netif/bridgeif_fdb.c **** 
+ 186:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_fdb_age_one_second(fdb);
+ 187:lwIP/src/netif/bridgeif_fdb.c ****   sys_timeout(BRIDGEIF_AGE_TIMER_MS, bridgeif_age_tmr, arg);
+ 101              		.loc 1 187 3 view .LVU27
+ 102 0026 0549     		ldr	r1, .L16
+ 103 0028 4FF47A70 		mov	r0, #1000
+ 188:lwIP/src/netif/bridgeif_fdb.c **** }
+ 104              		.loc 1 188 1 is_stmt 0 view .LVU28
+ 105 002c BDE81040 		pop	{r4, lr}
+ 106              	.LCFI1:
+ 107              		.cfi_remember_state
+ 108              		.cfi_restore 14
+ 109              		.cfi_restore 4
+ 110              		.cfi_def_cfa_offset 0
+ 187:lwIP/src/netif/bridgeif_fdb.c **** }
+ 111              		.loc 1 187 3 view .LVU29
+ 112 0030 FFF7FEBF 		b	sys_timeout
+ 113              	.LVL5:
+ 114              	.L2:
+ 115              	.LCFI2:
+ 116              		.cfi_restore_state
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 117              		.loc 1 184 3 is_stmt 1 discriminator 1 view .LVU30
+ 118 0034 0248     		ldr	r0, .L16+4
+ 119              	.LVL6:
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 120              		.loc 1 184 3 is_stmt 0 discriminator 1 view .LVU31
+ 121 0036 FFF7FEFF 		bl	printf
+ 122              	.LVL7:
+ 123              	.L5:
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 124              		.loc 1 184 3 is_stmt 1 discriminator 1 view .LVU32
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 125              		.loc 1 184 3 discriminator 1 view .LVU33
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ARM GAS  /tmp/ccMlmk1M.s 			page 7
+
+
+ 126              		.loc 1 184 3 discriminator 1 view .LVU34
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 127              		.loc 1 184 3 discriminator 1 view .LVU35
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 128              		.loc 1 184 3 discriminator 1 view .LVU36
+ 184:lwIP/src/netif/bridgeif_fdb.c **** 
+ 129              		.loc 1 184 3 discriminator 1 view .LVU37
+ 130 003a FEE7     		b	.L5
+ 131              	.L17:
+ 132              		.align	2
+ 133              	.L16:
+ 134 003c 00000000 		.word	bridgeif_age_tmr
+ 135 0040 00000000 		.word	.LC0
+ 136              		.cfi_endproc
+ 137              	.LFE108:
+ 139              		.section	.text.bridgeif_fdb_update_src,"ax",%progbits
+ 140              		.align	1
+ 141              		.p2align 2,,3
+ 142              		.global	bridgeif_fdb_update_src
+ 143              		.syntax unified
+ 144              		.thumb
+ 145              		.thumb_func
+ 146              		.fpu fpv4-sp-d16
+ 148              	bridgeif_fdb_update_src:
+ 149              	.LVL8:
+ 150              	.LFB105:
+  77:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 151              		.loc 1 77 1 view -0
+ 152              		.cfi_startproc
+ 153              		@ args = 0, pretend = 0, frame = 0
+ 154              		@ frame_needed = 0, uses_anonymous_args = 0
+  78:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)fdb_ptr;
+ 155              		.loc 1 78 3 view .LVU39
+  79:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_DECL_PROTECT(lev);
+ 156              		.loc 1 79 3 view .LVU40
+  80:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_PROTECT(lev);
+ 157              		.loc 1 80 29 view .LVU41
+  81:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+ 158              		.loc 1 81 29 view .LVU42
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 159              		.loc 1 82 3 view .LVU43
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 160              		.loc 1 82 15 view .LVU44
+  77:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 161              		.loc 1 77 1 is_stmt 0 view .LVU45
+ 162 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 163              	.LCFI3:
+ 164              		.cfi_def_cfa_offset 32
+ 165              		.cfi_offset 3, -32
+ 166              		.cfi_offset 4, -28
+ 167              		.cfi_offset 5, -24
+ 168              		.cfi_offset 6, -20
+ 169              		.cfi_offset 7, -16
+ 170              		.cfi_offset 8, -12
+ 171              		.cfi_offset 9, -8
+ 172              		.cfi_offset 14, -4
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ARM GAS  /tmp/ccMlmk1M.s 			page 8
+
+
+ 173              		.loc 1 82 22 view .LVU46
+ 174 0004 0788     		ldrh	r7, [r0]
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 175              		.loc 1 82 3 view .LVU47
+ 176 0006 27B3     		cbz	r7, .L18
+ 177 0008 4668     		ldr	r6, [r0, #4]
+ 178 000a 8946     		mov	r9, r1
+ 179 000c 9046     		mov	r8, r2
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 180              		.loc 1 82 10 view .LVU48
+ 181 000e 0025     		movs	r5, #0
+ 182              	.LBB9:
+  83:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+ 183              		.loc 1 83 36 view .LVU49
+ 184 0010 3446     		mov	r4, r6
+ 185              	.LVL9:
+ 186              	.L21:
+  83:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+ 187              		.loc 1 83 5 is_stmt 1 view .LVU50
+  84:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+ 188              		.loc 1 84 5 view .LVU51
+  84:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+ 189              		.loc 1 84 8 is_stmt 0 view .LVU52
+ 190 0012 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 191              	.LBE9:
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 192              		.loc 1 82 42 view .LVU53
+ 193 0014 0135     		adds	r5, r5, #1
+ 194              	.LVL10:
+ 195              	.LBB10:
+  84:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+ 196              		.loc 1 84 8 view .LVU54
+ 197 0016 43B1     		cbz	r3, .L20
+  85:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 198              		.loc 1 85 7 is_stmt 1 discriminator 1 view .LVU55
+  84:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+ 199              		.loc 1 84 17 is_stmt 0 discriminator 1 view .LVU56
+ 200 0018 6368     		ldr	r3, [r4, #4]
+  85:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 201              		.loc 1 85 12 discriminator 1 view .LVU57
+ 202 001a 04F10800 		add	r0, r4, #8
+ 203 001e 0622     		movs	r2, #6
+ 204 0020 4946     		mov	r1, r9
+  84:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, src_addr, sizeof(struct eth_addr))) {
+ 205              		.loc 1 84 17 discriminator 1 view .LVU58
+ 206 0022 13B1     		cbz	r3, .L20
+ 207              	.LVL11:
+  85:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 208              		.loc 1 85 12 view .LVU59
+ 209 0024 FFF7FEFF 		bl	memcmp
+ 210              	.LVL12:
+  85:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 211              		.loc 1 85 10 view .LVU60
+ 212 0028 F8B1     		cbz	r0, .L40
+ 213              	.L20:
+  85:lwIP/src/netif/bridgeif_fdb.c ****         LWIP_DEBUGF(BRIDGEIF_FDB_DEBUG, ("br: update src %02x:%02x:%02x:%02x:%02x:%02x (from %d) @ 
+ 214              		.loc 1 85 10 view .LVU61
+ARM GAS  /tmp/ccMlmk1M.s 			page 9
+
+
+ 215              	.LBE10:
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 216              		.loc 1 82 41 is_stmt 1 discriminator 2 view .LVU62
+ 217              	.LVL13:
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 218              		.loc 1 82 15 discriminator 2 view .LVU63
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 219              		.loc 1 82 3 is_stmt 0 discriminator 2 view .LVU64
+ 220 002a BD42     		cmp	r5, r7
+ 221 002c 04F11004 		add	r4, r4, #16
+ 222              	.LVL14:
+  82:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 223              		.loc 1 82 3 discriminator 2 view .LVU65
+ 224 0030 EFD1     		bne	.L21
+ 225 0032 0023     		movs	r3, #0
+ 226              	.LVL15:
+ 227              	.L24:
+ 228              	.LBB11:
+ 100:lwIP/src/netif/bridgeif_fdb.c ****     if (!e->used || !e->ts) {
+ 229              		.loc 1 100 5 is_stmt 1 view .LVU66
+ 101:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 230              		.loc 1 101 5 view .LVU67
+ 101:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 231              		.loc 1 101 8 is_stmt 0 view .LVU68
+ 232 0034 3278     		ldrb	r2, [r6]	@ zero_extendqisi2
+ 233 0036 72B9     		cbnz	r2, .L41
+ 234              	.L22:
+ 107:lwIP/src/netif/bridgeif_fdb.c ****         memcpy(&e->addr, src_addr, sizeof(struct eth_addr));
+ 235              		.loc 1 107 55 is_stmt 1 view .LVU69
+ 108:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+ 236              		.loc 1 108 9 view .LVU70
+ 237 0038 D9F80010 		ldr	r1, [r9]	@ unaligned
+ 109:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 238              		.loc 1 109 15 is_stmt 0 view .LVU71
+ 239 003c 4FF49672 		mov	r2, #300
+ 111:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ 240              		.loc 1 111 17 view .LVU72
+ 241 0040 0123     		movs	r3, #1
+ 242              	.LVL16:
+ 108:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+ 243              		.loc 1 108 9 view .LVU73
+ 244 0042 B160     		str	r1, [r6, #8]	@ unaligned
+ 245 0044 B9F80410 		ldrh	r1, [r9, #4]	@ unaligned
+ 110:lwIP/src/netif/bridgeif_fdb.c ****         e->used = 1;
+ 246              		.loc 1 110 17 view .LVU74
+ 247 0048 86F80180 		strb	r8, [r6, #1]
+ 108:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+ 248              		.loc 1 108 9 view .LVU75
+ 249 004c B181     		strh	r1, [r6, #12]	@ unaligned
+ 109:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 250              		.loc 1 109 9 is_stmt 1 view .LVU76
+ 109:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 251              		.loc 1 109 15 is_stmt 0 view .LVU77
+ 252 004e 7260     		str	r2, [r6, #4]
+ 110:lwIP/src/netif/bridgeif_fdb.c ****         e->used = 1;
+ 253              		.loc 1 110 9 is_stmt 1 view .LVU78
+ 111:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ARM GAS  /tmp/ccMlmk1M.s 			page 10
+
+
+ 254              		.loc 1 111 9 view .LVU79
+ 111:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ 255              		.loc 1 111 17 is_stmt 0 view .LVU80
+ 256 0050 3370     		strb	r3, [r6]
+ 112:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 257              		.loc 1 112 38 is_stmt 1 view .LVU81
+ 113:lwIP/src/netif/bridgeif_fdb.c ****         return;
+ 258              		.loc 1 113 37 view .LVU82
+ 114:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 259              		.loc 1 114 9 view .LVU83
+ 260              	.LVL17:
+ 261              	.L18:
+ 114:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 262              		.loc 1 114 9 is_stmt 0 view .LVU84
+ 263              	.LBE11:
+ 121:lwIP/src/netif/bridgeif_fdb.c **** 
+ 264              		.loc 1 121 1 view .LVU85
+ 265 0052 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 266              	.LVL18:
+ 267              	.L41:
+ 268              	.LBB12:
+ 116:lwIP/src/netif/bridgeif_fdb.c ****     }
+ 269              		.loc 1 116 36 is_stmt 1 discriminator 1 view .LVU86
+ 270              	.LBE12:
+  99:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 271              		.loc 1 99 41 discriminator 1 view .LVU87
+ 272              	.LBB13:
+ 101:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 273              		.loc 1 101 18 is_stmt 0 discriminator 1 view .LVU88
+ 274 0056 7268     		ldr	r2, [r6, #4]
+ 275              	.LBE13:
+  99:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 276              		.loc 1 99 42 discriminator 1 view .LVU89
+ 277 0058 0133     		adds	r3, r3, #1
+ 278              	.LVL19:
+  99:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 279              		.loc 1 99 15 is_stmt 1 discriminator 1 view .LVU90
+ 280              	.LBB14:
+ 101:lwIP/src/netif/bridgeif_fdb.c ****       BRIDGEIF_WRITE_PROTECT(lev);
+ 281              		.loc 1 101 18 is_stmt 0 discriminator 1 view .LVU91
+ 282 005a 002A     		cmp	r2, #0
+ 283 005c ECD0     		beq	.L22
+ 284              	.LBE14:
+  99:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 285              		.loc 1 99 3 discriminator 2 view .LVU92
+ 286 005e BB42     		cmp	r3, r7
+ 287 0060 06F11006 		add	r6, r6, #16
+ 288              	.LVL20:
+  99:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 289              		.loc 1 99 3 discriminator 2 view .LVU93
+ 290 0064 E6D1     		bne	.L24
+ 121:lwIP/src/netif/bridgeif_fdb.c **** 
+ 291              		.loc 1 121 1 view .LVU94
+ 292 0066 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 293              	.LVL21:
+ 294              	.L40:
+ 295              	.LBB15:
+ARM GAS  /tmp/ccMlmk1M.s 			page 11
+
+
+  88:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_PROTECT(lev);
+ 296              		.loc 1 88 55 is_stmt 1 view .LVU95
+  89:lwIP/src/netif/bridgeif_fdb.c ****         e->ts = BR_FDB_TIMEOUT_SEC;
+ 297              		.loc 1 89 36 view .LVU96
+  90:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 298              		.loc 1 90 9 view .LVU97
+  90:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 299              		.loc 1 90 15 is_stmt 0 view .LVU98
+ 300 006a 4FF49673 		mov	r3, #300
+  91:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ 301              		.loc 1 91 17 view .LVU99
+ 302 006e 84F80180 		strb	r8, [r4, #1]
+  90:lwIP/src/netif/bridgeif_fdb.c ****         e->port = port_idx;
+ 303              		.loc 1 90 15 view .LVU100
+ 304 0072 6360     		str	r3, [r4, #4]
+  91:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_WRITE_UNPROTECT(lev);
+ 305              		.loc 1 91 9 is_stmt 1 view .LVU101
+  92:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 306              		.loc 1 92 38 view .LVU102
+  93:lwIP/src/netif/bridgeif_fdb.c ****         return;
+ 307              		.loc 1 93 37 view .LVU103
+  94:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 308              		.loc 1 94 9 view .LVU104
+ 309              	.LBE15:
+ 121:lwIP/src/netif/bridgeif_fdb.c **** 
+ 310              		.loc 1 121 1 is_stmt 0 view .LVU105
+ 311 0074 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 121:lwIP/src/netif/bridgeif_fdb.c **** 
+ 312              		.loc 1 121 1 view .LVU106
+ 313              		.cfi_endproc
+ 314              	.LFE105:
+ 316              		.section	.text.bridgeif_fdb_get_dst_ports,"ax",%progbits
+ 317              		.align	1
+ 318              		.p2align 2,,3
+ 319              		.global	bridgeif_fdb_get_dst_ports
+ 320              		.syntax unified
+ 321              		.thumb
+ 322              		.thumb_func
+ 323              		.fpu fpv4-sp-d16
+ 325              	bridgeif_fdb_get_dst_ports:
+ 326              	.LVL22:
+ 327              	.LFB106:
+ 129:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 328              		.loc 1 129 1 is_stmt 1 view -0
+ 329              		.cfi_startproc
+ 330              		@ args = 0, pretend = 0, frame = 0
+ 331              		@ frame_needed = 0, uses_anonymous_args = 0
+ 130:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb = (bridgeif_dfdb_t *)fdb_ptr;
+ 332              		.loc 1 130 3 view .LVU108
+ 131:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_DECL_PROTECT(lev);
+ 333              		.loc 1 131 3 view .LVU109
+ 132:lwIP/src/netif/bridgeif_fdb.c ****   BRIDGEIF_READ_PROTECT(lev);
+ 334              		.loc 1 132 29 view .LVU110
+ 133:lwIP/src/netif/bridgeif_fdb.c ****   for (i = 0; i < fdb->max_fdb_entries; i++) {
+ 335              		.loc 1 133 29 view .LVU111
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 336              		.loc 1 134 3 view .LVU112
+ARM GAS  /tmp/ccMlmk1M.s 			page 12
+
+
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 337              		.loc 1 134 15 view .LVU113
+ 129:lwIP/src/netif/bridgeif_fdb.c ****   int i;
+ 338              		.loc 1 129 1 is_stmt 0 view .LVU114
+ 339 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 340              	.LCFI4:
+ 341              		.cfi_def_cfa_offset 24
+ 342              		.cfi_offset 3, -24
+ 343              		.cfi_offset 4, -20
+ 344              		.cfi_offset 5, -16
+ 345              		.cfi_offset 6, -12
+ 346              		.cfi_offset 7, -8
+ 347              		.cfi_offset 14, -4
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 348              		.loc 1 134 22 view .LVU115
+ 349 0002 0688     		ldrh	r6, [r0]
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 350              		.loc 1 134 3 view .LVU116
+ 351 0004 96B1     		cbz	r6, .L46
+ 352 0006 0F46     		mov	r7, r1
+ 353 0008 4468     		ldr	r4, [r0, #4]
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 354              		.loc 1 134 10 view .LVU117
+ 355 000a 0025     		movs	r5, #0
+ 356              	.LVL23:
+ 357              	.L45:
+ 358              	.LBB16:
+ 135:lwIP/src/netif/bridgeif_fdb.c ****     if (e->used && e->ts) {
+ 359              		.loc 1 135 5 is_stmt 1 view .LVU118
+ 136:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ 360              		.loc 1 136 5 view .LVU119
+ 136:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ 361              		.loc 1 136 8 is_stmt 0 view .LVU120
+ 362 000c 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 363              	.LBE16:
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 364              		.loc 1 134 42 view .LVU121
+ 365 000e 0135     		adds	r5, r5, #1
+ 366              	.LVL24:
+ 367              	.LBB18:
+ 136:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ 368              		.loc 1 136 8 view .LVU122
+ 369 0010 43B1     		cbz	r3, .L44
+ 137:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 370              		.loc 1 137 7 is_stmt 1 discriminator 1 view .LVU123
+ 136:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ 371              		.loc 1 136 17 is_stmt 0 discriminator 1 view .LVU124
+ 372 0012 6368     		ldr	r3, [r4, #4]
+ 137:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 373              		.loc 1 137 12 discriminator 1 view .LVU125
+ 374 0014 04F10800 		add	r0, r4, #8
+ 375 0018 0622     		movs	r2, #6
+ 376 001a 3946     		mov	r1, r7
+ 136:lwIP/src/netif/bridgeif_fdb.c ****       if (!memcmp(&e->addr, dst_addr, sizeof(struct eth_addr))) {
+ 377              		.loc 1 136 17 discriminator 1 view .LVU126
+ 378 001c 13B1     		cbz	r3, .L44
+ 379              	.LVL25:
+ARM GAS  /tmp/ccMlmk1M.s 			page 13
+
+
+ 137:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 380              		.loc 1 137 12 view .LVU127
+ 381 001e FFF7FEFF 		bl	memcmp
+ 382              	.LVL26:
+ 137:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 383              		.loc 1 137 10 view .LVU128
+ 384 0022 28B1     		cbz	r0, .L55
+ 385              	.L44:
+ 137:lwIP/src/netif/bridgeif_fdb.c ****         bridgeif_portmask_t ret = (bridgeif_portmask_t)(1 << e->port);
+ 386              		.loc 1 137 10 view .LVU129
+ 387              	.LBE18:
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 388              		.loc 1 134 41 is_stmt 1 discriminator 2 view .LVU130
+ 389              	.LVL27:
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 390              		.loc 1 134 15 discriminator 2 view .LVU131
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 391              		.loc 1 134 3 is_stmt 0 discriminator 2 view .LVU132
+ 392 0024 B542     		cmp	r5, r6
+ 393 0026 04F11004 		add	r4, r4, #16
+ 394              	.LVL28:
+ 134:lwIP/src/netif/bridgeif_fdb.c ****     bridgeif_dfdb_entry_t *e = &fdb->fdb[i];
+ 395              		.loc 1 134 3 discriminator 2 view .LVU133
+ 396 002a EFD1     		bne	.L45
+ 397              	.LVL29:
+ 398              	.L46:
+ 145:lwIP/src/netif/bridgeif_fdb.c **** }
+ 399              		.loc 1 145 10 view .LVU134
+ 400 002c FF20     		movs	r0, #255
+ 146:lwIP/src/netif/bridgeif_fdb.c **** 
+ 401              		.loc 1 146 1 view .LVU135
+ 402 002e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 403              	.LVL30:
+ 404              	.L55:
+ 405              	.LBB19:
+ 406              	.LBB17:
+ 138:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 407              		.loc 1 138 9 is_stmt 1 view .LVU136
+ 138:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 408              		.loc 1 138 63 is_stmt 0 view .LVU137
+ 409 0030 6378     		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 138:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 410              		.loc 1 138 59 view .LVU138
+ 411 0032 0120     		movs	r0, #1
+ 412 0034 9840     		lsls	r0, r0, r3
+ 138:lwIP/src/netif/bridgeif_fdb.c ****         BRIDGEIF_READ_UNPROTECT(lev);
+ 413              		.loc 1 138 29 view .LVU139
+ 414 0036 C0B2     		uxtb	r0, r0
+ 415              	.LVL31:
+ 139:lwIP/src/netif/bridgeif_fdb.c ****         return ret;
+ 416              		.loc 1 139 37 is_stmt 1 view .LVU140
+ 140:lwIP/src/netif/bridgeif_fdb.c ****       }
+ 417              		.loc 1 140 9 view .LVU141
+ 418              	.LBE17:
+ 419              	.LBE19:
+ 146:lwIP/src/netif/bridgeif_fdb.c **** 
+ 420              		.loc 1 146 1 is_stmt 0 view .LVU142
+ARM GAS  /tmp/ccMlmk1M.s 			page 14
+
+
+ 421 0038 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 146:lwIP/src/netif/bridgeif_fdb.c **** 
+ 422              		.loc 1 146 1 view .LVU143
+ 423              		.cfi_endproc
+ 424              	.LFE106:
+ 426 003a 00BF     		.section	.rodata.bridgeif_fdb_init.str1.4,"aMS",%progbits,1
+ 427              		.align	2
+ 428              	.LC1:
+ 429 0000 616C6C6F 		.ascii	"alloc_len == alloc_len_sizet\000"
+ 429      635F6C65 
+ 429      6E203D3D 
+ 429      20616C6C 
+ 429      6F635F6C 
+ 430              		.section	.text.bridgeif_fdb_init,"ax",%progbits
+ 431              		.align	1
+ 432              		.p2align 2,,3
+ 433              		.global	bridgeif_fdb_init
+ 434              		.syntax unified
+ 435              		.thumb
+ 436              		.thumb_func
+ 437              		.fpu fpv4-sp-d16
+ 439              	bridgeif_fdb_init:
+ 440              	.LVL32:
+ 441              	.LFB109:
+ 189:lwIP/src/netif/bridgeif_fdb.c **** 
+ 190:lwIP/src/netif/bridgeif_fdb.c **** /**
+ 191:lwIP/src/netif/bridgeif_fdb.c ****  * @ingroup bridgeif_fdb
+ 192:lwIP/src/netif/bridgeif_fdb.c ****  * Init our simple fdb list
+ 193:lwIP/src/netif/bridgeif_fdb.c ****  */
+ 194:lwIP/src/netif/bridgeif_fdb.c **** void *
+ 195:lwIP/src/netif/bridgeif_fdb.c **** bridgeif_fdb_init(u16_t max_fdb_entries)
+ 196:lwIP/src/netif/bridgeif_fdb.c **** {
+ 442              		.loc 1 196 1 is_stmt 1 view -0
+ 443              		.cfi_startproc
+ 444              		@ args = 0, pretend = 0, frame = 0
+ 445              		@ frame_needed = 0, uses_anonymous_args = 0
+ 197:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb;
+ 446              		.loc 1 197 3 view .LVU145
+ 198:lwIP/src/netif/bridgeif_fdb.c ****   size_t alloc_len_sizet = sizeof(bridgeif_dfdb_t) + (max_fdb_entries * sizeof(bridgeif_dfdb_entry_
+ 447              		.loc 1 198 3 view .LVU146
+ 448              		.loc 1 198 71 is_stmt 0 view .LVU147
+ 449 0000 0101     		lsls	r1, r0, #4
+ 450              		.loc 1 198 10 view .LVU148
+ 451 0002 0831     		adds	r1, r1, #8
+ 452              	.LVL33:
+ 199:lwIP/src/netif/bridgeif_fdb.c ****   mem_size_t alloc_len = (mem_size_t)alloc_len_sizet;
+ 453              		.loc 1 199 3 is_stmt 1 view .LVU149
+ 200:lwIP/src/netif/bridgeif_fdb.c ****   LWIP_ASSERT("alloc_len == alloc_len_sizet", alloc_len == alloc_len_sizet);
+ 454              		.loc 1 200 3 view .LVU150
+ 455              		.loc 1 200 3 view .LVU151
+ 196:lwIP/src/netif/bridgeif_fdb.c ****   bridgeif_dfdb_t *fdb;
+ 456              		.loc 1 196 1 is_stmt 0 view .LVU152
+ 457 0004 38B5     		push	{r3, r4, r5, lr}
+ 458              	.LCFI5:
+ 459              		.cfi_def_cfa_offset 16
+ 460              		.cfi_offset 3, -16
+ 461              		.cfi_offset 4, -12
+ARM GAS  /tmp/ccMlmk1M.s 			page 15
+
+
+ 462              		.cfi_offset 5, -8
+ 463              		.cfi_offset 14, -4
+ 464              		.loc 1 200 3 view .LVU153
+ 465 0006 8BB2     		uxth	r3, r1
+ 466 0008 9942     		cmp	r1, r3
+ 467 000a 03D0     		beq	.L57
+ 468              		.loc 1 200 3 is_stmt 1 discriminator 1 view .LVU154
+ 469 000c 0B48     		ldr	r0, .L64
+ 470              	.LVL34:
+ 471              		.loc 1 200 3 is_stmt 0 discriminator 1 view .LVU155
+ 472 000e FFF7FEFF 		bl	printf
+ 473              	.LVL35:
+ 474              	.L58:
+ 475              		.loc 1 200 3 is_stmt 1 discriminator 1 view .LVU156
+ 476              		.loc 1 200 3 discriminator 1 view .LVU157
+ 477              		.loc 1 200 3 discriminator 1 view .LVU158
+ 478              		.loc 1 200 3 discriminator 1 view .LVU159
+ 479              		.loc 1 200 3 discriminator 1 view .LVU160
+ 480              		.loc 1 200 3 discriminator 1 view .LVU161
+ 481 0012 FEE7     		b	.L58
+ 482              	.LVL36:
+ 483              	.L57:
+ 484              		.loc 1 200 3 discriminator 2 view .LVU162
+ 201:lwIP/src/netif/bridgeif_fdb.c ****   LWIP_DEBUGF(BRIDGEIF_DEBUG, ("bridgeif_fdb_init: allocating %d bytes for private FDB data\n", (in
+ 485              		.loc 1 201 113 discriminator 2 view .LVU163
+ 202:lwIP/src/netif/bridgeif_fdb.c ****   fdb = (bridgeif_dfdb_t *)mem_calloc(1, alloc_len);
+ 486              		.loc 1 202 3 discriminator 2 view .LVU164
+ 487 0014 0546     		mov	r5, r0
+ 488              		.loc 1 202 28 is_stmt 0 discriminator 2 view .LVU165
+ 489 0016 89B2     		uxth	r1, r1
+ 490              	.LVL37:
+ 491              		.loc 1 202 28 discriminator 2 view .LVU166
+ 492 0018 0120     		movs	r0, #1
+ 493              	.LVL38:
+ 494              		.loc 1 202 28 discriminator 2 view .LVU167
+ 495 001a FFF7FEFF 		bl	mem_calloc
+ 496              	.LVL39:
+ 203:lwIP/src/netif/bridgeif_fdb.c ****   if (fdb == NULL) {
+ 497              		.loc 1 203 3 is_stmt 1 discriminator 2 view .LVU168
+ 498              		.loc 1 203 6 is_stmt 0 discriminator 2 view .LVU169
+ 499 001e 0446     		mov	r4, r0
+ 500 0020 48B1     		cbz	r0, .L56
+ 204:lwIP/src/netif/bridgeif_fdb.c ****     return NULL;
+ 205:lwIP/src/netif/bridgeif_fdb.c ****   }
+ 206:lwIP/src/netif/bridgeif_fdb.c ****   fdb->max_fdb_entries = max_fdb_entries;
+ 501              		.loc 1 206 3 is_stmt 1 view .LVU170
+ 502              		.loc 1 206 24 is_stmt 0 view .LVU171
+ 503 0022 0346     		mov	r3, r0
+ 207:lwIP/src/netif/bridgeif_fdb.c ****   fdb->fdb = (bridgeif_dfdb_entry_t *)(fdb + 1);
+ 208:lwIP/src/netif/bridgeif_fdb.c **** 
+ 209:lwIP/src/netif/bridgeif_fdb.c ****   sys_timeout(BRIDGEIF_AGE_TIMER_MS, bridgeif_age_tmr, fdb);
+ 504              		.loc 1 209 3 view .LVU172
+ 505 0024 0246     		mov	r2, r0
+ 506 0026 0649     		ldr	r1, .L64+4
+ 507 0028 4FF47A70 		mov	r0, #1000
+ 508              	.LVL40:
+ 206:lwIP/src/netif/bridgeif_fdb.c ****   fdb->fdb = (bridgeif_dfdb_entry_t *)(fdb + 1);
+ARM GAS  /tmp/ccMlmk1M.s 			page 16
+
+
+ 509              		.loc 1 206 24 view .LVU173
+ 510 002c 23F8085B 		strh	r5, [r3], #8	@ movhi
+ 207:lwIP/src/netif/bridgeif_fdb.c ****   fdb->fdb = (bridgeif_dfdb_entry_t *)(fdb + 1);
+ 511              		.loc 1 207 3 is_stmt 1 view .LVU174
+ 207:lwIP/src/netif/bridgeif_fdb.c ****   fdb->fdb = (bridgeif_dfdb_entry_t *)(fdb + 1);
+ 512              		.loc 1 207 12 is_stmt 0 view .LVU175
+ 513 0030 6360     		str	r3, [r4, #4]
+ 514              		.loc 1 209 3 is_stmt 1 view .LVU176
+ 515 0032 FFF7FEFF 		bl	sys_timeout
+ 516              	.LVL41:
+ 210:lwIP/src/netif/bridgeif_fdb.c **** 
+ 211:lwIP/src/netif/bridgeif_fdb.c ****   return fdb;
+ 517              		.loc 1 211 3 view .LVU177
+ 518              	.L56:
+ 212:lwIP/src/netif/bridgeif_fdb.c **** }
+ 519              		.loc 1 212 1 is_stmt 0 view .LVU178
+ 520 0036 2046     		mov	r0, r4
+ 521 0038 38BD     		pop	{r3, r4, r5, pc}
+ 522              	.LVL42:
+ 523              	.L65:
+ 524              		.loc 1 212 1 view .LVU179
+ 525 003a 00BF     		.align	2
+ 526              	.L64:
+ 527 003c 00000000 		.word	.LC1
+ 528 0040 00000000 		.word	bridgeif_age_tmr
+ 529              		.cfi_endproc
+ 530              	.LFE109:
+ 532              		.text
+ 533              	.Letext0:
+ 534              		.file 2 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 535              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 536              		.file 4 "/usr/arm-none-eabi/include/sys/lock.h"
+ 537              		.file 5 "/usr/arm-none-eabi/include/sys/_types.h"
+ 538              		.file 6 "/usr/arm-none-eabi/include/sys/reent.h"
+ 539              		.file 7 "/usr/arm-none-eabi/include/stdlib.h"
+ 540              		.file 8 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 541              		.file 9 "lwIP/src/include/lwip/arch.h"
+ 542              		.file 10 "/usr/arm-none-eabi/include/ctype.h"
+ 543              		.file 11 "lwIP/src/include/lwip/prot/ethernet.h"
+ 544              		.file 12 "lwIP/src/include/netif/bridgeif.h"
+ 545              		.file 13 "lwIP/src/include/lwip/mem.h"
+ 546              		.file 14 "lwIP/src/include/lwip/timeouts.h"
+ 547              		.file 15 "/usr/arm-none-eabi/include/stdio.h"
+ 548              		.file 16 "<built-in>"
+ARM GAS  /tmp/ccMlmk1M.s 			page 17
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 bridgeif_fdb.c
+     /tmp/ccMlmk1M.s:18     .rodata.bridgeif_age_tmr.str1.4:0000000000000000 $d
+     /tmp/ccMlmk1M.s:22     .text.bridgeif_age_tmr:0000000000000000 $t
+     /tmp/ccMlmk1M.s:30     .text.bridgeif_age_tmr:0000000000000000 bridgeif_age_tmr
+     /tmp/ccMlmk1M.s:134    .text.bridgeif_age_tmr:000000000000003c $d
+     /tmp/ccMlmk1M.s:140    .text.bridgeif_fdb_update_src:0000000000000000 $t
+     /tmp/ccMlmk1M.s:148    .text.bridgeif_fdb_update_src:0000000000000000 bridgeif_fdb_update_src
+     /tmp/ccMlmk1M.s:317    .text.bridgeif_fdb_get_dst_ports:0000000000000000 $t
+     /tmp/ccMlmk1M.s:325    .text.bridgeif_fdb_get_dst_ports:0000000000000000 bridgeif_fdb_get_dst_ports
+     /tmp/ccMlmk1M.s:427    .rodata.bridgeif_fdb_init.str1.4:0000000000000000 $d
+     /tmp/ccMlmk1M.s:431    .text.bridgeif_fdb_init:0000000000000000 $t
+     /tmp/ccMlmk1M.s:439    .text.bridgeif_fdb_init:0000000000000000 bridgeif_fdb_init
+     /tmp/ccMlmk1M.s:527    .text.bridgeif_fdb_init:000000000000003c $d
+
+UNDEFINED SYMBOLS
+sys_timeout
+printf
+memcmp
+mem_calloc

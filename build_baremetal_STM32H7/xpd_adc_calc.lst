@@ -1,0 +1,309 @@
+ARM GAS  /tmp/ccOSIB1F.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_adc_calc.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.ADC_fGetVDDA_V,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	ADC_fGetVDDA_V
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	ADC_fGetVDDA_V:
+  28              	.LFB141:
+  29              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * @file    xpd_adc_calc.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * @version 1.0
+   6:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * @brief   STM32 eXtensible Peripheral Drivers ADC Calculations Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  24:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** #include <xpd_adc_calc.h>
+  25:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  26:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  27:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /** @ingroup ADC_Calculations
+  28:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @defgroup ADC_Calculations_Exported_Functions ADC Calculations Exported Functions
+  29:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @{ */
+ARM GAS  /tmp/ccOSIB1F.s 			page 2
+
+
+  30:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  31:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  32:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  33:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Returns the VDDA value in voltage.
+  34:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The VDDA voltage measured in Volts
+  35:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+  36:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** float ADC_fGetVDDA_V(void)
+  37:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+  30              		.loc 1 37 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  38:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+  35              		.loc 1 38 5 view .LVU1
+  39:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+  36              		.loc 1 39 1 is_stmt 0 view .LVU2
+  37 0000 9FED010A 		vldr.32	s0, .L3
+  38 0004 7047     		bx	lr
+  39              	.L4:
+  40 0006 00BF     		.align	2
+  41              	.L3:
+  42 0008 00000000 		.word	0
+  43              		.cfi_endproc
+  44              	.LFE141:
+  46              		.section	.text.ADC_fCalcExt_V,"ax",%progbits
+  47              		.align	1
+  48              		.p2align 2,,3
+  49              		.global	ADC_fCalcExt_V
+  50              		.syntax unified
+  51              		.thumb
+  52              		.thumb_func
+  53              		.fpu fpv4-sp-d16
+  55              	ADC_fCalcExt_V:
+  56              	.LVL0:
+  57              	.LFB142:
+  40:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  41:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** #ifdef ADC_VBAT_SCALER
+  42:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  43:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Converts the VBAT measurement to voltage.
+  44:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @param usVBatConversion: 12 bit right aligned ADC measurement value
+  45:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The VBAT value in Volts
+  46:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+  47:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** float ADC_fCalcVBAT_V(uint16_t usVBatConversion)
+  48:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+  49:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     /* Convert to V from ADC range, multiply by scaler */
+  50:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+  51:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+  52:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** #endif
+  53:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  54:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  55:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Converts a channel measurement to voltage.
+  56:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @param usChannelConversion: 12 bit right aligned ADC measurement value
+  57:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The channel voltage level
+  58:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+  59:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** float ADC_fCalcExt_V(uint16_t usChannelConversion)
+  60:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+ARM GAS  /tmp/ccOSIB1F.s 			page 3
+
+
+  58              		.loc 1 60 1 is_stmt 1 view -0
+  59              		.cfi_startproc
+  60              		@ args = 0, pretend = 0, frame = 0
+  61              		@ frame_needed = 0, uses_anonymous_args = 0
+  62              		@ link register save eliminated.
+  61:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     /* Convert to V from ADC range */
+  62:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+  63              		.loc 1 62 5 view .LVU4
+  63:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+  64              		.loc 1 63 1 is_stmt 0 view .LVU5
+  65 0000 9FED010A 		vldr.32	s0, .L6
+  66 0004 7047     		bx	lr
+  67              	.L7:
+  68 0006 00BF     		.align	2
+  69              	.L6:
+  70 0008 00000000 		.word	0
+  71              		.cfi_endproc
+  72              	.LFE142:
+  74              		.section	.text.ADC_fCalcTemp_C,"ax",%progbits
+  75              		.align	1
+  76              		.p2align 2,,3
+  77              		.global	ADC_fCalcTemp_C
+  78              		.syntax unified
+  79              		.thumb
+  80              		.thumb_func
+  81              		.fpu fpv4-sp-d16
+  83              	ADC_fCalcTemp_C:
+  84              	.LFB153:
+  85              		.cfi_startproc
+  86              		@ args = 0, pretend = 0, frame = 0
+  87              		@ frame_needed = 0, uses_anonymous_args = 0
+  88              		@ link register save eliminated.
+  89 0000 9FED010A 		vldr.32	s0, .L9
+  90 0004 7047     		bx	lr
+  91              	.L10:
+  92 0006 00BF     		.align	2
+  93              	.L9:
+  94 0008 00000000 		.word	0
+  95              		.cfi_endproc
+  96              	.LFE153:
+  98              		.section	.text.ADC_lCalcVDDA_mV,"ax",%progbits
+  99              		.align	1
+ 100              		.p2align 2,,3
+ 101              		.global	ADC_lCalcVDDA_mV
+ 102              		.syntax unified
+ 103              		.thumb
+ 104              		.thumb_func
+ 105              		.fpu fpv4-sp-d16
+ 107              	ADC_lCalcVDDA_mV:
+ 108              	.LVL1:
+ 109              	.LFB144:
+  64:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  65:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  66:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Converts a temperature sensor measurement to degree Celsius.
+  67:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @param usTempConversion: 12 bit right aligned ADC measurement value
+  68:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The temperature sensor's value in degree Celcius
+  69:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+ARM GAS  /tmp/ccOSIB1F.s 			page 4
+
+
+  70:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** float ADC_fCalcTemp_C(uint16_t usTempConversion)
+  71:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+  72:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+  73:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+  74:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  75:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  76:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Calculates the VDDA value in voltage and saves it for other calculations.
+  77:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @param usVRefintConversion: 12 bit right aligned ADC measurement value
+  78:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The VDDA voltage measured in milliVolts
+  79:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+  80:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** int32_t ADC_lCalcVDDA_mV(uint16_t usVRefintConversion)
+  81:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+ 110              		.loc 1 81 1 is_stmt 1 view -0
+ 111              		.cfi_startproc
+ 112              		@ args = 0, pretend = 0, frame = 0
+ 113              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114              		@ link register save eliminated.
+  82:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+ 115              		.loc 1 82 5 view .LVU7
+  83:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+ 116              		.loc 1 83 1 is_stmt 0 view .LVU8
+ 117 0000 0020     		movs	r0, #0
+ 118              	.LVL2:
+ 119              		.loc 1 83 1 view .LVU9
+ 120 0002 7047     		bx	lr
+ 121              		.cfi_endproc
+ 122              	.LFE144:
+ 124              		.section	.text.ADC_lGetVDDA_mV,"ax",%progbits
+ 125              		.align	1
+ 126              		.p2align 2,,3
+ 127              		.global	ADC_lGetVDDA_mV
+ 128              		.syntax unified
+ 129              		.thumb
+ 130              		.thumb_func
+ 131              		.fpu fpv4-sp-d16
+ 133              	ADC_lGetVDDA_mV:
+ 134              	.LFB145:
+  84:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** 
+  85:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** /**
+  86:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @brief Returns the last measured VDDA value in voltage.
+  87:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  * @return The VDDA voltage measured in milliVolts
+  88:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****  */
+  89:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** int32_t ADC_lGetVDDA_mV(void)
+  90:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** {
+ 135              		.loc 1 90 1 is_stmt 1 view -0
+ 136              		.cfi_startproc
+ 137              		@ args = 0, pretend = 0, frame = 0
+ 138              		@ frame_needed = 0, uses_anonymous_args = 0
+ 139              		@ link register save eliminated.
+  91:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c ****     return 0;
+ 140              		.loc 1 91 5 view .LVU11
+  92:STM32_XPD/STM32H7_XPD/src/xpd_adc_calc.c **** }
+ 141              		.loc 1 92 1 is_stmt 0 view .LVU12
+ 142 0000 0020     		movs	r0, #0
+ 143 0002 7047     		bx	lr
+ 144              		.cfi_endproc
+ 145              	.LFE145:
+ARM GAS  /tmp/ccOSIB1F.s 			page 5
+
+
+ 147              		.section	.text.ADC_lCalcExt_mV,"ax",%progbits
+ 148              		.align	1
+ 149              		.p2align 2,,3
+ 150              		.global	ADC_lCalcExt_mV
+ 151              		.syntax unified
+ 152              		.thumb
+ 153              		.thumb_func
+ 154              		.fpu fpv4-sp-d16
+ 156              	ADC_lCalcExt_mV:
+ 157              	.LFB149:
+ 158              		.cfi_startproc
+ 159              		@ args = 0, pretend = 0, frame = 0
+ 160              		@ frame_needed = 0, uses_anonymous_args = 0
+ 161              		@ link register save eliminated.
+ 162 0000 0020     		movs	r0, #0
+ 163 0002 7047     		bx	lr
+ 164              		.cfi_endproc
+ 165              	.LFE149:
+ 167              		.section	.text.ADC_lCalcTemp_C,"ax",%progbits
+ 168              		.align	1
+ 169              		.p2align 2,,3
+ 170              		.global	ADC_lCalcTemp_C
+ 171              		.syntax unified
+ 172              		.thumb
+ 173              		.thumb_func
+ 174              		.fpu fpv4-sp-d16
+ 176              	ADC_lCalcTemp_C:
+ 177              	.LFB151:
+ 178              		.cfi_startproc
+ 179              		@ args = 0, pretend = 0, frame = 0
+ 180              		@ frame_needed = 0, uses_anonymous_args = 0
+ 181              		@ link register save eliminated.
+ 182 0000 0020     		movs	r0, #0
+ 183 0002 7047     		bx	lr
+ 184              		.cfi_endproc
+ 185              	.LFE151:
+ 187              		.text
+ 188              	.Letext0:
+ 189              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 190              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 191              		.file 4 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 192              		.file 5 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ARM GAS  /tmp/ccOSIB1F.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_adc_calc.c
+     /tmp/ccOSIB1F.s:18     .text.ADC_fGetVDDA_V:0000000000000000 $t
+     /tmp/ccOSIB1F.s:27     .text.ADC_fGetVDDA_V:0000000000000000 ADC_fGetVDDA_V
+     /tmp/ccOSIB1F.s:42     .text.ADC_fGetVDDA_V:0000000000000008 $d
+     /tmp/ccOSIB1F.s:47     .text.ADC_fCalcExt_V:0000000000000000 $t
+     /tmp/ccOSIB1F.s:55     .text.ADC_fCalcExt_V:0000000000000000 ADC_fCalcExt_V
+     /tmp/ccOSIB1F.s:70     .text.ADC_fCalcExt_V:0000000000000008 $d
+     /tmp/ccOSIB1F.s:75     .text.ADC_fCalcTemp_C:0000000000000000 $t
+     /tmp/ccOSIB1F.s:83     .text.ADC_fCalcTemp_C:0000000000000000 ADC_fCalcTemp_C
+     /tmp/ccOSIB1F.s:94     .text.ADC_fCalcTemp_C:0000000000000008 $d
+     /tmp/ccOSIB1F.s:99     .text.ADC_lCalcVDDA_mV:0000000000000000 $t
+     /tmp/ccOSIB1F.s:107    .text.ADC_lCalcVDDA_mV:0000000000000000 ADC_lCalcVDDA_mV
+     /tmp/ccOSIB1F.s:125    .text.ADC_lGetVDDA_mV:0000000000000000 $t
+     /tmp/ccOSIB1F.s:133    .text.ADC_lGetVDDA_mV:0000000000000000 ADC_lGetVDDA_mV
+     /tmp/ccOSIB1F.s:148    .text.ADC_lCalcExt_mV:0000000000000000 $t
+     /tmp/ccOSIB1F.s:156    .text.ADC_lCalcExt_mV:0000000000000000 ADC_lCalcExt_mV
+     /tmp/ccOSIB1F.s:168    .text.ADC_lCalcTemp_C:0000000000000000 $t
+     /tmp/ccOSIB1F.s:176    .text.ADC_lCalcTemp_C:0000000000000000 ADC_lCalcTemp_C
+
+NO UNDEFINED SYMBOLS

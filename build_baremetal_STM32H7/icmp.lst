@@ -1,0 +1,1590 @@
+ARM GAS  /tmp/ccrguPU8.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"icmp.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.rodata.icmp_input.str1.4,"aMS",%progbits,1
+  18              		.align	2
+  19              	.LC0:
+  20 0000 69636D70 		.ascii	"icmp_input: moving r->payload to icmp header failed"
+  20      5F696E70 
+  20      75743A20 
+  20      6D6F7669 
+  20      6E672072 
+  21 0033 00       		.ascii	"\000"
+  22              		.align	2
+  23              	.LC1:
+  24 0034 69636D70 		.ascii	"icmp_input: restoring original p->payload failed\000"
+  24      5F696E70 
+  24      75743A20 
+  24      72657374 
+  24      6F72696E 
+  25              		.section	.text.icmp_input,"ax",%progbits
+  26              		.align	1
+  27              		.p2align 2,,3
+  28              		.global	icmp_input
+  29              		.arch armv7e-m
+  30              		.syntax unified
+  31              		.thumb
+  32              		.thumb_func
+  33              		.fpu fpv4-sp-d16
+  35              	icmp_input:
+  36              	.LVL0:
+  37              	.LFB105:
+  38              		.file 1 "lwIP/src/core/ipv4/icmp.c"
+   1:lwIP/src/core/ipv4/icmp.c **** /**
+   2:lwIP/src/core/ipv4/icmp.c ****  * @file
+   3:lwIP/src/core/ipv4/icmp.c ****  * ICMP - Internet Control Message Protocol
+   4:lwIP/src/core/ipv4/icmp.c ****  *
+   5:lwIP/src/core/ipv4/icmp.c ****  */
+   6:lwIP/src/core/ipv4/icmp.c **** 
+   7:lwIP/src/core/ipv4/icmp.c **** /*
+   8:lwIP/src/core/ipv4/icmp.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+   9:lwIP/src/core/ipv4/icmp.c ****  * All rights reserved.
+  10:lwIP/src/core/ipv4/icmp.c ****  *
+  11:lwIP/src/core/ipv4/icmp.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  12:lwIP/src/core/ipv4/icmp.c ****  * are permitted provided that the following conditions are met:
+ARM GAS  /tmp/ccrguPU8.s 			page 2
+
+
+  13:lwIP/src/core/ipv4/icmp.c ****  *
+  14:lwIP/src/core/ipv4/icmp.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  15:lwIP/src/core/ipv4/icmp.c ****  *    this list of conditions and the following disclaimer.
+  16:lwIP/src/core/ipv4/icmp.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:lwIP/src/core/ipv4/icmp.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:lwIP/src/core/ipv4/icmp.c ****  *    and/or other materials provided with the distribution.
+  19:lwIP/src/core/ipv4/icmp.c ****  * 3. The name of the author may not be used to endorse or promote products
+  20:lwIP/src/core/ipv4/icmp.c ****  *    derived from this software without specific prior written permission.
+  21:lwIP/src/core/ipv4/icmp.c ****  *
+  22:lwIP/src/core/ipv4/icmp.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  23:lwIP/src/core/ipv4/icmp.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  24:lwIP/src/core/ipv4/icmp.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  25:lwIP/src/core/ipv4/icmp.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  26:lwIP/src/core/ipv4/icmp.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  27:lwIP/src/core/ipv4/icmp.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:lwIP/src/core/ipv4/icmp.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:lwIP/src/core/ipv4/icmp.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+  30:lwIP/src/core/ipv4/icmp.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  31:lwIP/src/core/ipv4/icmp.c ****  * OF SUCH DAMAGE.
+  32:lwIP/src/core/ipv4/icmp.c ****  *
+  33:lwIP/src/core/ipv4/icmp.c ****  * This file is part of the lwIP TCP/IP stack.
+  34:lwIP/src/core/ipv4/icmp.c ****  *
+  35:lwIP/src/core/ipv4/icmp.c ****  * Author: Adam Dunkels <adam@sics.se>
+  36:lwIP/src/core/ipv4/icmp.c ****  *
+  37:lwIP/src/core/ipv4/icmp.c ****  */
+  38:lwIP/src/core/ipv4/icmp.c **** 
+  39:lwIP/src/core/ipv4/icmp.c **** /* Some ICMP messages should be passed to the transport protocols. This
+  40:lwIP/src/core/ipv4/icmp.c ****    is not implemented. */
+  41:lwIP/src/core/ipv4/icmp.c **** 
+  42:lwIP/src/core/ipv4/icmp.c **** #include "lwip/opt.h"
+  43:lwIP/src/core/ipv4/icmp.c **** 
+  44:lwIP/src/core/ipv4/icmp.c **** #if LWIP_IPV4 && LWIP_ICMP /* don't build if not configured for use in lwipopts.h */
+  45:lwIP/src/core/ipv4/icmp.c **** 
+  46:lwIP/src/core/ipv4/icmp.c **** #include "lwip/icmp.h"
+  47:lwIP/src/core/ipv4/icmp.c **** #include "lwip/inet_chksum.h"
+  48:lwIP/src/core/ipv4/icmp.c **** #include "lwip/ip.h"
+  49:lwIP/src/core/ipv4/icmp.c **** #include "lwip/def.h"
+  50:lwIP/src/core/ipv4/icmp.c **** #include "lwip/stats.h"
+  51:lwIP/src/core/ipv4/icmp.c **** 
+  52:lwIP/src/core/ipv4/icmp.c **** #include <string.h>
+  53:lwIP/src/core/ipv4/icmp.c **** 
+  54:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_FILENAME
+  55:lwIP/src/core/ipv4/icmp.c **** #include LWIP_HOOK_FILENAME
+  56:lwIP/src/core/ipv4/icmp.c **** #endif
+  57:lwIP/src/core/ipv4/icmp.c **** 
+  58:lwIP/src/core/ipv4/icmp.c **** /** Small optimization: set to 0 if incoming PBUF_POOL pbuf always can be
+  59:lwIP/src/core/ipv4/icmp.c ****  * used to modify and send a response packet (and to 1 if this is not the case,
+  60:lwIP/src/core/ipv4/icmp.c ****  * e.g. when link header is stripped off when receiving) */
+  61:lwIP/src/core/ipv4/icmp.c **** #ifndef LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN
+  62:lwIP/src/core/ipv4/icmp.c **** #define LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN 1
+  63:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN */
+  64:lwIP/src/core/ipv4/icmp.c **** 
+  65:lwIP/src/core/ipv4/icmp.c **** /* The amount of data from the original packet to return in a dest-unreachable */
+  66:lwIP/src/core/ipv4/icmp.c **** #define ICMP_DEST_UNREACH_DATASIZE 8
+  67:lwIP/src/core/ipv4/icmp.c **** 
+  68:lwIP/src/core/ipv4/icmp.c **** static void icmp_send_response(struct pbuf *p, u8_t type, u8_t code);
+  69:lwIP/src/core/ipv4/icmp.c **** 
+ARM GAS  /tmp/ccrguPU8.s 			page 3
+
+
+  70:lwIP/src/core/ipv4/icmp.c **** /**
+  71:lwIP/src/core/ipv4/icmp.c ****  * Processes ICMP input packets, called from ip_input().
+  72:lwIP/src/core/ipv4/icmp.c ****  *
+  73:lwIP/src/core/ipv4/icmp.c ****  * Currently only processes icmp echo requests and sends
+  74:lwIP/src/core/ipv4/icmp.c ****  * out the echo response.
+  75:lwIP/src/core/ipv4/icmp.c ****  *
+  76:lwIP/src/core/ipv4/icmp.c ****  * @param p the icmp echo request packet, p->payload pointing to the icmp header
+  77:lwIP/src/core/ipv4/icmp.c ****  * @param inp the netif on which this packet was received
+  78:lwIP/src/core/ipv4/icmp.c ****  */
+  79:lwIP/src/core/ipv4/icmp.c **** void
+  80:lwIP/src/core/ipv4/icmp.c **** icmp_input(struct pbuf *p, struct netif *inp)
+  81:lwIP/src/core/ipv4/icmp.c **** {
+  39              		.loc 1 81 1 view -0
+  40              		.cfi_startproc
+  41              		@ args = 0, pretend = 0, frame = 8
+  42              		@ frame_needed = 0, uses_anonymous_args = 0
+  82:lwIP/src/core/ipv4/icmp.c ****   u8_t type;
+  43              		.loc 1 82 3 view .LVU1
+  83:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_DEBUG
+  84:lwIP/src/core/ipv4/icmp.c ****   u8_t code;
+  85:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_DEBUG */
+  86:lwIP/src/core/ipv4/icmp.c ****   struct icmp_echo_hdr *iecho;
+  44              		.loc 1 86 3 view .LVU2
+  87:lwIP/src/core/ipv4/icmp.c ****   const struct ip_hdr *iphdr_in;
+  45              		.loc 1 87 3 view .LVU3
+  88:lwIP/src/core/ipv4/icmp.c ****   u16_t hlen;
+  46              		.loc 1 88 3 view .LVU4
+  89:lwIP/src/core/ipv4/icmp.c ****   const ip4_addr_t *src;
+  47              		.loc 1 89 3 view .LVU5
+  90:lwIP/src/core/ipv4/icmp.c **** 
+  91:lwIP/src/core/ipv4/icmp.c ****   ICMP_STATS_INC(icmp.recv);
+  48              		.loc 1 91 28 view .LVU6
+  92:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpinmsgs);
+  49              		.loc 1 92 34 view .LVU7
+  93:lwIP/src/core/ipv4/icmp.c **** 
+  94:lwIP/src/core/ipv4/icmp.c ****   iphdr_in = ip4_current_header();
+  50              		.loc 1 94 3 view .LVU8
+  81:lwIP/src/core/ipv4/icmp.c ****   u8_t type;
+  51              		.loc 1 81 1 is_stmt 0 view .LVU9
+  52 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+  53              	.LCFI0:
+  54              		.cfi_def_cfa_offset 32
+  55              		.cfi_offset 4, -32
+  56              		.cfi_offset 5, -28
+  57              		.cfi_offset 6, -24
+  58              		.cfi_offset 7, -20
+  59              		.cfi_offset 8, -16
+  60              		.cfi_offset 9, -12
+  61              		.cfi_offset 10, -8
+  62              		.cfi_offset 14, -4
+  63              		.loc 1 94 12 view .LVU10
+  64 0004 4F4F     		ldr	r7, .L29
+  81:lwIP/src/core/ipv4/icmp.c ****   u8_t type;
+  65              		.loc 1 81 1 view .LVU11
+  66 0006 86B0     		sub	sp, sp, #24
+  67              	.LCFI1:
+  68              		.cfi_def_cfa_offset 56
+ARM GAS  /tmp/ccrguPU8.s 			page 4
+
+
+  81:lwIP/src/core/ipv4/icmp.c ****   u8_t type;
+  69              		.loc 1 81 1 view .LVU12
+  70 0008 0546     		mov	r5, r0
+  71              		.loc 1 94 12 view .LVU13
+  72 000a D7F80880 		ldr	r8, [r7, #8]
+  73              	.LVL1:
+  95:lwIP/src/core/ipv4/icmp.c ****   hlen = IPH_HL_BYTES(iphdr_in);
+  74              		.loc 1 95 3 is_stmt 1 view .LVU14
+  75              		.loc 1 95 10 is_stmt 0 view .LVU15
+  76 000e 98F80040 		ldrb	r4, [r8]	@ zero_extendqisi2
+  77 0012 04F00F04 		and	r4, r4, #15
+  78 0016 A400     		lsls	r4, r4, #2
+  79              	.LVL2:
+  96:lwIP/src/core/ipv4/icmp.c ****   if (hlen < IP_HLEN) {
+  80              		.loc 1 96 3 is_stmt 1 view .LVU16
+  81              		.loc 1 96 6 is_stmt 0 view .LVU17
+  82 0018 132C     		cmp	r4, #19
+  83 001a 13D9     		bls	.L16
+  97:lwIP/src/core/ipv4/icmp.c ****     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: short IP header (%"S16_F" bytes) received\n", hlen));
+  98:lwIP/src/core/ipv4/icmp.c ****     goto lenerr;
+  99:lwIP/src/core/ipv4/icmp.c ****   }
+ 100:lwIP/src/core/ipv4/icmp.c ****   if (p->len < sizeof(u16_t) * 2) {
+  84              		.loc 1 100 3 is_stmt 1 view .LVU18
+  85              		.loc 1 100 6 is_stmt 0 view .LVU19
+  86 001c 4389     		ldrh	r3, [r0, #10]
+  87 001e 032B     		cmp	r3, #3
+  88 0020 10D9     		bls	.L16
+ 101:lwIP/src/core/ipv4/icmp.c ****     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: short ICMP (%"U16_F" bytes) received\n", p->tot_len));
+ 102:lwIP/src/core/ipv4/icmp.c ****     goto lenerr;
+ 103:lwIP/src/core/ipv4/icmp.c ****   }
+ 104:lwIP/src/core/ipv4/icmp.c **** 
+ 105:lwIP/src/core/ipv4/icmp.c ****   type = *((u8_t *)p->payload);
+  89              		.loc 1 105 3 is_stmt 1 view .LVU20
+  90              	.LVL3:
+ 106:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_DEBUG
+ 107:lwIP/src/core/ipv4/icmp.c ****   code = *(((u8_t *)p->payload) + 1);
+ 108:lwIP/src/core/ipv4/icmp.c ****   /* if debug is enabled but debug statement below is somehow disabled: */
+ 109:lwIP/src/core/ipv4/icmp.c ****   LWIP_UNUSED_ARG(code);
+ 110:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_DEBUG */
+ 111:lwIP/src/core/ipv4/icmp.c ****   switch (type) {
+  91              		.loc 1 111 3 view .LVU21
+ 105:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_DEBUG
+  92              		.loc 1 105 8 is_stmt 0 view .LVU22
+  93 0022 4368     		ldr	r3, [r0, #4]
+  94              		.loc 1 111 3 view .LVU23
+  95 0024 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  96 0026 082B     		cmp	r3, #8
+  97 0028 0CD1     		bne	.L16
+ 112:lwIP/src/core/ipv4/icmp.c ****     case ICMP_ER:
+ 113:lwIP/src/core/ipv4/icmp.c ****       /* This is OK, echo reply might have been parsed by a raw PCB
+ 114:lwIP/src/core/ipv4/icmp.c ****          (as obviously, an echo request has been sent, too). */
+ 115:lwIP/src/core/ipv4/icmp.c ****       MIB2_STATS_INC(mib2.icmpinechoreps);
+ 116:lwIP/src/core/ipv4/icmp.c ****       break;
+ 117:lwIP/src/core/ipv4/icmp.c ****     case ICMP_ECHO:
+ 118:lwIP/src/core/ipv4/icmp.c ****       MIB2_STATS_INC(mib2.icmpinechos);
+  98              		.loc 1 118 39 is_stmt 1 view .LVU24
+ 119:lwIP/src/core/ipv4/icmp.c ****       src = ip4_current_dest_addr();
+ARM GAS  /tmp/ccrguPU8.s 			page 5
+
+
+  99              		.loc 1 119 7 view .LVU25
+ 100              	.LVL4:
+ 120:lwIP/src/core/ipv4/icmp.c ****       /* multicast destination address? */
+ 121:lwIP/src/core/ipv4/icmp.c ****       if (ip4_addr_ismulticast(ip4_current_dest_addr())) {
+ 101              		.loc 1 121 7 view .LVU26
+ 102              		.loc 1 121 11 is_stmt 0 view .LVU27
+ 103 002a 7869     		ldr	r0, [r7, #20]
+ 104              	.LVL5:
+ 105              		.loc 1 121 11 view .LVU28
+ 106 002c 00F0F003 		and	r3, r0, #240
+ 107              		.loc 1 121 10 view .LVU29
+ 108 0030 E02B     		cmp	r3, #224
+ 109 0032 07D0     		beq	.L16
+ 122:lwIP/src/core/ipv4/icmp.c **** #if LWIP_MULTICAST_PING
+ 123:lwIP/src/core/ipv4/icmp.c ****         /* For multicast, use address of receiving interface as source address */
+ 124:lwIP/src/core/ipv4/icmp.c ****         src = netif_ip4_addr(inp);
+ 125:lwIP/src/core/ipv4/icmp.c **** #else /* LWIP_MULTICAST_PING */
+ 126:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: Not echoing to multicast pings\n"));
+ 127:lwIP/src/core/ipv4/icmp.c ****         goto icmperr;
+ 128:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_MULTICAST_PING */
+ 129:lwIP/src/core/ipv4/icmp.c ****       }
+ 130:lwIP/src/core/ipv4/icmp.c ****       /* broadcast destination address? */
+ 131:lwIP/src/core/ipv4/icmp.c ****       if (ip4_addr_isbroadcast(ip4_current_dest_addr(), ip_current_netif())) {
+ 110              		.loc 1 131 7 is_stmt 1 view .LVU30
+ 111 0034 0E46     		mov	r6, r1
+ 112              		.loc 1 131 11 is_stmt 0 view .LVU31
+ 113 0036 3968     		ldr	r1, [r7]
+ 114              	.LVL6:
+ 115              		.loc 1 131 11 view .LVU32
+ 116 0038 FFF7FEFF 		bl	ip4_addr_isbroadcast_u32
+ 117              	.LVL7:
+ 118              		.loc 1 131 10 view .LVU33
+ 119 003c 10B9     		cbnz	r0, .L16
+ 132:lwIP/src/core/ipv4/icmp.c **** #if LWIP_BROADCAST_PING
+ 133:lwIP/src/core/ipv4/icmp.c ****         /* For broadcast, use address of receiving interface as source address */
+ 134:lwIP/src/core/ipv4/icmp.c ****         src = netif_ip4_addr(inp);
+ 135:lwIP/src/core/ipv4/icmp.c **** #else /* LWIP_BROADCAST_PING */
+ 136:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: Not echoing to broadcast pings\n"));
+ 137:lwIP/src/core/ipv4/icmp.c ****         goto icmperr;
+ 138:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_BROADCAST_PING */
+ 139:lwIP/src/core/ipv4/icmp.c ****       }
+ 140:lwIP/src/core/ipv4/icmp.c ****       LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ping\n"));
+ 120              		.loc 1 140 54 is_stmt 1 view .LVU34
+ 141:lwIP/src/core/ipv4/icmp.c ****       if (p->tot_len < sizeof(struct icmp_echo_hdr)) {
+ 121              		.loc 1 141 7 view .LVU35
+ 122              		.loc 1 141 10 is_stmt 0 view .LVU36
+ 123 003e 2B89     		ldrh	r3, [r5, #8]
+ 124 0040 072B     		cmp	r3, #7
+ 125 0042 05D8     		bhi	.L27
+ 126              	.L7:
+ 127              	.LVL8:
+ 128              	.L16:
+ 142:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: bad ICMP echo received\n"));
+ 143:lwIP/src/core/ipv4/icmp.c ****         goto lenerr;
+ 144:lwIP/src/core/ipv4/icmp.c ****       }
+ 145:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_CHECK_ICMP
+ 146:lwIP/src/core/ipv4/icmp.c ****       IF__NETIF_CHECKSUM_ENABLED(inp, NETIF_CHECKSUM_CHECK_ICMP) {
+ARM GAS  /tmp/ccrguPU8.s 			page 6
+
+
+ 147:lwIP/src/core/ipv4/icmp.c ****         if (inet_chksum_pbuf(p) != 0) {
+ 148:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo\n"));
+ 149:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(p);
+ 150:lwIP/src/core/ipv4/icmp.c ****           ICMP_STATS_INC(icmp.chkerr);
+ 151:lwIP/src/core/ipv4/icmp.c ****           MIB2_STATS_INC(mib2.icmpinerrors);
+ 152:lwIP/src/core/ipv4/icmp.c ****           return;
+ 153:lwIP/src/core/ipv4/icmp.c ****         }
+ 154:lwIP/src/core/ipv4/icmp.c ****       }
+ 155:lwIP/src/core/ipv4/icmp.c **** #endif
+ 156:lwIP/src/core/ipv4/icmp.c **** #if LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN
+ 157:lwIP/src/core/ipv4/icmp.c ****       if (pbuf_add_header(p, hlen + PBUF_LINK_HLEN + PBUF_LINK_ENCAPSULATION_HLEN)) {
+ 158:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 159:lwIP/src/core/ipv4/icmp.c ****          * allocate a new one and copy p into it
+ 160:lwIP/src/core/ipv4/icmp.c ****          */
+ 161:lwIP/src/core/ipv4/icmp.c ****         struct pbuf *r;
+ 162:lwIP/src/core/ipv4/icmp.c ****         u16_t alloc_len = (u16_t)(p->tot_len + hlen);
+ 163:lwIP/src/core/ipv4/icmp.c ****         if (alloc_len < p->tot_len) {
+ 164:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed (tot_len overflow)\n"));
+ 165:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 166:lwIP/src/core/ipv4/icmp.c ****         }
+ 167:lwIP/src/core/ipv4/icmp.c ****         /* allocate new packet buffer with space for link headers */
+ 168:lwIP/src/core/ipv4/icmp.c ****         r = pbuf_alloc(PBUF_LINK, alloc_len, PBUF_RAM);
+ 169:lwIP/src/core/ipv4/icmp.c ****         if (r == NULL) {
+ 170:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed\n"));
+ 171:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 172:lwIP/src/core/ipv4/icmp.c ****         }
+ 173:lwIP/src/core/ipv4/icmp.c ****         if (r->len < hlen + sizeof(struct icmp_echo_hdr)) {
+ 174:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("first pbuf cannot hold the ICMP header
+ 175:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 176:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 177:lwIP/src/core/ipv4/icmp.c ****         }
+ 178:lwIP/src/core/ipv4/icmp.c ****         /* copy the ip header */
+ 179:lwIP/src/core/ipv4/icmp.c ****         MEMCPY(r->payload, iphdr_in, hlen);
+ 180:lwIP/src/core/ipv4/icmp.c ****         /* switch r->payload back to icmp header (cannot fail) */
+ 181:lwIP/src/core/ipv4/icmp.c ****         if (pbuf_remove_header(r, hlen)) {
+ 182:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: moving r->payload to icmp header failed\n", 0);
+ 183:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 184:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 185:lwIP/src/core/ipv4/icmp.c ****         }
+ 186:lwIP/src/core/ipv4/icmp.c ****         /* copy the rest of the packet without ip header */
+ 187:lwIP/src/core/ipv4/icmp.c ****         if (pbuf_copy(r, p) != ERR_OK) {
+ 188:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("icmp_input: copying to new pbuf failed
+ 189:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 190:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 191:lwIP/src/core/ipv4/icmp.c ****         }
+ 192:lwIP/src/core/ipv4/icmp.c ****         /* free the original p */
+ 193:lwIP/src/core/ipv4/icmp.c ****         pbuf_free(p);
+ 194:lwIP/src/core/ipv4/icmp.c ****         /* we now have an identical copy of p that has room for link headers */
+ 195:lwIP/src/core/ipv4/icmp.c ****         p = r;
+ 196:lwIP/src/core/ipv4/icmp.c ****       } else {
+ 197:lwIP/src/core/ipv4/icmp.c ****         /* restore p->payload to point to icmp header (cannot fail) */
+ 198:lwIP/src/core/ipv4/icmp.c ****         if (pbuf_remove_header(p, hlen + PBUF_LINK_HLEN + PBUF_LINK_ENCAPSULATION_HLEN)) {
+ 199:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
+ 200:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 201:lwIP/src/core/ipv4/icmp.c ****         }
+ 202:lwIP/src/core/ipv4/icmp.c ****       }
+ 203:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN */
+ARM GAS  /tmp/ccrguPU8.s 			page 7
+
+
+ 204:lwIP/src/core/ipv4/icmp.c ****       /* At this point, all checks are OK. */
+ 205:lwIP/src/core/ipv4/icmp.c ****       /* We generate an answer by switching the dest and src ip addresses,
+ 206:lwIP/src/core/ipv4/icmp.c ****        * setting the icmp type to ECHO_RESPONSE and updating the checksum. */
+ 207:lwIP/src/core/ipv4/icmp.c ****       iecho = (struct icmp_echo_hdr *)p->payload;
+ 208:lwIP/src/core/ipv4/icmp.c ****       if (pbuf_add_header(p, hlen)) {
+ 209:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Can't move over header in packet"));
+ 210:lwIP/src/core/ipv4/icmp.c ****       } else {
+ 211:lwIP/src/core/ipv4/icmp.c ****         err_t ret;
+ 212:lwIP/src/core/ipv4/icmp.c ****         struct ip_hdr *iphdr = (struct ip_hdr *)p->payload;
+ 213:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->src, *src);
+ 214:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->dest, *ip4_current_src_addr());
+ 215:lwIP/src/core/ipv4/icmp.c ****         ICMPH_TYPE_SET(iecho, ICMP_ER);
+ 216:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 217:lwIP/src/core/ipv4/icmp.c ****         IF__NETIF_CHECKSUM_ENABLED(inp, NETIF_CHECKSUM_GEN_ICMP) {
+ 218:lwIP/src/core/ipv4/icmp.c ****           /* adjust the checksum */
+ 219:lwIP/src/core/ipv4/icmp.c ****           if (iecho->chksum > PP_HTONS(0xffffU - (ICMP_ECHO << 8))) {
+ 220:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS((u16_t)(ICMP_ECHO << 8)) + 1);
+ 221:lwIP/src/core/ipv4/icmp.c ****           } else {
+ 222:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS(ICMP_ECHO << 8));
+ 223:lwIP/src/core/ipv4/icmp.c ****           }
+ 224:lwIP/src/core/ipv4/icmp.c ****         }
+ 225:lwIP/src/core/ipv4/icmp.c **** #if LWIP_CHECKSUM_CTRL_PER_NETIF
+ 226:lwIP/src/core/ipv4/icmp.c ****         else {
+ 227:lwIP/src/core/ipv4/icmp.c ****           iecho->chksum = 0;
+ 228:lwIP/src/core/ipv4/icmp.c ****         }
+ 229:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_CHECKSUM_CTRL_PER_NETIF */
+ 230:lwIP/src/core/ipv4/icmp.c **** #else /* CHECKSUM_GEN_ICMP */
+ 231:lwIP/src/core/ipv4/icmp.c ****         iecho->chksum = 0;
+ 232:lwIP/src/core/ipv4/icmp.c **** #endif /* CHECKSUM_GEN_ICMP */
+ 233:lwIP/src/core/ipv4/icmp.c **** 
+ 234:lwIP/src/core/ipv4/icmp.c ****         /* Set the correct TTL and recalculate the header checksum. */
+ 235:lwIP/src/core/ipv4/icmp.c ****         IPH_TTL_SET(iphdr, ICMP_TTL);
+ 236:lwIP/src/core/ipv4/icmp.c ****         IPH_CHKSUM_SET(iphdr, 0);
+ 237:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_IP
+ 238:lwIP/src/core/ipv4/icmp.c ****         IF__NETIF_CHECKSUM_ENABLED(inp, NETIF_CHECKSUM_GEN_IP) {
+ 239:lwIP/src/core/ipv4/icmp.c ****           IPH_CHKSUM_SET(iphdr, inet_chksum(iphdr, hlen));
+ 240:lwIP/src/core/ipv4/icmp.c ****         }
+ 241:lwIP/src/core/ipv4/icmp.c **** #endif /* CHECKSUM_GEN_IP */
+ 242:lwIP/src/core/ipv4/icmp.c **** 
+ 243:lwIP/src/core/ipv4/icmp.c ****         ICMP_STATS_INC(icmp.xmit);
+ 244:lwIP/src/core/ipv4/icmp.c ****         /* increase number of messages attempted to send */
+ 245:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpoutmsgs);
+ 246:lwIP/src/core/ipv4/icmp.c ****         /* increase number of echo replies attempted to send */
+ 247:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpoutechoreps);
+ 248:lwIP/src/core/ipv4/icmp.c **** 
+ 249:lwIP/src/core/ipv4/icmp.c ****         /* send an ICMP packet */
+ 250:lwIP/src/core/ipv4/icmp.c ****         ret = ip4_output_if(p, src, LWIP_IP_HDRINCL,
+ 251:lwIP/src/core/ipv4/icmp.c ****                             ICMP_TTL, 0, IP_PROTO_ICMP, inp);
+ 252:lwIP/src/core/ipv4/icmp.c ****         if (ret != ERR_OK) {
+ 253:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ip_output_if returned an error: %s\n", lwip_strerr(
+ 254:lwIP/src/core/ipv4/icmp.c ****         }
+ 255:lwIP/src/core/ipv4/icmp.c ****       }
+ 256:lwIP/src/core/ipv4/icmp.c ****       break;
+ 257:lwIP/src/core/ipv4/icmp.c ****     default:
+ 258:lwIP/src/core/ipv4/icmp.c ****       if (type == ICMP_DUR) {
+ 259:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpindestunreachs);
+ 260:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_TE) {
+ARM GAS  /tmp/ccrguPU8.s 			page 8
+
+
+ 261:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpintimeexcds);
+ 262:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_PP) {
+ 263:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpinparmprobs);
+ 264:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_SQ) {
+ 265:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpinsrcquenchs);
+ 266:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_RD) {
+ 267:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpinredirects);
+ 268:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_TS) {
+ 269:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpintimestamps);
+ 270:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_TSR) {
+ 271:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpintimestampreps);
+ 272:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_AM) {
+ 273:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpinaddrmasks);
+ 274:lwIP/src/core/ipv4/icmp.c ****       } else if (type == ICMP_AMR) {
+ 275:lwIP/src/core/ipv4/icmp.c ****         MIB2_STATS_INC(mib2.icmpinaddrmaskreps);
+ 276:lwIP/src/core/ipv4/icmp.c ****       }
+ 277:lwIP/src/core/ipv4/icmp.c ****       LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ICMP type %"S16_F" code %"S16_F" not supported.\n",
+ 278:lwIP/src/core/ipv4/icmp.c ****                                (s16_t)type, (s16_t)code));
+ 279:lwIP/src/core/ipv4/icmp.c ****       ICMP_STATS_INC(icmp.proterr);
+ 280:lwIP/src/core/ipv4/icmp.c ****       ICMP_STATS_INC(icmp.drop);
+ 281:lwIP/src/core/ipv4/icmp.c ****   }
+ 282:lwIP/src/core/ipv4/icmp.c ****   pbuf_free(p);
+ 283:lwIP/src/core/ipv4/icmp.c ****   return;
+ 284:lwIP/src/core/ipv4/icmp.c **** lenerr:
+ 285:lwIP/src/core/ipv4/icmp.c ****   pbuf_free(p);
+ 129              		.loc 1 285 3 is_stmt 1 view .LVU37
+ 130 0044 2846     		mov	r0, r5
+ 286:lwIP/src/core/ipv4/icmp.c ****   ICMP_STATS_INC(icmp.lenerr);
+ 287:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpinerrors);
+ 288:lwIP/src/core/ipv4/icmp.c ****   return;
+ 289:lwIP/src/core/ipv4/icmp.c **** #if LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN || !LWIP_MULTICAST_PING || !LWIP_BROADCAST_PING
+ 290:lwIP/src/core/ipv4/icmp.c **** icmperr:
+ 291:lwIP/src/core/ipv4/icmp.c ****   pbuf_free(p);
+ 292:lwIP/src/core/ipv4/icmp.c ****   ICMP_STATS_INC(icmp.err);
+ 293:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpinerrors);
+ 294:lwIP/src/core/ipv4/icmp.c ****   return;
+ 295:lwIP/src/core/ipv4/icmp.c **** #endif /* LWIP_ICMP_ECHO_CHECK_INPUT_PBUF_LEN || !LWIP_MULTICAST_PING || !LWIP_BROADCAST_PING */
+ 296:lwIP/src/core/ipv4/icmp.c **** }
+ 131              		.loc 1 296 1 is_stmt 0 view .LVU38
+ 132 0046 06B0     		add	sp, sp, #24
+ 133              	.LCFI2:
+ 134              		.cfi_remember_state
+ 135              		.cfi_def_cfa_offset 32
+ 136              		@ sp needed
+ 137 0048 BDE8F047 		pop	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 138              	.LCFI3:
+ 139              		.cfi_restore 14
+ 140              		.cfi_restore 10
+ 141              		.cfi_restore 9
+ 142              		.cfi_restore 8
+ 143              		.cfi_restore 7
+ 144              		.cfi_restore 6
+ 145              		.cfi_restore 5
+ 146              		.cfi_restore 4
+ 147              		.cfi_def_cfa_offset 0
+ 148              	.LVL9:
+ 285:lwIP/src/core/ipv4/icmp.c ****   ICMP_STATS_INC(icmp.lenerr);
+ARM GAS  /tmp/ccrguPU8.s 			page 9
+
+
+ 149              		.loc 1 285 3 view .LVU39
+ 150 004c FFF7FEBF 		b	pbuf_free
+ 151              	.LVL10:
+ 152              	.L27:
+ 153              	.LCFI4:
+ 154              		.cfi_restore_state
+ 147:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo\n"));
+ 155              		.loc 1 147 9 is_stmt 1 view .LVU40
+ 147:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo\n"));
+ 156              		.loc 1 147 13 is_stmt 0 view .LVU41
+ 157 0050 2846     		mov	r0, r5
+ 158 0052 FFF7FEFF 		bl	inet_chksum_pbuf
+ 159              	.LVL11:
+ 147:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: checksum failed for received ICMP echo\n"));
+ 160              		.loc 1 147 12 view .LVU42
+ 161 0056 0028     		cmp	r0, #0
+ 162 0058 F4D1     		bne	.L16
+ 157:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 163              		.loc 1 157 52 view .LVU43
+ 164 005a 04F10E01 		add	r1, r4, #14
+ 157:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 165              		.loc 1 157 11 view .LVU44
+ 166 005e 2846     		mov	r0, r5
+  95:lwIP/src/core/ipv4/icmp.c ****   if (hlen < IP_HLEN) {
+ 167              		.loc 1 95 8 view .LVU45
+ 168 0060 1FFA84F9 		uxth	r9, r4
+ 157:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 169              		.loc 1 157 7 is_stmt 1 view .LVU46
+ 157:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 170              		.loc 1 157 11 is_stmt 0 view .LVU47
+ 171 0064 0591     		str	r1, [sp, #20]
+ 172 0066 FFF7FEFF 		bl	pbuf_add_header
+ 173              	.LVL12:
+ 157:lwIP/src/core/ipv4/icmp.c ****         /* p is not big enough to contain link headers
+ 174              		.loc 1 157 10 view .LVU48
+ 175 006a 0599     		ldr	r1, [sp, #20]
+ 176 006c 08B3     		cbz	r0, .L5
+ 177              	.LBB2:
+ 161:lwIP/src/core/ipv4/icmp.c ****         u16_t alloc_len = (u16_t)(p->tot_len + hlen);
+ 178              		.loc 1 161 9 is_stmt 1 view .LVU49
+ 162:lwIP/src/core/ipv4/icmp.c ****         if (alloc_len < p->tot_len) {
+ 179              		.loc 1 162 9 view .LVU50
+ 162:lwIP/src/core/ipv4/icmp.c ****         if (alloc_len < p->tot_len) {
+ 180              		.loc 1 162 36 is_stmt 0 view .LVU51
+ 181 006e 2B89     		ldrh	r3, [r5, #8]
+ 162:lwIP/src/core/ipv4/icmp.c ****         if (alloc_len < p->tot_len) {
+ 182              		.loc 1 162 15 view .LVU52
+ 183 0070 03EB0901 		add	r1, r3, r9
+ 184 0074 89B2     		uxth	r1, r1
+ 185              	.LVL13:
+ 163:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed (tot_len overflow)\n"));
+ 186              		.loc 1 163 9 is_stmt 1 view .LVU53
+ 163:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed (tot_len overflow)\n"));
+ 187              		.loc 1 163 12 is_stmt 0 view .LVU54
+ 188 0076 8B42     		cmp	r3, r1
+ 189 0078 E4D8     		bhi	.L16
+ 168:lwIP/src/core/ipv4/icmp.c ****         if (r == NULL) {
+ARM GAS  /tmp/ccrguPU8.s 			page 10
+
+
+ 190              		.loc 1 168 9 is_stmt 1 view .LVU55
+ 168:lwIP/src/core/ipv4/icmp.c ****         if (r == NULL) {
+ 191              		.loc 1 168 13 is_stmt 0 view .LVU56
+ 192 007a 4FF42072 		mov	r2, #640
+ 193 007e 0E20     		movs	r0, #14
+ 194 0080 FFF7FEFF 		bl	pbuf_alloc
+ 195              	.LVL14:
+ 169:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed\n"));
+ 196              		.loc 1 169 9 is_stmt 1 view .LVU57
+ 169:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: allocating new pbuf failed\n"));
+ 197              		.loc 1 169 12 is_stmt 0 view .LVU58
+ 198 0084 8246     		mov	r10, r0
+ 199 0086 0028     		cmp	r0, #0
+ 200 0088 DCD0     		beq	.L16
+ 173:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("first pbuf cannot hold the ICMP header
+ 201              		.loc 1 173 9 is_stmt 1 view .LVU59
+ 173:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("first pbuf cannot hold the ICMP header
+ 202              		.loc 1 173 14 is_stmt 0 view .LVU60
+ 203 008a 4289     		ldrh	r2, [r0, #10]
+ 173:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("first pbuf cannot hold the ICMP header
+ 204              		.loc 1 173 27 view .LVU61
+ 205 008c 04F10803 		add	r3, r4, #8
+ 173:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("first pbuf cannot hold the ICMP header
+ 206              		.loc 1 173 12 view .LVU62
+ 207 0090 9A42     		cmp	r2, r3
+ 208 0092 4ED3     		bcc	.L25
+ 179:lwIP/src/core/ipv4/icmp.c ****         /* switch r->payload back to icmp header (cannot fail) */
+ 209              		.loc 1 179 9 is_stmt 1 view .LVU63
+ 210 0094 4146     		mov	r1, r8
+ 211 0096 2246     		mov	r2, r4
+ 212 0098 4068     		ldr	r0, [r0, #4]
+ 213              	.LVL15:
+ 179:lwIP/src/core/ipv4/icmp.c ****         /* switch r->payload back to icmp header (cannot fail) */
+ 214              		.loc 1 179 9 is_stmt 0 view .LVU64
+ 215 009a FFF7FEFF 		bl	memcpy
+ 216              	.LVL16:
+ 181:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: moving r->payload to icmp header failed\n", 0);
+ 217              		.loc 1 181 9 is_stmt 1 view .LVU65
+ 181:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: moving r->payload to icmp header failed\n", 0);
+ 218              		.loc 1 181 13 is_stmt 0 view .LVU66
+ 219 009e 2146     		mov	r1, r4
+ 220 00a0 5046     		mov	r0, r10
+ 221 00a2 FFF7FEFF 		bl	pbuf_remove_header
+ 222              	.LVL17:
+ 181:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: moving r->payload to icmp header failed\n", 0);
+ 223              		.loc 1 181 12 view .LVU67
+ 224 00a6 0028     		cmp	r0, #0
+ 225 00a8 39D0     		beq	.L8
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 226              		.loc 1 182 11 is_stmt 1 discriminator 1 view .LVU68
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 227              		.loc 1 182 11 discriminator 1 view .LVU69
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 228              		.loc 1 182 11 discriminator 1 view .LVU70
+ 229 00aa 2748     		ldr	r0, .L29+4
+ 230 00ac FFF7FEFF 		bl	puts
+ 231              	.LVL18:
+ARM GAS  /tmp/ccrguPU8.s 			page 11
+
+
+ 232              	.L9:
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 233              		.loc 1 182 11 discriminator 1 view .LVU71
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 234              		.loc 1 182 11 discriminator 1 view .LVU72
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 235              		.loc 1 182 11 discriminator 1 view .LVU73
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 236              		.loc 1 182 11 discriminator 1 view .LVU74
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 237              		.loc 1 182 11 discriminator 1 view .LVU75
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 238              		.loc 1 182 11 discriminator 1 view .LVU76
+ 239 00b0 FEE7     		b	.L9
+ 240              	.LVL19:
+ 241              	.L5:
+ 182:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 242              		.loc 1 182 11 is_stmt 0 discriminator 1 view .LVU77
+ 243              	.LBE2:
+ 198:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
+ 244              		.loc 1 198 9 is_stmt 1 view .LVU78
+ 198:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
+ 245              		.loc 1 198 13 is_stmt 0 view .LVU79
+ 246 00b2 2846     		mov	r0, r5
+ 247 00b4 FFF7FEFF 		bl	pbuf_remove_header
+ 248              	.LVL20:
+ 198:lwIP/src/core/ipv4/icmp.c ****           LWIP_ASSERT("icmp_input: restoring original p->payload failed\n", 0);
+ 249              		.loc 1 198 12 view .LVU80
+ 250 00b8 0028     		cmp	r0, #0
+ 251 00ba 3ED1     		bne	.L28
+ 252              	.LVL21:
+ 253              	.L11:
+ 207:lwIP/src/core/ipv4/icmp.c ****       if (pbuf_add_header(p, hlen)) {
+ 254              		.loc 1 207 7 is_stmt 1 view .LVU81
+ 208:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Can't move over header in packet"));
+ 255              		.loc 1 208 11 is_stmt 0 view .LVU82
+ 256 00bc 2146     		mov	r1, r4
+ 257 00be 2846     		mov	r0, r5
+ 207:lwIP/src/core/ipv4/icmp.c ****       if (pbuf_add_header(p, hlen)) {
+ 258              		.loc 1 207 13 view .LVU83
+ 259 00c0 D5F80480 		ldr	r8, [r5, #4]
+ 260              	.LVL22:
+ 208:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Can't move over header in packet"));
+ 261              		.loc 1 208 7 is_stmt 1 view .LVU84
+ 208:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Can't move over header in packet"));
+ 262              		.loc 1 208 11 is_stmt 0 view .LVU85
+ 263 00c4 FFF7FEFF 		bl	pbuf_add_header
+ 264              	.LVL23:
+ 208:lwIP/src/core/ipv4/icmp.c ****         LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("Can't move over header in packet"));
+ 265              		.loc 1 208 10 view .LVU86
+ 266 00c8 0028     		cmp	r0, #0
+ 267 00ca BBD1     		bne	.L16
+ 268              	.LBB3:
+ 211:lwIP/src/core/ipv4/icmp.c ****         struct ip_hdr *iphdr = (struct ip_hdr *)p->payload;
+ 269              		.loc 1 211 9 is_stmt 1 view .LVU87
+ 212:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->src, *src);
+ 270              		.loc 1 212 9 view .LVU88
+ARM GAS  /tmp/ccrguPU8.s 			page 12
+
+
+ 212:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->src, *src);
+ 271              		.loc 1 212 24 is_stmt 0 view .LVU89
+ 272 00cc 6C68     		ldr	r4, [r5, #4]
+ 273              	.LVL24:
+ 213:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->dest, *ip4_current_src_addr());
+ 274              		.loc 1 213 9 is_stmt 1 view .LVU90
+ 214:lwIP/src/core/ipv4/icmp.c ****         ICMPH_TYPE_SET(iecho, ICMP_ER);
+ 275              		.loc 1 214 9 view .LVU91
+ 219:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS((u16_t)(ICMP_ECHO << 8)) + 1);
+ 276              		.loc 1 219 14 is_stmt 0 view .LVU92
+ 277 00ce 4FF6F772 		movw	r2, #65527
+ 235:lwIP/src/core/ipv4/icmp.c ****         IPH_CHKSUM_SET(iphdr, 0);
+ 278              		.loc 1 235 9 view .LVU93
+ 279 00d2 4FF0FF0A 		mov	r10, #255
+ 213:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->dest, *ip4_current_src_addr());
+ 280              		.loc 1 213 9 view .LVU94
+ 281 00d6 D7E90413 		ldrd	r1, r3, [r7, #16]
+ 236:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_IP
+ 282              		.loc 1 236 9 view .LVU95
+ 283 00da 0027     		movs	r7, #0
+ 213:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->dest, *ip4_current_src_addr());
+ 284              		.loc 1 213 9 view .LVU96
+ 285 00dc 2161     		str	r1, [r4, #16]	@ unaligned
+ 215:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 286              		.loc 1 215 9 is_stmt 1 view .LVU97
+ 213:lwIP/src/core/ipv4/icmp.c ****         ip4_addr_copy(iphdr->dest, *ip4_current_src_addr());
+ 287              		.loc 1 213 9 is_stmt 0 view .LVU98
+ 288 00de E360     		str	r3, [r4, #12]	@ unaligned
+ 219:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS((u16_t)(ICMP_ECHO << 8)) + 1);
+ 289              		.loc 1 219 20 view .LVU99
+ 290 00e0 B8F80230 		ldrh	r3, [r8, #2]	@ unaligned
+ 215:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 291              		.loc 1 215 9 view .LVU100
+ 292 00e4 88F80000 		strb	r0, [r8]
+ 219:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS((u16_t)(ICMP_ECHO << 8)) + 1);
+ 293              		.loc 1 219 11 is_stmt 1 view .LVU101
+ 239:lwIP/src/core/ipv4/icmp.c ****         }
+ 294              		.loc 1 239 11 is_stmt 0 view .LVU102
+ 295 00e8 2046     		mov	r0, r4
+ 219:lwIP/src/core/ipv4/icmp.c ****             iecho->chksum = (u16_t)(iecho->chksum + PP_HTONS((u16_t)(ICMP_ECHO << 8)) + 1);
+ 296              		.loc 1 219 14 view .LVU103
+ 297 00ea 9342     		cmp	r3, r2
+ 220:lwIP/src/core/ipv4/icmp.c ****           } else {
+ 298              		.loc 1 220 13 is_stmt 1 view .LVU104
+ 220:lwIP/src/core/ipv4/icmp.c ****           } else {
+ 299              		.loc 1 220 29 is_stmt 0 view .LVU105
+ 300 00ec 8CBF     		ite	hi
+ 301 00ee 0933     		addhi	r3, r3, #9
+ 222:lwIP/src/core/ipv4/icmp.c ****           }
+ 302              		.loc 1 222 13 is_stmt 1 view .LVU106
+ 222:lwIP/src/core/ipv4/icmp.c ****           }
+ 303              		.loc 1 222 29 is_stmt 0 view .LVU107
+ 304 00f0 0833     		addls	r3, r3, #8
+ 305 00f2 99B2     		uxth	r1, r3
+ 306 00f4 A8F80210 		strh	r1, [r8, #2]	@ unaligned
+ 235:lwIP/src/core/ipv4/icmp.c ****         IPH_CHKSUM_SET(iphdr, 0);
+ 307              		.loc 1 235 9 is_stmt 1 view .LVU108
+ARM GAS  /tmp/ccrguPU8.s 			page 13
+
+
+ 239:lwIP/src/core/ipv4/icmp.c ****         }
+ 308              		.loc 1 239 11 is_stmt 0 view .LVU109
+ 309 00f8 4946     		mov	r1, r9
+ 235:lwIP/src/core/ipv4/icmp.c ****         IPH_CHKSUM_SET(iphdr, 0);
+ 310              		.loc 1 235 9 view .LVU110
+ 311 00fa 84F808A0 		strb	r10, [r4, #8]
+ 236:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_IP
+ 312              		.loc 1 236 9 is_stmt 1 view .LVU111
+ 313 00fe A772     		strb	r7, [r4, #10]
+ 314 0100 E772     		strb	r7, [r4, #11]
+ 239:lwIP/src/core/ipv4/icmp.c ****         }
+ 315              		.loc 1 239 11 view .LVU112
+ 316 0102 FFF7FEFF 		bl	inet_chksum
+ 317              	.LVL25:
+ 250:lwIP/src/core/ipv4/icmp.c ****                             ICMP_TTL, 0, IP_PROTO_ICMP, inp);
+ 318              		.loc 1 250 15 is_stmt 0 view .LVU113
+ 319 0106 0121     		movs	r1, #1
+ 239:lwIP/src/core/ipv4/icmp.c ****         }
+ 320              		.loc 1 239 11 view .LVU114
+ 321 0108 6081     		strh	r0, [r4, #10]	@ unaligned
+ 243:lwIP/src/core/ipv4/icmp.c ****         /* increase number of messages attempted to send */
+ 322              		.loc 1 243 34 is_stmt 1 view .LVU115
+ 245:lwIP/src/core/ipv4/icmp.c ****         /* increase number of echo replies attempted to send */
+ 323              		.loc 1 245 41 view .LVU116
+ 247:lwIP/src/core/ipv4/icmp.c **** 
+ 324              		.loc 1 247 45 view .LVU117
+ 250:lwIP/src/core/ipv4/icmp.c ****                             ICMP_TTL, 0, IP_PROTO_ICMP, inp);
+ 325              		.loc 1 250 9 view .LVU118
+ 250:lwIP/src/core/ipv4/icmp.c ****                             ICMP_TTL, 0, IP_PROTO_ICMP, inp);
+ 326              		.loc 1 250 15 is_stmt 0 view .LVU119
+ 327 010a 5346     		mov	r3, r10
+ 328 010c 3A46     		mov	r2, r7
+ 329 010e 2846     		mov	r0, r5
+ 330 0110 0097     		str	r7, [sp]
+ 331 0112 CDE90116 		strd	r1, r6, [sp, #4]
+ 332 0116 0D49     		ldr	r1, .L29+8
+ 333              	.LVL26:
+ 250:lwIP/src/core/ipv4/icmp.c ****                             ICMP_TTL, 0, IP_PROTO_ICMP, inp);
+ 334              		.loc 1 250 15 view .LVU120
+ 335 0118 FFF7FEFF 		bl	ip4_output_if
+ 336              	.LVL27:
+ 252:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ip_output_if returned an error: %s\n", lwip_strerr(
+ 337              		.loc 1 252 9 is_stmt 1 view .LVU121
+ 252:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG, ("icmp_input: ip_output_if returned an error: %s\n", lwip_strerr(
+ 338              		.loc 1 252 9 is_stmt 0 view .LVU122
+ 339              	.LBE3:
+ 275:lwIP/src/core/ipv4/icmp.c ****       }
+ 340              		.loc 1 275 48 is_stmt 1 view .LVU123
+ 278:lwIP/src/core/ipv4/icmp.c ****       ICMP_STATS_INC(icmp.proterr);
+ 341              		.loc 1 278 58 view .LVU124
+ 279:lwIP/src/core/ipv4/icmp.c ****       ICMP_STATS_INC(icmp.drop);
+ 342              		.loc 1 279 35 view .LVU125
+ 280:lwIP/src/core/ipv4/icmp.c ****   }
+ 343              		.loc 1 280 32 view .LVU126
+ 282:lwIP/src/core/ipv4/icmp.c ****   return;
+ 344              		.loc 1 282 3 view .LVU127
+ 345              	.LBB4:
+ARM GAS  /tmp/ccrguPU8.s 			page 14
+
+
+ 346 011c 92E7     		b	.L16
+ 347              	.LVL28:
+ 348              	.L8:
+ 282:lwIP/src/core/ipv4/icmp.c ****   return;
+ 349              		.loc 1 282 3 is_stmt 0 view .LVU128
+ 350              	.LBE4:
+ 351              	.LBB5:
+ 187:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("icmp_input: copying to new pbuf failed
+ 352              		.loc 1 187 9 is_stmt 1 view .LVU129
+ 187:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("icmp_input: copying to new pbuf failed
+ 353              		.loc 1 187 13 is_stmt 0 view .LVU130
+ 354 011e 2946     		mov	r1, r5
+ 355 0120 5046     		mov	r0, r10
+ 356 0122 FFF7FEFF 		bl	pbuf_copy
+ 357              	.LVL29:
+ 187:lwIP/src/core/ipv4/icmp.c ****           LWIP_DEBUGF(ICMP_DEBUG | LWIP_DBG_LEVEL_SERIOUS, ("icmp_input: copying to new pbuf failed
+ 358              		.loc 1 187 12 view .LVU131
+ 359 0126 20B9     		cbnz	r0, .L25
+ 193:lwIP/src/core/ipv4/icmp.c ****         /* we now have an identical copy of p that has room for link headers */
+ 360              		.loc 1 193 9 is_stmt 1 view .LVU132
+ 361 0128 2846     		mov	r0, r5
+ 362              	.LBE5:
+ 363 012a 5546     		mov	r5, r10
+ 364              	.LVL30:
+ 365              	.LBB6:
+ 193:lwIP/src/core/ipv4/icmp.c ****         /* we now have an identical copy of p that has room for link headers */
+ 366              		.loc 1 193 9 is_stmt 0 view .LVU133
+ 367 012c FFF7FEFF 		bl	pbuf_free
+ 368              	.LVL31:
+ 195:lwIP/src/core/ipv4/icmp.c ****       } else {
+ 369              		.loc 1 195 9 is_stmt 1 view .LVU134
+ 195:lwIP/src/core/ipv4/icmp.c ****       } else {
+ 370              		.loc 1 195 9 is_stmt 0 view .LVU135
+ 371              	.LBE6:
+ 372 0130 C4E7     		b	.L11
+ 373              	.LVL32:
+ 374              	.L25:
+ 375              	.LBB7:
+ 188:lwIP/src/core/ipv4/icmp.c ****           pbuf_free(r);
+ 376              		.loc 1 188 103 is_stmt 1 view .LVU136
+ 189:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 377              		.loc 1 189 11 view .LVU137
+ 378 0132 5046     		mov	r0, r10
+ 379 0134 FFF7FEFF 		bl	pbuf_free
+ 380              	.LVL33:
+ 190:lwIP/src/core/ipv4/icmp.c ****         }
+ 381              		.loc 1 190 11 view .LVU138
+ 382 0138 84E7     		b	.L16
+ 383              	.LVL34:
+ 384              	.L28:
+ 190:lwIP/src/core/ipv4/icmp.c ****         }
+ 385              		.loc 1 190 11 is_stmt 0 view .LVU139
+ 386              	.LBE7:
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 387              		.loc 1 199 11 is_stmt 1 discriminator 1 view .LVU140
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 388              		.loc 1 199 11 discriminator 1 view .LVU141
+ARM GAS  /tmp/ccrguPU8.s 			page 15
+
+
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 389              		.loc 1 199 11 discriminator 1 view .LVU142
+ 390 013a 0548     		ldr	r0, .L29+12
+ 391 013c FFF7FEFF 		bl	puts
+ 392              	.LVL35:
+ 393              	.L13:
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 394              		.loc 1 199 11 discriminator 2 view .LVU143
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 395              		.loc 1 199 11 discriminator 2 view .LVU144
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 396              		.loc 1 199 11 discriminator 2 view .LVU145
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 397              		.loc 1 199 11 discriminator 2 view .LVU146
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 398              		.loc 1 199 11 discriminator 2 view .LVU147
+ 199:lwIP/src/core/ipv4/icmp.c ****           goto icmperr;
+ 399              		.loc 1 199 11 discriminator 2 view .LVU148
+ 400 0140 FEE7     		b	.L13
+ 401              	.L30:
+ 402 0142 00BF     		.align	2
+ 403              	.L29:
+ 404 0144 00000000 		.word	ip_data
+ 405 0148 00000000 		.word	.LC0
+ 406 014c 14000000 		.word	ip_data+20
+ 407 0150 34000000 		.word	.LC1
+ 408              		.cfi_endproc
+ 409              	.LFE105:
+ 411              		.section	.rodata.icmp_dest_unreach.str1.4,"aMS",%progbits,1
+ 412              		.align	2
+ 413              	.LC2:
+ 414 0000 63686563 		.ascii	"check that first pbuf can hold icmp message\000"
+ 414      6B207468 
+ 414      61742066 
+ 414      69727374 
+ 414      20706275 
+ 415              		.section	.text.icmp_dest_unreach,"ax",%progbits
+ 416              		.align	1
+ 417              		.p2align 2,,3
+ 418              		.global	icmp_dest_unreach
+ 419              		.syntax unified
+ 420              		.thumb
+ 421              		.thumb_func
+ 422              		.fpu fpv4-sp-d16
+ 424              	icmp_dest_unreach:
+ 425              	.LVL36:
+ 426              	.LFB106:
+ 297:lwIP/src/core/ipv4/icmp.c **** 
+ 298:lwIP/src/core/ipv4/icmp.c **** /**
+ 299:lwIP/src/core/ipv4/icmp.c ****  * Send an icmp 'destination unreachable' packet, called from ip_input() if
+ 300:lwIP/src/core/ipv4/icmp.c ****  * the transport layer protocol is unknown and from udp_input() if the local
+ 301:lwIP/src/core/ipv4/icmp.c ****  * port is not bound.
+ 302:lwIP/src/core/ipv4/icmp.c ****  *
+ 303:lwIP/src/core/ipv4/icmp.c ****  * @param p the input packet for which the 'unreachable' should be sent,
+ 304:lwIP/src/core/ipv4/icmp.c ****  *          p->payload pointing to the IP header
+ 305:lwIP/src/core/ipv4/icmp.c ****  * @param t type of the 'unreachable' packet
+ 306:lwIP/src/core/ipv4/icmp.c ****  */
+ARM GAS  /tmp/ccrguPU8.s 			page 16
+
+
+ 307:lwIP/src/core/ipv4/icmp.c **** void
+ 308:lwIP/src/core/ipv4/icmp.c **** icmp_dest_unreach(struct pbuf *p, enum icmp_dur_type t)
+ 309:lwIP/src/core/ipv4/icmp.c **** {
+ 427              		.loc 1 309 1 view -0
+ 428              		.cfi_startproc
+ 429              		@ args = 0, pretend = 0, frame = 8
+ 430              		@ frame_needed = 0, uses_anonymous_args = 0
+ 310:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpoutdestunreachs);
+ 431              		.loc 1 310 43 view .LVU150
+ 311:lwIP/src/core/ipv4/icmp.c ****   icmp_send_response(p, ICMP_DUR, t);
+ 432              		.loc 1 311 3 view .LVU151
+ 309:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpoutdestunreachs);
+ 433              		.loc 1 309 1 is_stmt 0 view .LVU152
+ 434 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 435              	.LCFI5:
+ 436              		.cfi_def_cfa_offset 20
+ 437              		.cfi_offset 4, -20
+ 438              		.cfi_offset 5, -16
+ 439              		.cfi_offset 6, -12
+ 440              		.cfi_offset 7, -8
+ 441              		.cfi_offset 14, -4
+ 442              	.LBB10:
+ 443              	.LBB11:
+ 312:lwIP/src/core/ipv4/icmp.c **** }
+ 313:lwIP/src/core/ipv4/icmp.c **** 
+ 314:lwIP/src/core/ipv4/icmp.c **** #if IP_FORWARD || IP_REASSEMBLY
+ 315:lwIP/src/core/ipv4/icmp.c **** /**
+ 316:lwIP/src/core/ipv4/icmp.c ****  * Send a 'time exceeded' packet, called from ip_forward() if TTL is 0.
+ 317:lwIP/src/core/ipv4/icmp.c ****  *
+ 318:lwIP/src/core/ipv4/icmp.c ****  * @param p the input packet for which the 'time exceeded' should be sent,
+ 319:lwIP/src/core/ipv4/icmp.c ****  *          p->payload pointing to the IP header
+ 320:lwIP/src/core/ipv4/icmp.c ****  * @param t type of the 'time exceeded' packet
+ 321:lwIP/src/core/ipv4/icmp.c ****  */
+ 322:lwIP/src/core/ipv4/icmp.c **** void
+ 323:lwIP/src/core/ipv4/icmp.c **** icmp_time_exceeded(struct pbuf *p, enum icmp_te_type t)
+ 324:lwIP/src/core/ipv4/icmp.c **** {
+ 325:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpouttimeexcds);
+ 326:lwIP/src/core/ipv4/icmp.c ****   icmp_send_response(p, ICMP_TE, t);
+ 327:lwIP/src/core/ipv4/icmp.c **** }
+ 328:lwIP/src/core/ipv4/icmp.c **** 
+ 329:lwIP/src/core/ipv4/icmp.c **** #endif /* IP_FORWARD || IP_REASSEMBLY */
+ 330:lwIP/src/core/ipv4/icmp.c **** 
+ 331:lwIP/src/core/ipv4/icmp.c **** /**
+ 332:lwIP/src/core/ipv4/icmp.c ****  * Send an icmp packet in response to an incoming packet.
+ 333:lwIP/src/core/ipv4/icmp.c ****  *
+ 334:lwIP/src/core/ipv4/icmp.c ****  * @param p the input packet for which the 'unreachable' should be sent,
+ 335:lwIP/src/core/ipv4/icmp.c ****  *          p->payload pointing to the IP header
+ 336:lwIP/src/core/ipv4/icmp.c ****  * @param type Type of the ICMP header
+ 337:lwIP/src/core/ipv4/icmp.c ****  * @param code Code of the ICMP header
+ 338:lwIP/src/core/ipv4/icmp.c ****  */
+ 339:lwIP/src/core/ipv4/icmp.c **** static void
+ 340:lwIP/src/core/ipv4/icmp.c **** icmp_send_response(struct pbuf *p, u8_t type, u8_t code)
+ 341:lwIP/src/core/ipv4/icmp.c **** {
+ 342:lwIP/src/core/ipv4/icmp.c ****   struct pbuf *q;
+ 343:lwIP/src/core/ipv4/icmp.c ****   struct ip_hdr *iphdr;
+ 344:lwIP/src/core/ipv4/icmp.c ****   /* we can use the echo header here */
+ 345:lwIP/src/core/ipv4/icmp.c ****   struct icmp_echo_hdr *icmphdr;
+ARM GAS  /tmp/ccrguPU8.s 			page 17
+
+
+ 346:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_t iphdr_src;
+ 347:lwIP/src/core/ipv4/icmp.c ****   struct netif *netif;
+ 348:lwIP/src/core/ipv4/icmp.c **** 
+ 349:lwIP/src/core/ipv4/icmp.c ****   /* increase number of messages attempted to send */
+ 350:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpoutmsgs);
+ 351:lwIP/src/core/ipv4/icmp.c **** 
+ 352:lwIP/src/core/ipv4/icmp.c ****   /* ICMP header + IP header + 8 bytes of data */
+ 353:lwIP/src/core/ipv4/icmp.c ****   q = pbuf_alloc(PBUF_IP, sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE,
+ 444              		.loc 1 353 7 view .LVU153
+ 445 0002 4FF42072 		mov	r2, #640
+ 446              	.LBE11:
+ 447              	.LBE10:
+ 309:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpoutdestunreachs);
+ 448              		.loc 1 309 1 view .LVU154
+ 449 0006 87B0     		sub	sp, sp, #28
+ 450              	.LCFI6:
+ 451              		.cfi_def_cfa_offset 48
+ 309:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpoutdestunreachs);
+ 452              		.loc 1 309 1 view .LVU155
+ 453 0008 0546     		mov	r5, r0
+ 454 000a 0E46     		mov	r6, r1
+ 455              	.LBB15:
+ 456              	.LBB12:
+ 457              		.loc 1 353 7 view .LVU156
+ 458 000c 2220     		movs	r0, #34
+ 459              	.LVL37:
+ 460              		.loc 1 353 7 view .LVU157
+ 461              	.LBE12:
+ 462              	.LBI10:
+ 340:lwIP/src/core/ipv4/icmp.c **** {
+ 463              		.loc 1 340 1 is_stmt 1 view .LVU158
+ 464              	.LBB13:
+ 342:lwIP/src/core/ipv4/icmp.c ****   struct ip_hdr *iphdr;
+ 465              		.loc 1 342 3 view .LVU159
+ 343:lwIP/src/core/ipv4/icmp.c ****   /* we can use the echo header here */
+ 466              		.loc 1 343 3 view .LVU160
+ 345:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_t iphdr_src;
+ 467              		.loc 1 345 3 view .LVU161
+ 346:lwIP/src/core/ipv4/icmp.c ****   struct netif *netif;
+ 468              		.loc 1 346 3 view .LVU162
+ 347:lwIP/src/core/ipv4/icmp.c **** 
+ 469              		.loc 1 347 3 view .LVU163
+ 350:lwIP/src/core/ipv4/icmp.c **** 
+ 470              		.loc 1 350 35 view .LVU164
+ 471              		.loc 1 353 3 view .LVU165
+ 472              		.loc 1 353 7 is_stmt 0 view .LVU166
+ 473 000e 2421     		movs	r1, #36
+ 474              	.LVL38:
+ 475              		.loc 1 353 7 view .LVU167
+ 476 0010 FFF7FEFF 		bl	pbuf_alloc
+ 477              	.LVL39:
+ 354:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 355:lwIP/src/core/ipv4/icmp.c ****   if (q == NULL) {
+ 478              		.loc 1 355 3 is_stmt 1 view .LVU168
+ 479              		.loc 1 355 6 is_stmt 0 view .LVU169
+ 480 0014 0028     		cmp	r0, #0
+ 481 0016 37D0     		beq	.L31
+ARM GAS  /tmp/ccrguPU8.s 			page 18
+
+
+ 356:lwIP/src/core/ipv4/icmp.c ****     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded: failed to allocate pbuf for ICMP packet.\n"));
+ 357:lwIP/src/core/ipv4/icmp.c ****     MIB2_STATS_INC(mib2.icmpouterrors);
+ 358:lwIP/src/core/ipv4/icmp.c ****     return;
+ 359:lwIP/src/core/ipv4/icmp.c ****   }
+ 360:lwIP/src/core/ipv4/icmp.c ****   LWIP_ASSERT("check that first pbuf can hold icmp message",
+ 482              		.loc 1 360 3 view .LVU170
+ 483 0018 4389     		ldrh	r3, [r0, #10]
+ 484 001a 0446     		mov	r4, r0
+ 485              		.loc 1 360 3 is_stmt 1 view .LVU171
+ 486              		.loc 1 360 3 view .LVU172
+ 487 001c 232B     		cmp	r3, #35
+ 488 001e 35D9     		bls	.L41
+ 489              		.loc 1 360 3 view .LVU173
+ 361:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 362:lwIP/src/core/ipv4/icmp.c **** 
+ 363:lwIP/src/core/ipv4/icmp.c ****   iphdr = (struct ip_hdr *)p->payload;
+ 490              		.loc 1 363 3 view .LVU174
+ 491              		.loc 1 363 9 is_stmt 0 view .LVU175
+ 492 0020 6B68     		ldr	r3, [r5, #4]
+ 493              	.LVL40:
+ 364:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded from "));
+ 494              		.loc 1 364 56 is_stmt 1 view .LVU176
+ 365:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_debug_print_val(ICMP_DEBUG, iphdr->src);
+ 495              		.loc 1 365 51 view .LVU177
+ 366:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, (" to "));
+ 496              		.loc 1 366 36 view .LVU178
+ 367:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_debug_print_val(ICMP_DEBUG, iphdr->dest);
+ 497              		.loc 1 367 52 view .LVU179
+ 368:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, ("\n"));
+ 498              		.loc 1 368 34 view .LVU180
+ 369:lwIP/src/core/ipv4/icmp.c **** 
+ 370:lwIP/src/core/ipv4/icmp.c ****   icmphdr = (struct icmp_echo_hdr *)q->payload;
+ 499              		.loc 1 370 3 view .LVU181
+ 371:lwIP/src/core/ipv4/icmp.c ****   icmphdr->type = type;
+ 500              		.loc 1 371 17 is_stmt 0 view .LVU182
+ 501 0022 0322     		movs	r2, #3
+ 370:lwIP/src/core/ipv4/icmp.c ****   icmphdr->type = type;
+ 502              		.loc 1 370 11 view .LVU183
+ 503 0024 4568     		ldr	r5, [r0, #4]
+ 504              	.LVL41:
+ 505              		.loc 1 371 3 is_stmt 1 view .LVU184
+ 372:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->id = 0;
+ 506              		.loc 1 373 15 is_stmt 0 view .LVU185
+ 507 0026 0027     		movs	r7, #0
+ 374:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 375:lwIP/src/core/ipv4/icmp.c **** 
+ 376:lwIP/src/core/ipv4/icmp.c ****   /* copy fields from original packet */
+ 377:lwIP/src/core/ipv4/icmp.c ****   SMEMCPY((u8_t *)q->payload + sizeof(struct icmp_echo_hdr), (u8_t *)p->payload,
+ 378:lwIP/src/core/ipv4/icmp.c ****           IP_HLEN + ICMP_DEST_UNREACH_DATASIZE);
+ 379:lwIP/src/core/ipv4/icmp.c **** 
+ 380:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_copy(iphdr_src, iphdr->src);
+ 381:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_IP4_ROUTE_SRC
+ 382:lwIP/src/core/ipv4/icmp.c ****   {
+ 383:lwIP/src/core/ipv4/icmp.c ****     ip4_addr_t iphdr_dst;
+ 384:lwIP/src/core/ipv4/icmp.c ****     ip4_addr_copy(iphdr_dst, iphdr->dest);
+ 385:lwIP/src/core/ipv4/icmp.c ****     netif = ip4_route_src(&iphdr_dst, &iphdr_src);
+ARM GAS  /tmp/ccrguPU8.s 			page 19
+
+
+ 386:lwIP/src/core/ipv4/icmp.c ****   }
+ 387:lwIP/src/core/ipv4/icmp.c **** #else
+ 388:lwIP/src/core/ipv4/icmp.c ****   netif = ip4_route(&iphdr_src);
+ 508              		.loc 1 388 11 view .LVU186
+ 509 0028 05A8     		add	r0, sp, #20
+ 510              	.LVL42:
+ 372:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 511              		.loc 1 372 17 view .LVU187
+ 512 002a 6E70     		strb	r6, [r5, #1]
+ 371:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 513              		.loc 1 371 17 view .LVU188
+ 514 002c 2A70     		strb	r2, [r5]
+ 372:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 515              		.loc 1 372 3 is_stmt 1 view .LVU189
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 516              		.loc 1 373 3 view .LVU190
+ 374:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 517              		.loc 1 374 3 view .LVU191
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 518              		.loc 1 373 15 is_stmt 0 view .LVU192
+ 519 002e 6F60     		str	r7, [r5, #4]	@ unaligned
+ 377:lwIP/src/core/ipv4/icmp.c ****           IP_HLEN + ICMP_DEST_UNREACH_DATASIZE);
+ 520              		.loc 1 377 3 is_stmt 1 view .LVU193
+ 521 0030 1E68     		ldr	r6, [r3]	@ unaligned
+ 522              	.LVL43:
+ 377:lwIP/src/core/ipv4/icmp.c ****           IP_HLEN + ICMP_DEST_UNREACH_DATASIZE);
+ 523              		.loc 1 377 3 is_stmt 0 view .LVU194
+ 524 0032 5968     		ldr	r1, [r3, #4]	@ unaligned
+ 525 0034 9A68     		ldr	r2, [r3, #8]	@ unaligned
+ 526 0036 D3F80CC0 		ldr	ip, [r3, #12]	@ unaligned
+ 527 003a AE60     		str	r6, [r5, #8]	@ unaligned
+ 528 003c E960     		str	r1, [r5, #12]	@ unaligned
+ 529 003e 2A61     		str	r2, [r5, #16]	@ unaligned
+ 530 0040 C5F814C0 		str	ip, [r5, #20]	@ unaligned
+ 531 0044 1E69     		ldr	r6, [r3, #16]	@ unaligned
+ 532 0046 5969     		ldr	r1, [r3, #20]	@ unaligned
+ 533 0048 9A69     		ldr	r2, [r3, #24]	@ unaligned
+ 534 004a AE61     		str	r6, [r5, #24]	@ unaligned
+ 535 004c E961     		str	r1, [r5, #28]	@ unaligned
+ 536 004e 2A62     		str	r2, [r5, #32]	@ unaligned
+ 380:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_IP4_ROUTE_SRC
+ 537              		.loc 1 380 3 is_stmt 1 view .LVU195
+ 538 0050 DB68     		ldr	r3, [r3, #12]	@ unaligned
+ 539              	.LVL44:
+ 380:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_IP4_ROUTE_SRC
+ 540              		.loc 1 380 3 is_stmt 0 view .LVU196
+ 541 0052 0593     		str	r3, [sp, #20]
+ 542              	.LVL45:
+ 543              		.loc 1 388 3 is_stmt 1 view .LVU197
+ 544              		.loc 1 388 11 is_stmt 0 view .LVU198
+ 545 0054 FFF7FEFF 		bl	ip4_route
+ 546              	.LVL46:
+ 389:lwIP/src/core/ipv4/icmp.c **** #endif
+ 390:lwIP/src/core/ipv4/icmp.c ****   if (netif != NULL) {
+ 547              		.loc 1 390 3 is_stmt 1 view .LVU199
+ 548              		.loc 1 390 6 is_stmt 0 view .LVU200
+ 549 0058 0646     		mov	r6, r0
+ARM GAS  /tmp/ccrguPU8.s 			page 20
+
+
+ 550 005a 90B1     		cbz	r0, .L36
+ 391:lwIP/src/core/ipv4/icmp.c ****     /* calculate checksum */
+ 392:lwIP/src/core/ipv4/icmp.c ****     icmphdr->chksum = 0;
+ 551              		.loc 1 392 5 is_stmt 1 view .LVU201
+ 393:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 394:lwIP/src/core/ipv4/icmp.c ****     IF__NETIF_CHECKSUM_ENABLED(netif, NETIF_CHECKSUM_GEN_ICMP) {
+ 395:lwIP/src/core/ipv4/icmp.c ****       icmphdr->chksum = inet_chksum(icmphdr, q->len);
+ 552              		.loc 1 395 25 is_stmt 0 view .LVU202
+ 553 005c 6189     		ldrh	r1, [r4, #10]
+ 554 005e 2846     		mov	r0, r5
+ 555              	.LVL47:
+ 392:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 556              		.loc 1 392 21 view .LVU203
+ 557 0060 AF70     		strb	r7, [r5, #2]
+ 558 0062 EF70     		strb	r7, [r5, #3]
+ 559              		.loc 1 395 7 is_stmt 1 view .LVU204
+ 560              		.loc 1 395 25 is_stmt 0 view .LVU205
+ 561 0064 FFF7FEFF 		bl	inet_chksum
+ 562              	.LVL48:
+ 396:lwIP/src/core/ipv4/icmp.c ****     }
+ 397:lwIP/src/core/ipv4/icmp.c **** #endif
+ 398:lwIP/src/core/ipv4/icmp.c ****     ICMP_STATS_INC(icmp.xmit);
+ 399:lwIP/src/core/ipv4/icmp.c ****     ip4_output_if(q, NULL, &iphdr_src, ICMP_TTL, 0, IP_PROTO_ICMP, netif);
+ 563              		.loc 1 399 5 view .LVU206
+ 564 0068 4FF0010C 		mov	ip, #1
+ 395:lwIP/src/core/ipv4/icmp.c ****     }
+ 565              		.loc 1 395 23 view .LVU207
+ 566 006c 6880     		strh	r0, [r5, #2]	@ unaligned
+ 398:lwIP/src/core/ipv4/icmp.c ****     ip4_output_if(q, NULL, &iphdr_src, ICMP_TTL, 0, IP_PROTO_ICMP, netif);
+ 567              		.loc 1 398 30 is_stmt 1 view .LVU208
+ 568              		.loc 1 399 5 view .LVU209
+ 569 006e 05AA     		add	r2, sp, #20
+ 570 0070 3946     		mov	r1, r7
+ 571 0072 FF23     		movs	r3, #255
+ 572 0074 2046     		mov	r0, r4
+ 573 0076 0296     		str	r6, [sp, #8]
+ 574 0078 0097     		str	r7, [sp]
+ 575 007a CDF804C0 		str	ip, [sp, #4]
+ 576 007e FFF7FEFF 		bl	ip4_output_if
+ 577              	.LVL49:
+ 578              	.L36:
+ 400:lwIP/src/core/ipv4/icmp.c ****   }
+ 401:lwIP/src/core/ipv4/icmp.c ****   pbuf_free(q);
+ 579              		.loc 1 401 3 view .LVU210
+ 580 0082 2046     		mov	r0, r4
+ 581 0084 FFF7FEFF 		bl	pbuf_free
+ 582              	.LVL50:
+ 583              	.L31:
+ 584              		.loc 1 401 3 is_stmt 0 view .LVU211
+ 585              	.LBE13:
+ 586              	.LBE15:
+ 312:lwIP/src/core/ipv4/icmp.c **** 
+ 587              		.loc 1 312 1 view .LVU212
+ 588 0088 07B0     		add	sp, sp, #28
+ 589              	.LCFI7:
+ 590              		.cfi_remember_state
+ 591              		.cfi_def_cfa_offset 20
+ARM GAS  /tmp/ccrguPU8.s 			page 21
+
+
+ 592              		@ sp needed
+ 593 008a F0BD     		pop	{r4, r5, r6, r7, pc}
+ 594              	.LVL51:
+ 595              	.L41:
+ 596              	.LCFI8:
+ 597              		.cfi_restore_state
+ 598              	.LBB16:
+ 599              	.LBB14:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 600              		.loc 1 360 3 is_stmt 1 view .LVU213
+ 601 008c 0148     		ldr	r0, .L42
+ 602              	.LVL52:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 603              		.loc 1 360 3 is_stmt 0 view .LVU214
+ 604 008e FFF7FEFF 		bl	printf
+ 605              	.LVL53:
+ 606              	.L35:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 607              		.loc 1 360 3 is_stmt 1 view .LVU215
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 608              		.loc 1 360 3 view .LVU216
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 609              		.loc 1 360 3 view .LVU217
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 610              		.loc 1 360 3 view .LVU218
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 611              		.loc 1 360 3 view .LVU219
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 612              		.loc 1 360 3 view .LVU220
+ 613 0092 FEE7     		b	.L35
+ 614              	.L43:
+ 615              		.align	2
+ 616              	.L42:
+ 617 0094 00000000 		.word	.LC2
+ 618              	.LBE14:
+ 619              	.LBE16:
+ 620              		.cfi_endproc
+ 621              	.LFE106:
+ 623              		.section	.text.icmp_time_exceeded,"ax",%progbits
+ 624              		.align	1
+ 625              		.p2align 2,,3
+ 626              		.global	icmp_time_exceeded
+ 627              		.syntax unified
+ 628              		.thumb
+ 629              		.thumb_func
+ 630              		.fpu fpv4-sp-d16
+ 632              	icmp_time_exceeded:
+ 633              	.LVL54:
+ 634              	.LFB107:
+ 324:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpouttimeexcds);
+ 635              		.loc 1 324 1 view -0
+ 636              		.cfi_startproc
+ 637              		@ args = 0, pretend = 0, frame = 8
+ 638              		@ frame_needed = 0, uses_anonymous_args = 0
+ 325:lwIP/src/core/ipv4/icmp.c ****   icmp_send_response(p, ICMP_TE, t);
+ 639              		.loc 1 325 40 view .LVU222
+ 326:lwIP/src/core/ipv4/icmp.c **** }
+ARM GAS  /tmp/ccrguPU8.s 			page 22
+
+
+ 640              		.loc 1 326 3 view .LVU223
+ 324:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpouttimeexcds);
+ 641              		.loc 1 324 1 is_stmt 0 view .LVU224
+ 642 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 643              	.LCFI9:
+ 644              		.cfi_def_cfa_offset 20
+ 645              		.cfi_offset 4, -20
+ 646              		.cfi_offset 5, -16
+ 647              		.cfi_offset 6, -12
+ 648              		.cfi_offset 7, -8
+ 649              		.cfi_offset 14, -4
+ 650              	.LBB19:
+ 651              	.LBB20:
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 652              		.loc 1 353 7 view .LVU225
+ 653 0002 4FF42072 		mov	r2, #640
+ 654              	.LBE20:
+ 655              	.LBE19:
+ 324:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpouttimeexcds);
+ 656              		.loc 1 324 1 view .LVU226
+ 657 0006 87B0     		sub	sp, sp, #28
+ 658              	.LCFI10:
+ 659              		.cfi_def_cfa_offset 48
+ 324:lwIP/src/core/ipv4/icmp.c ****   MIB2_STATS_INC(mib2.icmpouttimeexcds);
+ 660              		.loc 1 324 1 view .LVU227
+ 661 0008 0546     		mov	r5, r0
+ 662 000a 0E46     		mov	r6, r1
+ 663              	.LBB24:
+ 664              	.LBB21:
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 665              		.loc 1 353 7 view .LVU228
+ 666 000c 2220     		movs	r0, #34
+ 667              	.LVL55:
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 668              		.loc 1 353 7 view .LVU229
+ 669              	.LBE21:
+ 670              	.LBI19:
+ 340:lwIP/src/core/ipv4/icmp.c **** {
+ 671              		.loc 1 340 1 is_stmt 1 view .LVU230
+ 672              	.LBB22:
+ 342:lwIP/src/core/ipv4/icmp.c ****   struct ip_hdr *iphdr;
+ 673              		.loc 1 342 3 view .LVU231
+ 343:lwIP/src/core/ipv4/icmp.c ****   /* we can use the echo header here */
+ 674              		.loc 1 343 3 view .LVU232
+ 345:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_t iphdr_src;
+ 675              		.loc 1 345 3 view .LVU233
+ 346:lwIP/src/core/ipv4/icmp.c ****   struct netif *netif;
+ 676              		.loc 1 346 3 view .LVU234
+ 347:lwIP/src/core/ipv4/icmp.c **** 
+ 677              		.loc 1 347 3 view .LVU235
+ 350:lwIP/src/core/ipv4/icmp.c **** 
+ 678              		.loc 1 350 35 view .LVU236
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 679              		.loc 1 353 3 view .LVU237
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 680              		.loc 1 353 7 is_stmt 0 view .LVU238
+ 681 000e 2421     		movs	r1, #36
+ARM GAS  /tmp/ccrguPU8.s 			page 23
+
+
+ 682              	.LVL56:
+ 353:lwIP/src/core/ipv4/icmp.c ****                  PBUF_RAM);
+ 683              		.loc 1 353 7 view .LVU239
+ 684 0010 FFF7FEFF 		bl	pbuf_alloc
+ 685              	.LVL57:
+ 355:lwIP/src/core/ipv4/icmp.c ****     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded: failed to allocate pbuf for ICMP packet.\n"));
+ 686              		.loc 1 355 3 is_stmt 1 view .LVU240
+ 355:lwIP/src/core/ipv4/icmp.c ****     LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded: failed to allocate pbuf for ICMP packet.\n"));
+ 687              		.loc 1 355 6 is_stmt 0 view .LVU241
+ 688 0014 0028     		cmp	r0, #0
+ 689 0016 37D0     		beq	.L44
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 690              		.loc 1 360 3 view .LVU242
+ 691 0018 4389     		ldrh	r3, [r0, #10]
+ 692 001a 0446     		mov	r4, r0
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 693              		.loc 1 360 3 is_stmt 1 view .LVU243
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 694              		.loc 1 360 3 view .LVU244
+ 695 001c 232B     		cmp	r3, #35
+ 696 001e 35D9     		bls	.L54
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 697              		.loc 1 360 3 view .LVU245
+ 363:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded from "));
+ 698              		.loc 1 363 3 view .LVU246
+ 363:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, ("icmp_time_exceeded from "));
+ 699              		.loc 1 363 9 is_stmt 0 view .LVU247
+ 700 0020 6B68     		ldr	r3, [r5, #4]
+ 701              	.LVL58:
+ 364:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_debug_print_val(ICMP_DEBUG, iphdr->src);
+ 702              		.loc 1 364 56 is_stmt 1 view .LVU248
+ 365:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, (" to "));
+ 703              		.loc 1 365 51 view .LVU249
+ 366:lwIP/src/core/ipv4/icmp.c ****   ip4_addr_debug_print_val(ICMP_DEBUG, iphdr->dest);
+ 704              		.loc 1 366 36 view .LVU250
+ 367:lwIP/src/core/ipv4/icmp.c ****   LWIP_DEBUGF(ICMP_DEBUG, ("\n"));
+ 705              		.loc 1 367 52 view .LVU251
+ 368:lwIP/src/core/ipv4/icmp.c **** 
+ 706              		.loc 1 368 34 view .LVU252
+ 370:lwIP/src/core/ipv4/icmp.c ****   icmphdr->type = type;
+ 707              		.loc 1 370 3 view .LVU253
+ 371:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 708              		.loc 1 371 17 is_stmt 0 view .LVU254
+ 709 0022 0B22     		movs	r2, #11
+ 370:lwIP/src/core/ipv4/icmp.c ****   icmphdr->type = type;
+ 710              		.loc 1 370 11 view .LVU255
+ 711 0024 4568     		ldr	r5, [r0, #4]
+ 712              	.LVL59:
+ 371:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 713              		.loc 1 371 3 is_stmt 1 view .LVU256
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 714              		.loc 1 373 15 is_stmt 0 view .LVU257
+ 715 0026 0027     		movs	r7, #0
+ 388:lwIP/src/core/ipv4/icmp.c **** #endif
+ 716              		.loc 1 388 11 view .LVU258
+ 717 0028 05A8     		add	r0, sp, #20
+ 718              	.LVL60:
+ARM GAS  /tmp/ccrguPU8.s 			page 24
+
+
+ 372:lwIP/src/core/ipv4/icmp.c ****   icmphdr->id = 0;
+ 719              		.loc 1 372 17 view .LVU259
+ 720 002a 6E70     		strb	r6, [r5, #1]
+ 371:lwIP/src/core/ipv4/icmp.c ****   icmphdr->code = code;
+ 721              		.loc 1 371 17 view .LVU260
+ 722 002c 2A70     		strb	r2, [r5]
+ 372:lwIP/src/core/ipv4/icmp.c ****   icmphdr->id = 0;
+ 723              		.loc 1 372 3 is_stmt 1 view .LVU261
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 724              		.loc 1 373 3 view .LVU262
+ 374:lwIP/src/core/ipv4/icmp.c **** 
+ 725              		.loc 1 374 3 view .LVU263
+ 373:lwIP/src/core/ipv4/icmp.c ****   icmphdr->seqno = 0;
+ 726              		.loc 1 373 15 is_stmt 0 view .LVU264
+ 727 002e 6F60     		str	r7, [r5, #4]	@ unaligned
+ 377:lwIP/src/core/ipv4/icmp.c ****           IP_HLEN + ICMP_DEST_UNREACH_DATASIZE);
+ 728              		.loc 1 377 3 is_stmt 1 view .LVU265
+ 729 0030 1E68     		ldr	r6, [r3]	@ unaligned
+ 730              	.LVL61:
+ 377:lwIP/src/core/ipv4/icmp.c ****           IP_HLEN + ICMP_DEST_UNREACH_DATASIZE);
+ 731              		.loc 1 377 3 is_stmt 0 view .LVU266
+ 732 0032 5968     		ldr	r1, [r3, #4]	@ unaligned
+ 733 0034 9A68     		ldr	r2, [r3, #8]	@ unaligned
+ 734 0036 D3F80CC0 		ldr	ip, [r3, #12]	@ unaligned
+ 735 003a AE60     		str	r6, [r5, #8]	@ unaligned
+ 736 003c E960     		str	r1, [r5, #12]	@ unaligned
+ 737 003e 2A61     		str	r2, [r5, #16]	@ unaligned
+ 738 0040 C5F814C0 		str	ip, [r5, #20]	@ unaligned
+ 739 0044 1E69     		ldr	r6, [r3, #16]	@ unaligned
+ 740 0046 5969     		ldr	r1, [r3, #20]	@ unaligned
+ 741 0048 9A69     		ldr	r2, [r3, #24]	@ unaligned
+ 742 004a AE61     		str	r6, [r5, #24]	@ unaligned
+ 743 004c E961     		str	r1, [r5, #28]	@ unaligned
+ 744 004e 2A62     		str	r2, [r5, #32]	@ unaligned
+ 380:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_IP4_ROUTE_SRC
+ 745              		.loc 1 380 3 is_stmt 1 view .LVU267
+ 746 0050 DB68     		ldr	r3, [r3, #12]	@ unaligned
+ 747              	.LVL62:
+ 380:lwIP/src/core/ipv4/icmp.c **** #ifdef LWIP_HOOK_IP4_ROUTE_SRC
+ 748              		.loc 1 380 3 is_stmt 0 view .LVU268
+ 749 0052 0593     		str	r3, [sp, #20]
+ 750              	.LVL63:
+ 388:lwIP/src/core/ipv4/icmp.c **** #endif
+ 751              		.loc 1 388 3 is_stmt 1 view .LVU269
+ 388:lwIP/src/core/ipv4/icmp.c **** #endif
+ 752              		.loc 1 388 11 is_stmt 0 view .LVU270
+ 753 0054 FFF7FEFF 		bl	ip4_route
+ 754              	.LVL64:
+ 390:lwIP/src/core/ipv4/icmp.c ****     /* calculate checksum */
+ 755              		.loc 1 390 3 is_stmt 1 view .LVU271
+ 390:lwIP/src/core/ipv4/icmp.c ****     /* calculate checksum */
+ 756              		.loc 1 390 6 is_stmt 0 view .LVU272
+ 757 0058 0646     		mov	r6, r0
+ 758 005a 90B1     		cbz	r0, .L49
+ 392:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 759              		.loc 1 392 5 is_stmt 1 view .LVU273
+ 395:lwIP/src/core/ipv4/icmp.c ****     }
+ARM GAS  /tmp/ccrguPU8.s 			page 25
+
+
+ 760              		.loc 1 395 25 is_stmt 0 view .LVU274
+ 761 005c 6189     		ldrh	r1, [r4, #10]
+ 762 005e 2846     		mov	r0, r5
+ 763              	.LVL65:
+ 392:lwIP/src/core/ipv4/icmp.c **** #if CHECKSUM_GEN_ICMP
+ 764              		.loc 1 392 21 view .LVU275
+ 765 0060 AF70     		strb	r7, [r5, #2]
+ 766 0062 EF70     		strb	r7, [r5, #3]
+ 395:lwIP/src/core/ipv4/icmp.c ****     }
+ 767              		.loc 1 395 7 is_stmt 1 view .LVU276
+ 395:lwIP/src/core/ipv4/icmp.c ****     }
+ 768              		.loc 1 395 25 is_stmt 0 view .LVU277
+ 769 0064 FFF7FEFF 		bl	inet_chksum
+ 770              	.LVL66:
+ 399:lwIP/src/core/ipv4/icmp.c ****   }
+ 771              		.loc 1 399 5 view .LVU278
+ 772 0068 4FF0010C 		mov	ip, #1
+ 395:lwIP/src/core/ipv4/icmp.c ****     }
+ 773              		.loc 1 395 23 view .LVU279
+ 774 006c 6880     		strh	r0, [r5, #2]	@ unaligned
+ 398:lwIP/src/core/ipv4/icmp.c ****     ip4_output_if(q, NULL, &iphdr_src, ICMP_TTL, 0, IP_PROTO_ICMP, netif);
+ 775              		.loc 1 398 30 is_stmt 1 view .LVU280
+ 399:lwIP/src/core/ipv4/icmp.c ****   }
+ 776              		.loc 1 399 5 view .LVU281
+ 777 006e 05AA     		add	r2, sp, #20
+ 778 0070 3946     		mov	r1, r7
+ 779 0072 FF23     		movs	r3, #255
+ 780 0074 2046     		mov	r0, r4
+ 781 0076 0296     		str	r6, [sp, #8]
+ 782 0078 0097     		str	r7, [sp]
+ 783 007a CDF804C0 		str	ip, [sp, #4]
+ 784 007e FFF7FEFF 		bl	ip4_output_if
+ 785              	.LVL67:
+ 786              	.L49:
+ 787              		.loc 1 401 3 view .LVU282
+ 788 0082 2046     		mov	r0, r4
+ 789 0084 FFF7FEFF 		bl	pbuf_free
+ 790              	.LVL68:
+ 791              	.L44:
+ 792              		.loc 1 401 3 is_stmt 0 view .LVU283
+ 793              	.LBE22:
+ 794              	.LBE24:
+ 327:lwIP/src/core/ipv4/icmp.c **** 
+ 795              		.loc 1 327 1 view .LVU284
+ 796 0088 07B0     		add	sp, sp, #28
+ 797              	.LCFI11:
+ 798              		.cfi_remember_state
+ 799              		.cfi_def_cfa_offset 20
+ 800              		@ sp needed
+ 801 008a F0BD     		pop	{r4, r5, r6, r7, pc}
+ 802              	.LVL69:
+ 803              	.L54:
+ 804              	.LCFI12:
+ 805              		.cfi_restore_state
+ 806              	.LBB25:
+ 807              	.LBB23:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ARM GAS  /tmp/ccrguPU8.s 			page 26
+
+
+ 808              		.loc 1 360 3 is_stmt 1 view .LVU285
+ 809 008c 0148     		ldr	r0, .L55
+ 810              	.LVL70:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 811              		.loc 1 360 3 is_stmt 0 view .LVU286
+ 812 008e FFF7FEFF 		bl	printf
+ 813              	.LVL71:
+ 814              	.L48:
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 815              		.loc 1 360 3 is_stmt 1 view .LVU287
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 816              		.loc 1 360 3 view .LVU288
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 817              		.loc 1 360 3 view .LVU289
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 818              		.loc 1 360 3 view .LVU290
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 819              		.loc 1 360 3 view .LVU291
+ 360:lwIP/src/core/ipv4/icmp.c ****               (q->len >= (sizeof(struct icmp_echo_hdr) + IP_HLEN + ICMP_DEST_UNREACH_DATASIZE)));
+ 820              		.loc 1 360 3 view .LVU292
+ 821 0092 FEE7     		b	.L48
+ 822              	.L56:
+ 823              		.align	2
+ 824              	.L55:
+ 825 0094 00000000 		.word	.LC2
+ 826              	.LBE23:
+ 827              	.LBE25:
+ 828              		.cfi_endproc
+ 829              	.LFE107:
+ 831              		.text
+ 832              	.Letext0:
+ 833              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 834              		.file 3 "/usr/arm-none-eabi/include/sys/lock.h"
+ 835              		.file 4 "/usr/arm-none-eabi/include/sys/_types.h"
+ 836              		.file 5 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 837              		.file 6 "/usr/arm-none-eabi/include/sys/reent.h"
+ 838              		.file 7 "/usr/arm-none-eabi/include/stdlib.h"
+ 839              		.file 8 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 840              		.file 9 "lwIP/src/include/lwip/arch.h"
+ 841              		.file 10 "/usr/arm-none-eabi/include/ctype.h"
+ 842              		.file 11 "lwIP/src/include/lwip/err.h"
+ 843              		.file 12 "lwIP/src/include/lwip/pbuf.h"
+ 844              		.file 13 "lwIP/src/include/lwip/ip4_addr.h"
+ 845              		.file 14 "lwIP/src/include/lwip/ip_addr.h"
+ 846              		.file 15 "lwIP/src/include/lwip/priv/memp_priv.h"
+ 847              		.file 16 "lwIP/src/include/lwip/memp.h"
+ 848              		.file 17 "lwIP/src/include/lwip/netif.h"
+ 849              		.file 18 "lwIP/src/include/lwip/prot/icmp.h"
+ 850              		.file 19 "lwIP/src/include/lwip/icmp.h"
+ 851              		.file 20 "lwIP/src/include/lwip/prot/ip4.h"
+ 852              		.file 21 "lwIP/src/include/lwip/ip.h"
+ 853              		.file 22 "lwIP/src/include/lwip/ip4.h"
+ 854              		.file 23 "lwIP/src/include/lwip/inet_chksum.h"
+ 855              		.file 24 "/usr/arm-none-eabi/include/stdio.h"
+ 856              		.file 25 "<built-in>"
+ARM GAS  /tmp/ccrguPU8.s 			page 27
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 icmp.c
+     /tmp/ccrguPU8.s:18     .rodata.icmp_input.str1.4:0000000000000000 $d
+     /tmp/ccrguPU8.s:26     .text.icmp_input:0000000000000000 $t
+     /tmp/ccrguPU8.s:35     .text.icmp_input:0000000000000000 icmp_input
+     /tmp/ccrguPU8.s:404    .text.icmp_input:0000000000000144 $d
+     /tmp/ccrguPU8.s:412    .rodata.icmp_dest_unreach.str1.4:0000000000000000 $d
+     /tmp/ccrguPU8.s:416    .text.icmp_dest_unreach:0000000000000000 $t
+     /tmp/ccrguPU8.s:424    .text.icmp_dest_unreach:0000000000000000 icmp_dest_unreach
+     /tmp/ccrguPU8.s:617    .text.icmp_dest_unreach:0000000000000094 $d
+     /tmp/ccrguPU8.s:624    .text.icmp_time_exceeded:0000000000000000 $t
+     /tmp/ccrguPU8.s:632    .text.icmp_time_exceeded:0000000000000000 icmp_time_exceeded
+     /tmp/ccrguPU8.s:825    .text.icmp_time_exceeded:0000000000000094 $d
+
+UNDEFINED SYMBOLS
+ip4_addr_isbroadcast_u32
+pbuf_free
+inet_chksum_pbuf
+pbuf_add_header
+pbuf_alloc
+memcpy
+pbuf_remove_header
+puts
+inet_chksum
+ip4_output_if
+pbuf_copy
+ip_data
+ip4_route
+printf

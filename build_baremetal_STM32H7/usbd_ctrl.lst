@@ -1,0 +1,1128 @@
+ARM GAS  /tmp/ccRr9JWz.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"usbd_ctrl.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.USBD_CtrlInCallback,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	USBD_CtrlInCallback
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	USBD_CtrlInCallback:
+  28              	.LVL0:
+  29              	.LFB160:
+  30              		.file 1 "USBDevice/Device/usbd_ctrl.c"
+   1:USBDevice/Device/usbd_ctrl.c **** /**
+   2:USBDevice/Device/usbd_ctrl.c ****   ******************************************************************************
+   3:USBDevice/Device/usbd_ctrl.c ****   * @file    usbd_ctrl.c
+   4:USBDevice/Device/usbd_ctrl.c ****   * @author  Benedek Kupper
+   5:USBDevice/Device/usbd_ctrl.c ****   * @version 0.1
+   6:USBDevice/Device/usbd_ctrl.c ****   * @date    2018-01-31
+   7:USBDevice/Device/usbd_ctrl.c ****   * @brief   Universal Serial Bus Device Driver
+   8:USBDevice/Device/usbd_ctrl.c ****   *          Control transfer management
+   9:USBDevice/Device/usbd_ctrl.c ****   *
+  10:USBDevice/Device/usbd_ctrl.c ****   * Copyright (c) 2018 Benedek Kupper
+  11:USBDevice/Device/usbd_ctrl.c ****   *
+  12:USBDevice/Device/usbd_ctrl.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  13:USBDevice/Device/usbd_ctrl.c ****   * you may not use this file except in compliance with the License.
+  14:USBDevice/Device/usbd_ctrl.c ****   * You may obtain a copy of the License at
+  15:USBDevice/Device/usbd_ctrl.c ****   *
+  16:USBDevice/Device/usbd_ctrl.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  17:USBDevice/Device/usbd_ctrl.c ****   *
+  18:USBDevice/Device/usbd_ctrl.c ****   * Unless required by applicable law or agreed to in writing, software
+  19:USBDevice/Device/usbd_ctrl.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  20:USBDevice/Device/usbd_ctrl.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:USBDevice/Device/usbd_ctrl.c ****   * See the License for the specific language governing permissions and
+  22:USBDevice/Device/usbd_ctrl.c ****   * limitations under the License.
+  23:USBDevice/Device/usbd_ctrl.c ****   */
+  24:USBDevice/Device/usbd_ctrl.c **** #include <private/usbd_private.h>
+  25:USBDevice/Device/usbd_ctrl.c **** 
+  26:USBDevice/Device/usbd_ctrl.c **** /** @ingroup USBD_Private
+  27:USBDevice/Device/usbd_ctrl.c ****  * @defgroup USBD_Private_Functions_Ctrl USBD Control Request Handling
+  28:USBDevice/Device/usbd_ctrl.c ****  * @{ */
+ARM GAS  /tmp/ccRr9JWz.s 			page 2
+
+
+  29:USBDevice/Device/usbd_ctrl.c **** 
+  30:USBDevice/Device/usbd_ctrl.c **** /**
+  31:USBDevice/Device/usbd_ctrl.c ****  * @brief This function indicates a failed control request by stalling EP0.
+  32:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+  33:USBDevice/Device/usbd_ctrl.c ****  */
+  34:USBDevice/Device/usbd_ctrl.c **** static void USBD_CtrlSendError(USBD_HandleType *dev)
+  35:USBDevice/Device/usbd_ctrl.c **** {
+  36:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSetStall(dev, 0x80);
+  37:USBDevice/Device/usbd_ctrl.c ****     dev->EP.IN [0].State = USB_EP_STATE_STALL;
+  38:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSetStall(dev, 0x00);
+  39:USBDevice/Device/usbd_ctrl.c ****     dev->EP.OUT[0].State = USB_EP_STATE_STALL;
+  40:USBDevice/Device/usbd_ctrl.c **** }
+  41:USBDevice/Device/usbd_ctrl.c **** 
+  42:USBDevice/Device/usbd_ctrl.c **** /**
+  43:USBDevice/Device/usbd_ctrl.c ****  * @brief This function indicates a successful control data OUT stage by sending ZLP on EP0.
+  44:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+  45:USBDevice/Device/usbd_ctrl.c ****  */
+  46:USBDevice/Device/usbd_ctrl.c **** static void USBD_CtrlSendStatus(USBD_HandleType *dev)
+  47:USBDevice/Device/usbd_ctrl.c **** {
+  48:USBDevice/Device/usbd_ctrl.c ****     dev->EP.IN[0].State = USB_EP_STATE_STATUS;
+  49:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+  50:USBDevice/Device/usbd_ctrl.c **** }
+  51:USBDevice/Device/usbd_ctrl.c **** 
+  52:USBDevice/Device/usbd_ctrl.c **** /**
+  53:USBDevice/Device/usbd_ctrl.c ****  * @brief This function indicates a successful control data IN stage by receiving ZLP on EP0.
+  54:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+  55:USBDevice/Device/usbd_ctrl.c ****  */
+  56:USBDevice/Device/usbd_ctrl.c **** static void USBD_CtrlReceiveStatus(USBD_HandleType *dev)
+  57:USBDevice/Device/usbd_ctrl.c **** {
+  58:USBDevice/Device/usbd_ctrl.c ****     dev->EP.OUT[0].State = USB_EP_STATE_STATUS;
+  59:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpReceive(dev, 0x00, NULL, 0);
+  60:USBDevice/Device/usbd_ctrl.c **** }
+  61:USBDevice/Device/usbd_ctrl.c **** 
+  62:USBDevice/Device/usbd_ctrl.c **** /**
+  63:USBDevice/Device/usbd_ctrl.c ****  * @brief This function manages the end of a control IN endpoint transfer:
+  64:USBDevice/Device/usbd_ctrl.c ****  *         - Send Zero Length Packet if the end of the transfer is ambiguous
+  65:USBDevice/Device/usbd_ctrl.c ****  *         - Provide completion callback and OUT status stage if it was a data stage
+  66:USBDevice/Device/usbd_ctrl.c ****  *         - Set device address if it was requested
+  67:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+  68:USBDevice/Device/usbd_ctrl.c ****  */
+  69:USBDevice/Device/usbd_ctrl.c **** void USBD_CtrlInCallback(USBD_HandleType *dev)
+  70:USBDevice/Device/usbd_ctrl.c **** {
+  31              		.loc 1 70 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  71:USBDevice/Device/usbd_ctrl.c ****     /* Last packet is MPS multiple, so send ZLP packet */
+  72:USBDevice/Device/usbd_ctrl.c ****     if (( dev->EP.IN[0].Transfer.Length <  dev->Setup.Length) &&
+  35              		.loc 1 72 5 view .LVU1
+  36              		.loc 1 72 33 is_stmt 0 view .LVU2
+  37 0000 B0F85030 		ldrh	r3, [r0, #80]
+  38              		.loc 1 72 8 view .LVU3
+  39 0004 4289     		ldrh	r2, [r0, #10]
+  40 0006 9A42     		cmp	r2, r3
+  70:USBDevice/Device/usbd_ctrl.c ****     /* Last packet is MPS multiple, so send ZLP packet */
+  41              		.loc 1 70 1 view .LVU4
+  42 0008 10B5     		push	{r4, lr}
+ARM GAS  /tmp/ccRr9JWz.s 			page 3
+
+
+  43              	.LCFI0:
+  44              		.cfi_def_cfa_offset 8
+  45              		.cfi_offset 4, -8
+  46              		.cfi_offset 14, -4
+  70:USBDevice/Device/usbd_ctrl.c ****     /* Last packet is MPS multiple, so send ZLP packet */
+  47              		.loc 1 70 1 view .LVU5
+  48 000a 0446     		mov	r4, r0
+  49              		.loc 1 72 8 view .LVU6
+  50 000c 03D9     		bls	.L2
+  73:USBDevice/Device/usbd_ctrl.c ****         ( dev->EP.IN[0].Transfer.Length >= dev->EP.IN[0].MaxPacketSize) &&
+  51              		.loc 1 73 57 discriminator 1 view .LVU7
+  52 000e B0F85420 		ldrh	r2, [r0, #84]
+  72:USBDevice/Device/usbd_ctrl.c ****         ( dev->EP.IN[0].Transfer.Length >= dev->EP.IN[0].MaxPacketSize) &&
+  53              		.loc 1 72 63 discriminator 1 view .LVU8
+  54 0012 9342     		cmp	r3, r2
+  55 0014 08D2     		bcs	.L13
+  56              	.L2:
+  74:USBDevice/Device/usbd_ctrl.c ****         ((dev->EP.IN[0].Transfer.Length & (dev->EP.IN[0].MaxPacketSize - 1)) == 0))
+  75:USBDevice/Device/usbd_ctrl.c ****     {
+  76:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpSend(dev, 0x80, NULL, 0);
+  77:USBDevice/Device/usbd_ctrl.c ****     }
+  78:USBDevice/Device/usbd_ctrl.c ****     else
+  79:USBDevice/Device/usbd_ctrl.c ****     {
+  80:USBDevice/Device/usbd_ctrl.c ****         dev->EP.IN[0].State = USB_EP_STATE_IDLE;
+  57              		.loc 1 80 9 is_stmt 1 view .LVU9
+  81:USBDevice/Device/usbd_ctrl.c **** 
+  82:USBDevice/Device/usbd_ctrl.c ****         /* If the callback is from a Data stage */
+  83:USBDevice/Device/usbd_ctrl.c ****         if (dev->Setup.RequestType.Direction == USB_DIRECTION_IN)
+  58              		.loc 1 83 12 is_stmt 0 view .LVU10
+  59 0016 94F90430 		ldrsb	r3, [r4, #4]
+  80:USBDevice/Device/usbd_ctrl.c **** 
+  60              		.loc 1 80 29 view .LVU11
+  61 001a 0122     		movs	r2, #1
+  62              		.loc 1 83 46 view .LVU12
+  63 001c 2179     		ldrb	r1, [r4, #4]	@ zero_extendqisi2
+  64              		.loc 1 83 12 view .LVU13
+  65 001e 002B     		cmp	r3, #0
+  80:USBDevice/Device/usbd_ctrl.c **** 
+  66              		.loc 1 80 29 view .LVU14
+  67 0020 84F85720 		strb	r2, [r4, #87]
+  68              		.loc 1 83 9 is_stmt 1 view .LVU15
+  69              		.loc 1 83 12 is_stmt 0 view .LVU16
+  70 0024 09DB     		blt	.L14
+  84:USBDevice/Device/usbd_ctrl.c ****         {
+  85:USBDevice/Device/usbd_ctrl.c ****             /* Only call back if the IF was serving the request */
+  86:USBDevice/Device/usbd_ctrl.c ****             if ((dev->ConfigSelector != 0) &&
+  87:USBDevice/Device/usbd_ctrl.c ****                 (dev->Setup.RequestType.Recipient == USB_REQ_RECIPIENT_INTERFACE))
+  88:USBDevice/Device/usbd_ctrl.c ****             {
+  89:USBDevice/Device/usbd_ctrl.c ****                 /* If callback for transmitted EP0 data */
+  90:USBDevice/Device/usbd_ctrl.c ****                 USBD_IfClass_DataStage(dev->IF[(uint8_t)dev->Setup.Index]);
+  91:USBDevice/Device/usbd_ctrl.c ****             }
+  92:USBDevice/Device/usbd_ctrl.c **** 
+  93:USBDevice/Device/usbd_ctrl.c ****             /* Proceed to Status stage */
+  94:USBDevice/Device/usbd_ctrl.c ****             USBD_CtrlReceiveStatus(dev);
+  95:USBDevice/Device/usbd_ctrl.c ****         }
+  96:USBDevice/Device/usbd_ctrl.c **** #if (USBD_SET_ADDRESS_IMMEDIATE != 1)
+  97:USBDevice/Device/usbd_ctrl.c ****         /* If the address was set by the last request, apply it now */
+ARM GAS  /tmp/ccRr9JWz.s 			page 4
+
+
+  98:USBDevice/Device/usbd_ctrl.c ****         else if ((dev->Setup.RequestType.b == 0x00) &&
+  99:USBDevice/Device/usbd_ctrl.c ****                  (dev->Setup.Request == USB_REQ_SET_ADDRESS))
+ 100:USBDevice/Device/usbd_ctrl.c ****         {
+ 101:USBDevice/Device/usbd_ctrl.c ****             USBD_PD_SetAddress(dev, dev->Setup.Value & 0x7F);
+ 102:USBDevice/Device/usbd_ctrl.c ****         }
+ 103:USBDevice/Device/usbd_ctrl.c **** #endif
+ 104:USBDevice/Device/usbd_ctrl.c ****     }
+ 105:USBDevice/Device/usbd_ctrl.c **** }
+  71              		.loc 1 105 1 view .LVU17
+  72 0026 10BD     		pop	{r4, pc}
+  73              	.L13:
+  74:USBDevice/Device/usbd_ctrl.c ****     {
+  74              		.loc 1 74 72 view .LVU18
+  75 0028 013A     		subs	r2, r2, #1
+  73:USBDevice/Device/usbd_ctrl.c ****         ((dev->EP.IN[0].Transfer.Length & (dev->EP.IN[0].MaxPacketSize - 1)) == 0))
+  76              		.loc 1 73 73 view .LVU19
+  77 002a 1340     		ands	r3, r2, r3
+  78 002c F3D1     		bne	.L2
+  76:USBDevice/Device/usbd_ctrl.c ****     }
+  79              		.loc 1 76 9 is_stmt 1 view .LVU20
+  80 002e 1A46     		mov	r2, r3
+  81 0030 8021     		movs	r1, #128
+  82              		.loc 1 105 1 is_stmt 0 view .LVU21
+  83 0032 BDE81040 		pop	{r4, lr}
+  84              	.LCFI1:
+  85              		.cfi_remember_state
+  86              		.cfi_restore 14
+  87              		.cfi_restore 4
+  88              		.cfi_def_cfa_offset 0
+  76:USBDevice/Device/usbd_ctrl.c ****     }
+  89              		.loc 1 76 9 view .LVU22
+  90 0036 FFF7FEBF 		b	USB_vEpSend
+  91              	.LVL1:
+  92              	.L14:
+  93              	.LCFI2:
+  94              		.cfi_restore_state
+  86:USBDevice/Device/usbd_ctrl.c ****                 (dev->Setup.RequestType.Recipient == USB_REQ_RECIPIENT_INTERFACE))
+  95              		.loc 1 86 13 is_stmt 1 view .LVU23
+  86:USBDevice/Device/usbd_ctrl.c ****                 (dev->Setup.RequestType.Recipient == USB_REQ_RECIPIENT_INTERFACE))
+  96              		.loc 1 86 16 is_stmt 0 view .LVU24
+  97 003a 94F82830 		ldrb	r3, [r4, #40]	@ zero_extendqisi2
+  98 003e 5BB1     		cbz	r3, .L4
+  86:USBDevice/Device/usbd_ctrl.c ****                 (dev->Setup.RequestType.Recipient == USB_REQ_RECIPIENT_INTERFACE))
+  99              		.loc 1 86 44 discriminator 1 view .LVU25
+ 100 0040 01F01F01 		and	r1, r1, #31
+ 101 0044 9142     		cmp	r1, r2
+ 102 0046 07D1     		bne	.L4
+  90:USBDevice/Device/usbd_ctrl.c ****             }
+ 103              		.loc 1 90 17 is_stmt 1 view .LVU26
+  90:USBDevice/Device/usbd_ctrl.c ****             }
+ 104              		.loc 1 90 48 is_stmt 0 view .LVU27
+ 105 0048 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+  90:USBDevice/Device/usbd_ctrl.c ****             }
+ 106              		.loc 1 90 17 view .LVU28
+ 107 004a 04EB8303 		add	r3, r4, r3, lsl #2
+ 108 004e D86A     		ldr	r0, [r3, #44]
+ 109              	.LVL2:
+ARM GAS  /tmp/ccRr9JWz.s 			page 5
+
+
+ 110              	.LBB12:
+ 111              	.LBI12:
+ 112              		.file 2 "USBDevice/Include/private/usbd_private.h"
+   1:USBDevice/Include/private/usbd_private.h **** /**
+   2:USBDevice/Include/private/usbd_private.h ****   ******************************************************************************
+   3:USBDevice/Include/private/usbd_private.h ****   * @file    usbd_private.h
+   4:USBDevice/Include/private/usbd_private.h ****   * @author  Benedek Kupper
+   5:USBDevice/Include/private/usbd_private.h ****   * @version 0.1
+   6:USBDevice/Include/private/usbd_private.h ****   * @date    2018-01-31
+   7:USBDevice/Include/private/usbd_private.h ****   * @brief   Universal Serial Bus Device Driver
+   8:USBDevice/Include/private/usbd_private.h ****   *          Private cross-domain functions header
+   9:USBDevice/Include/private/usbd_private.h ****   *
+  10:USBDevice/Include/private/usbd_private.h ****   * Copyright (c) 2018 Benedek Kupper
+  11:USBDevice/Include/private/usbd_private.h ****   *
+  12:USBDevice/Include/private/usbd_private.h ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  13:USBDevice/Include/private/usbd_private.h ****   * you may not use this file except in compliance with the License.
+  14:USBDevice/Include/private/usbd_private.h ****   * You may obtain a copy of the License at
+  15:USBDevice/Include/private/usbd_private.h ****   *
+  16:USBDevice/Include/private/usbd_private.h ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  17:USBDevice/Include/private/usbd_private.h ****   *
+  18:USBDevice/Include/private/usbd_private.h ****   * Unless required by applicable law or agreed to in writing, software
+  19:USBDevice/Include/private/usbd_private.h ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  20:USBDevice/Include/private/usbd_private.h ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:USBDevice/Include/private/usbd_private.h ****   * See the License for the specific language governing permissions and
+  22:USBDevice/Include/private/usbd_private.h ****   * limitations under the License.
+  23:USBDevice/Include/private/usbd_private.h ****   */
+  24:USBDevice/Include/private/usbd_private.h **** #ifndef __USBD_PRIVATE_H_
+  25:USBDevice/Include/private/usbd_private.h **** #define __USBD_PRIVATE_H_
+  26:USBDevice/Include/private/usbd_private.h **** 
+  27:USBDevice/Include/private/usbd_private.h **** #ifdef __cplusplus
+  28:USBDevice/Include/private/usbd_private.h **** extern "C"
+  29:USBDevice/Include/private/usbd_private.h **** {
+  30:USBDevice/Include/private/usbd_private.h **** #endif
+  31:USBDevice/Include/private/usbd_private.h **** 
+  32:USBDevice/Include/private/usbd_private.h **** #include <private/usbd_internal.h>
+  33:USBDevice/Include/private/usbd_private.h **** 
+  34:USBDevice/Include/private/usbd_private.h **** /* {function definition} <- {call site} */
+  35:USBDevice/Include/private/usbd_private.h **** 
+  36:USBDevice/Include/private/usbd_private.h **** /* usbd <- usbd_ctrl */
+  37:USBDevice/Include/private/usbd_private.h **** USBD_ReturnType USBD_DevRequest         (USBD_HandleType *dev);
+  38:USBDevice/Include/private/usbd_private.h **** 
+  39:USBDevice/Include/private/usbd_private.h **** /* usbd_ctrl <- usbd_ep */
+  40:USBDevice/Include/private/usbd_private.h **** void            USBD_CtrlInCallback     (USBD_HandleType *dev);
+  41:USBDevice/Include/private/usbd_private.h **** void            USBD_CtrlOutCallback    (USBD_HandleType *dev);
+  42:USBDevice/Include/private/usbd_private.h **** 
+  43:USBDevice/Include/private/usbd_private.h **** /* usbd_if <- usbd_ctrl */
+  44:USBDevice/Include/private/usbd_private.h **** USBD_ReturnType USBD_IfRequest          (USBD_HandleType *dev);
+  45:USBDevice/Include/private/usbd_private.h **** 
+  46:USBDevice/Include/private/usbd_private.h **** /* usbd_if <- usbd */
+  47:USBDevice/Include/private/usbd_private.h **** void            USBD_IfConfig           (USBD_HandleType *dev,
+  48:USBDevice/Include/private/usbd_private.h ****                                          uint8_t cfgNum);
+  49:USBDevice/Include/private/usbd_private.h **** 
+  50:USBDevice/Include/private/usbd_private.h **** /* usbd_if <- usbd_desc */
+  51:USBDevice/Include/private/usbd_private.h **** const char*     USBD_IfString           (USBD_HandleType *dev);
+  52:USBDevice/Include/private/usbd_private.h **** 
+  53:USBDevice/Include/private/usbd_private.h **** /* usbd_ep <- usbd_ctrl */
+  54:USBDevice/Include/private/usbd_private.h **** USBD_ReturnType USBD_EpRequest          (USBD_HandleType *dev);
+ARM GAS  /tmp/ccRr9JWz.s 			page 6
+
+
+  55:USBDevice/Include/private/usbd_private.h **** 
+  56:USBDevice/Include/private/usbd_private.h **** /* usbd_desc <- usbd */
+  57:USBDevice/Include/private/usbd_private.h **** USBD_ReturnType USBD_GetDescriptor      (USBD_HandleType *dev);
+  58:USBDevice/Include/private/usbd_private.h **** 
+  59:USBDevice/Include/private/usbd_private.h **** /** @ingroup USBD
+  60:USBDevice/Include/private/usbd_private.h ****  * @defgroup USBD_Private_Functions_IfClass USBD Class-specific Interface Callouts
+  61:USBDevice/Include/private/usbd_private.h ****  * @brief These functions simply call the class-specific function pointer
+  62:USBDevice/Include/private/usbd_private.h ****  * @{ */
+  63:USBDevice/Include/private/usbd_private.h **** 
+  64:USBDevice/Include/private/usbd_private.h **** /**
+  65:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+  66:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::GetDescriptor function.
+  67:USBDevice/Include/private/usbd_private.h ****  * @param itf:   reference of the interface
+  68:USBDevice/Include/private/usbd_private.h ****  * @param ifNum: the interface index in the device
+  69:USBDevice/Include/private/usbd_private.h ****  * @param dest:  destination buffer pointer
+  70:USBDevice/Include/private/usbd_private.h ****  * @return Length of the descriptor
+  71:USBDevice/Include/private/usbd_private.h ****  */
+  72:USBDevice/Include/private/usbd_private.h **** static inline uint16_t USBD_IfClass_GetDesc(
+  73:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf, uint8_t ifNum, uint8_t *dest)
+  74:USBDevice/Include/private/usbd_private.h **** {
+  75:USBDevice/Include/private/usbd_private.h ****     if (itf->Class->GetDescriptor != NULL)
+  76:USBDevice/Include/private/usbd_private.h ****         { return itf->Class->GetDescriptor(itf, ifNum, dest); }
+  77:USBDevice/Include/private/usbd_private.h ****     else
+  78:USBDevice/Include/private/usbd_private.h ****         { return 0; }
+  79:USBDevice/Include/private/usbd_private.h **** }
+  80:USBDevice/Include/private/usbd_private.h **** 
+  81:USBDevice/Include/private/usbd_private.h **** /**
+  82:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+  83:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::GetString function.
+  84:USBDevice/Include/private/usbd_private.h ****  * @param itf:    reference of the interface
+  85:USBDevice/Include/private/usbd_private.h ****  * @param intNum: the interface-internal string index
+  86:USBDevice/Include/private/usbd_private.h ****  * @return String reference
+  87:USBDevice/Include/private/usbd_private.h ****  */
+  88:USBDevice/Include/private/usbd_private.h **** static inline const char* USBD_IfClass_GetString(
+  89:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf, uint8_t intNum)
+  90:USBDevice/Include/private/usbd_private.h **** {
+  91:USBDevice/Include/private/usbd_private.h ****     if (itf->Class->GetString == NULL)
+  92:USBDevice/Include/private/usbd_private.h ****     {   return (const char*)NULL; }
+  93:USBDevice/Include/private/usbd_private.h ****     else
+  94:USBDevice/Include/private/usbd_private.h ****     {   return itf->Class->GetString(itf, intNum); }
+  95:USBDevice/Include/private/usbd_private.h **** }
+  96:USBDevice/Include/private/usbd_private.h **** 
+  97:USBDevice/Include/private/usbd_private.h **** /**
+  98:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+  99:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::Init function.
+ 100:USBDevice/Include/private/usbd_private.h ****  * @param itf: reference of the interface
+ 101:USBDevice/Include/private/usbd_private.h ****  */
+ 102:USBDevice/Include/private/usbd_private.h **** static inline void USBD_IfClass_Init(
+ 103:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf)
+ 104:USBDevice/Include/private/usbd_private.h **** {
+ 105:USBDevice/Include/private/usbd_private.h ****     USBD_SAFE_CALLBACK(itf->Class->Init, itf);
+ 106:USBDevice/Include/private/usbd_private.h **** }
+ 107:USBDevice/Include/private/usbd_private.h **** 
+ 108:USBDevice/Include/private/usbd_private.h **** /**
+ 109:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+ 110:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::Deinit function.
+ 111:USBDevice/Include/private/usbd_private.h ****  * @param itf: reference of the interface
+ARM GAS  /tmp/ccRr9JWz.s 			page 7
+
+
+ 112:USBDevice/Include/private/usbd_private.h ****  */
+ 113:USBDevice/Include/private/usbd_private.h **** static inline void USBD_IfClass_Deinit(
+ 114:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf)
+ 115:USBDevice/Include/private/usbd_private.h **** {
+ 116:USBDevice/Include/private/usbd_private.h ****     USBD_SAFE_CALLBACK(itf->Class->Deinit, itf);
+ 117:USBDevice/Include/private/usbd_private.h **** }
+ 118:USBDevice/Include/private/usbd_private.h **** 
+ 119:USBDevice/Include/private/usbd_private.h **** /**
+ 120:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+ 121:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::SetupStage function.
+ 122:USBDevice/Include/private/usbd_private.h ****  * @param itf: reference of the interface
+ 123:USBDevice/Include/private/usbd_private.h ****  * @return Return value of the function call
+ 124:USBDevice/Include/private/usbd_private.h ****  */
+ 125:USBDevice/Include/private/usbd_private.h **** static inline USBD_ReturnType USBD_IfClass_SetupStage(
+ 126:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf)
+ 127:USBDevice/Include/private/usbd_private.h **** {
+ 128:USBDevice/Include/private/usbd_private.h ****     if (itf->Class->SetupStage == NULL)
+ 129:USBDevice/Include/private/usbd_private.h ****     {   return USBD_E_INVALID; }
+ 130:USBDevice/Include/private/usbd_private.h ****     else
+ 131:USBDevice/Include/private/usbd_private.h ****     {   return itf->Class->SetupStage(itf); }
+ 132:USBDevice/Include/private/usbd_private.h **** }
+ 133:USBDevice/Include/private/usbd_private.h **** 
+ 134:USBDevice/Include/private/usbd_private.h **** /**
+ 135:USBDevice/Include/private/usbd_private.h ****  * @brief Calls the interface's class specific
+ 136:USBDevice/Include/private/usbd_private.h ****  *        @ref USBD_ClassType::DataStage function.
+ 137:USBDevice/Include/private/usbd_private.h ****  * @param itf: reference of the interface
+ 138:USBDevice/Include/private/usbd_private.h ****  */
+ 139:USBDevice/Include/private/usbd_private.h **** static inline void USBD_IfClass_DataStage(
+ 113              		.loc 2 139 20 is_stmt 1 view .LVU29
+ 114              	.LBB13:
+ 140:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf)
+ 141:USBDevice/Include/private/usbd_private.h **** {
+ 142:USBDevice/Include/private/usbd_private.h ****     USBD_SAFE_CALLBACK(itf->Class->DataStage, itf);
+ 115              		.loc 2 142 5 view .LVU30
+ 116              		.loc 2 142 5 view .LVU31
+ 117 0050 4368     		ldr	r3, [r0, #4]
+ 118 0052 5B69     		ldr	r3, [r3, #20]
+ 119 0054 03B1     		cbz	r3, .L4
+ 120              		.loc 2 142 5 view .LVU32
+ 121 0056 9847     		blx	r3
+ 122              	.LVL3:
+ 123              	.L4:
+ 124              		.loc 2 142 5 is_stmt 0 view .LVU33
+ 125              	.LBE13:
+ 126              	.LBE12:
+  94:USBDevice/Device/usbd_ctrl.c ****         }
+ 127              		.loc 1 94 13 is_stmt 1 view .LVU34
+ 128              	.LBB14:
+ 129              	.LBI14:
+  56:USBDevice/Device/usbd_ctrl.c **** {
+ 130              		.loc 1 56 13 view .LVU35
+ 131              	.LBB15:
+  58:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpReceive(dev, 0x00, NULL, 0);
+ 132              		.loc 1 58 5 view .LVU36
+  58:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpReceive(dev, 0x00, NULL, 0);
+ 133              		.loc 1 58 26 is_stmt 0 view .LVU37
+ 134 0058 0522     		movs	r2, #5
+ARM GAS  /tmp/ccRr9JWz.s 			page 8
+
+
+  59:USBDevice/Device/usbd_ctrl.c **** }
+ 135              		.loc 1 59 5 view .LVU38
+ 136 005a 0023     		movs	r3, #0
+ 137 005c 2046     		mov	r0, r4
+  58:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpReceive(dev, 0x00, NULL, 0);
+ 138              		.loc 1 58 26 view .LVU39
+ 139 005e 84F8B720 		strb	r2, [r4, #183]
+  59:USBDevice/Device/usbd_ctrl.c **** }
+ 140              		.loc 1 59 5 is_stmt 1 view .LVU40
+ 141 0062 1946     		mov	r1, r3
+ 142 0064 1A46     		mov	r2, r3
+ 143              	.LBE15:
+ 144              	.LBE14:
+ 145              		.loc 1 105 1 is_stmt 0 view .LVU41
+ 146 0066 BDE81040 		pop	{r4, lr}
+ 147              	.LCFI3:
+ 148              		.cfi_restore 14
+ 149              		.cfi_restore 4
+ 150              		.cfi_def_cfa_offset 0
+ 151              	.LVL4:
+ 152              	.LBB17:
+ 153              	.LBB16:
+  59:USBDevice/Device/usbd_ctrl.c **** }
+ 154              		.loc 1 59 5 view .LVU42
+ 155 006a FFF7FEBF 		b	USB_vEpReceive
+ 156              	.LVL5:
+  59:USBDevice/Device/usbd_ctrl.c **** }
+ 157              		.loc 1 59 5 view .LVU43
+ 158              	.LBE16:
+ 159              	.LBE17:
+ 160              		.cfi_endproc
+ 161              	.LFE160:
+ 163 006e 00BF     		.section	.text.USBD_CtrlOutCallback,"ax",%progbits
+ 164              		.align	1
+ 165              		.p2align 2,,3
+ 166              		.global	USBD_CtrlOutCallback
+ 167              		.syntax unified
+ 168              		.thumb
+ 169              		.thumb_func
+ 170              		.fpu fpv4-sp-d16
+ 172              	USBD_CtrlOutCallback:
+ 173              	.LVL6:
+ 174              	.LFB161:
+ 106:USBDevice/Device/usbd_ctrl.c **** 
+ 107:USBDevice/Device/usbd_ctrl.c **** /**
+ 108:USBDevice/Device/usbd_ctrl.c ****  * @brief This function manages the end of a control OUT endpoint transfer:
+ 109:USBDevice/Device/usbd_ctrl.c ****  *         - Provide completion callback and IN status stage if it was a data stage
+ 110:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+ 111:USBDevice/Device/usbd_ctrl.c ****  */
+ 112:USBDevice/Device/usbd_ctrl.c **** void USBD_CtrlOutCallback(USBD_HandleType *dev)
+ 113:USBDevice/Device/usbd_ctrl.c **** {
+ 175              		.loc 1 113 1 is_stmt 1 view -0
+ 176              		.cfi_startproc
+ 177              		@ args = 0, pretend = 0, frame = 0
+ 178              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114:USBDevice/Device/usbd_ctrl.c ****     /* If the callback is from a Data stage */
+ 115:USBDevice/Device/usbd_ctrl.c ****     if ((dev->Setup.Length > 0) &&
+ARM GAS  /tmp/ccRr9JWz.s 			page 9
+
+
+ 179              		.loc 1 115 5 view .LVU45
+ 180              		.loc 1 115 8 is_stmt 0 view .LVU46
+ 181 0000 4389     		ldrh	r3, [r0, #10]
+ 182 0002 03B9     		cbnz	r3, .L31
+ 183 0004 7047     		bx	lr
+ 184              	.L31:
+ 185              		.loc 1 115 33 discriminator 1 view .LVU47
+ 186 0006 90F90430 		ldrsb	r3, [r0, #4]
+ 187 000a 002B     		cmp	r3, #0
+ 113:USBDevice/Device/usbd_ctrl.c ****     /* If the callback is from a Data stage */
+ 188              		.loc 1 113 1 discriminator 1 view .LVU48
+ 189 000c 10B5     		push	{r4, lr}
+ 190              	.LCFI4:
+ 191              		.cfi_def_cfa_offset 8
+ 192              		.cfi_offset 4, -8
+ 193              		.cfi_offset 14, -4
+ 194 000e 0446     		mov	r4, r0
+ 195              		.loc 1 115 33 discriminator 1 view .LVU49
+ 196 0010 15DB     		blt	.L15
+ 116:USBDevice/Device/usbd_ctrl.c ****         (dev->Setup.RequestType.Direction == USB_DIRECTION_OUT))
+ 117:USBDevice/Device/usbd_ctrl.c ****     {
+ 118:USBDevice/Device/usbd_ctrl.c ****         /* Standard requests have no OUT direction data stage -> must be IF related */
+ 119:USBDevice/Device/usbd_ctrl.c ****         if (dev->ConfigSelector != 0)
+ 197              		.loc 1 119 9 is_stmt 1 view .LVU50
+ 198              		.loc 1 119 12 is_stmt 0 view .LVU51
+ 199 0012 90F82830 		ldrb	r3, [r0, #40]	@ zero_extendqisi2
+ 200 0016 3BB1     		cbz	r3, .L17
+ 120:USBDevice/Device/usbd_ctrl.c ****         {
+ 121:USBDevice/Device/usbd_ctrl.c ****             /* If callback for received EP0 data */
+ 122:USBDevice/Device/usbd_ctrl.c ****             USBD_IfClass_DataStage(dev->IF[(uint8_t)dev->Setup.Index]);
+ 201              		.loc 1 122 13 is_stmt 1 view .LVU52
+ 202              		.loc 1 122 44 is_stmt 0 view .LVU53
+ 203 0018 037A     		ldrb	r3, [r0, #8]	@ zero_extendqisi2
+ 204              		.loc 1 122 13 view .LVU54
+ 205 001a 00EB8303 		add	r3, r0, r3, lsl #2
+ 206 001e D86A     		ldr	r0, [r3, #44]
+ 207              	.LVL7:
+ 208              	.LBB18:
+ 209              	.LBI18:
+ 139:USBDevice/Include/private/usbd_private.h ****         USBD_IfHandleType *itf)
+ 210              		.loc 2 139 20 is_stmt 1 view .LVU55
+ 211              	.LBB19:
+ 212              		.loc 2 142 5 view .LVU56
+ 213              		.loc 2 142 5 view .LVU57
+ 214 0020 4368     		ldr	r3, [r0, #4]
+ 215 0022 5B69     		ldr	r3, [r3, #20]
+ 216 0024 03B1     		cbz	r3, .L17
+ 217              		.loc 2 142 5 view .LVU58
+ 218 0026 9847     		blx	r3
+ 219              	.LVL8:
+ 220              	.L17:
+ 221              		.loc 2 142 5 is_stmt 0 view .LVU59
+ 222              	.LBE19:
+ 223              	.LBE18:
+ 123:USBDevice/Device/usbd_ctrl.c ****         }
+ 124:USBDevice/Device/usbd_ctrl.c **** 
+ 125:USBDevice/Device/usbd_ctrl.c ****         /* Proceed to Status stage */
+ARM GAS  /tmp/ccRr9JWz.s 			page 10
+
+
+ 126:USBDevice/Device/usbd_ctrl.c ****         USBD_CtrlSendStatus(dev);
+ 224              		.loc 1 126 9 is_stmt 1 view .LVU60
+ 225              	.LBB20:
+ 226              	.LBI20:
+  46:USBDevice/Device/usbd_ctrl.c **** {
+ 227              		.loc 1 46 13 view .LVU61
+ 228              	.LBB21:
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 229              		.loc 1 48 5 view .LVU62
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 230              		.loc 1 48 25 is_stmt 0 view .LVU63
+ 231 0028 0522     		movs	r2, #5
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 232              		.loc 1 49 5 view .LVU64
+ 233 002a 0023     		movs	r3, #0
+ 234 002c 2046     		mov	r0, r4
+ 235 002e 8021     		movs	r1, #128
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 236              		.loc 1 48 25 view .LVU65
+ 237 0030 84F85720 		strb	r2, [r4, #87]
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 238              		.loc 1 49 5 is_stmt 1 view .LVU66
+ 239 0034 1A46     		mov	r2, r3
+ 240              	.LBE21:
+ 241              	.LBE20:
+ 127:USBDevice/Device/usbd_ctrl.c ****     }
+ 128:USBDevice/Device/usbd_ctrl.c **** }
+ 242              		.loc 1 128 1 is_stmt 0 view .LVU67
+ 243 0036 BDE81040 		pop	{r4, lr}
+ 244              	.LCFI5:
+ 245              		.cfi_remember_state
+ 246              		.cfi_restore 14
+ 247              		.cfi_restore 4
+ 248              		.cfi_def_cfa_offset 0
+ 249              	.LVL9:
+ 250              	.LBB23:
+ 251              	.LBB22:
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 252              		.loc 1 49 5 view .LVU68
+ 253 003a FFF7FEBF 		b	USB_vEpSend
+ 254              	.LVL10:
+ 255              	.L15:
+ 256              	.LCFI6:
+ 257              		.cfi_restore_state
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 258              		.loc 1 49 5 view .LVU69
+ 259              	.LBE22:
+ 260              	.LBE23:
+ 261              		.loc 1 128 1 view .LVU70
+ 262 003e 10BD     		pop	{r4, pc}
+ 263              		.cfi_endproc
+ 264              	.LFE161:
+ 266              		.section	.text.USBD_CtrlSendData,"ax",%progbits
+ 267              		.align	1
+ 268              		.p2align 2,,3
+ 269              		.global	USBD_CtrlSendData
+ 270              		.syntax unified
+ARM GAS  /tmp/ccRr9JWz.s 			page 11
+
+
+ 271              		.thumb
+ 272              		.thumb_func
+ 273              		.fpu fpv4-sp-d16
+ 275              	USBD_CtrlSendData:
+ 276              	.LVL11:
+ 277              	.LFB162:
+ 129:USBDevice/Device/usbd_ctrl.c **** 
+ 130:USBDevice/Device/usbd_ctrl.c **** /** @} */
+ 131:USBDevice/Device/usbd_ctrl.c **** 
+ 132:USBDevice/Device/usbd_ctrl.c **** /** @addtogroup USBD_Internal_Functions
+ 133:USBDevice/Device/usbd_ctrl.c ****  * @{ */
+ 134:USBDevice/Device/usbd_ctrl.c **** 
+ 135:USBDevice/Device/usbd_ctrl.c **** /**
+ 136:USBDevice/Device/usbd_ctrl.c ****  * @brief This function sends data through the control endpoint in response to a setup request.
+ 137:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+ 138:USBDevice/Device/usbd_ctrl.c ****  * @param data: pointer to the data to send
+ 139:USBDevice/Device/usbd_ctrl.c ****  * @param len: length of the data
+ 140:USBDevice/Device/usbd_ctrl.c ****  * @return OK if called from the right context, ERROR otherwise
+ 141:USBDevice/Device/usbd_ctrl.c ****  */
+ 142:USBDevice/Device/usbd_ctrl.c **** USBD_ReturnType USBD_CtrlSendData(USBD_HandleType *dev, void *data, uint16_t len)
+ 143:USBDevice/Device/usbd_ctrl.c **** {
+ 278              		.loc 1 143 1 is_stmt 1 view -0
+ 279              		.cfi_startproc
+ 280              		@ args = 0, pretend = 0, frame = 0
+ 281              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 282              		.loc 1 144 5 view .LVU72
+ 145:USBDevice/Device/usbd_ctrl.c **** 
+ 146:USBDevice/Device/usbd_ctrl.c ****     /* Sanity check */
+ 147:USBDevice/Device/usbd_ctrl.c ****     if (dev->EP.OUT[0].State == USB_EP_STATE_SETUP)
+ 283              		.loc 1 147 5 view .LVU73
+ 143:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 284              		.loc 1 143 1 is_stmt 0 view .LVU74
+ 285 0000 1346     		mov	r3, r2
+ 286              		.loc 1 147 8 view .LVU75
+ 287 0002 90F8B720 		ldrb	r2, [r0, #183]	@ zero_extendqisi2
+ 288              	.LVL12:
+ 289              		.loc 1 147 8 view .LVU76
+ 290 0006 032A     		cmp	r2, #3
+ 291 0008 01D0     		beq	.L39
+ 144:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 292              		.loc 1 144 21 view .LVU77
+ 293 000a 0120     		movs	r0, #1
+ 294              	.LVL13:
+ 148:USBDevice/Device/usbd_ctrl.c ****     {
+ 149:USBDevice/Device/usbd_ctrl.c ****         /* Don't send more bytes than requested */
+ 150:USBDevice/Device/usbd_ctrl.c ****         if (dev->Setup.Length < len)
+ 151:USBDevice/Device/usbd_ctrl.c ****         {
+ 152:USBDevice/Device/usbd_ctrl.c ****             len = dev->Setup.Length;
+ 153:USBDevice/Device/usbd_ctrl.c ****         }
+ 154:USBDevice/Device/usbd_ctrl.c **** 
+ 155:USBDevice/Device/usbd_ctrl.c ****         dev->EP.IN[0].State = USB_EP_STATE_DATA;
+ 156:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpSend(dev, 0x80, (const uint8_t*)data, len);
+ 157:USBDevice/Device/usbd_ctrl.c **** 
+ 158:USBDevice/Device/usbd_ctrl.c ****         retval = USBD_E_OK;
+ 159:USBDevice/Device/usbd_ctrl.c ****     }
+ 160:USBDevice/Device/usbd_ctrl.c ****     return retval;
+ARM GAS  /tmp/ccRr9JWz.s 			page 12
+
+
+ 295              		.loc 1 160 5 is_stmt 1 view .LVU78
+ 161:USBDevice/Device/usbd_ctrl.c **** }
+ 296              		.loc 1 161 1 is_stmt 0 view .LVU79
+ 297 000c 7047     		bx	lr
+ 298              	.LVL14:
+ 299              	.L39:
+ 150:USBDevice/Device/usbd_ctrl.c ****         {
+ 300              		.loc 1 150 9 is_stmt 1 view .LVU80
+ 143:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 301              		.loc 1 143 1 is_stmt 0 view .LVU81
+ 302 000e 70B5     		push	{r4, r5, r6, lr}
+ 303              	.LCFI7:
+ 304              		.cfi_def_cfa_offset 16
+ 305              		.cfi_offset 4, -16
+ 306              		.cfi_offset 5, -12
+ 307              		.cfi_offset 6, -8
+ 308              		.cfi_offset 14, -4
+ 309 0010 4689     		ldrh	r6, [r0, #10]
+ 310              	.LVL15:
+ 155:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpSend(dev, 0x80, (const uint8_t*)data, len);
+ 311              		.loc 1 155 9 is_stmt 1 view .LVU82
+ 155:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpSend(dev, 0x80, (const uint8_t*)data, len);
+ 312              		.loc 1 155 29 is_stmt 0 view .LVU83
+ 313 0012 0425     		movs	r5, #4
+ 156:USBDevice/Device/usbd_ctrl.c **** 
+ 314              		.loc 1 156 9 view .LVU84
+ 315 0014 0A46     		mov	r2, r1
+ 316 0016 8021     		movs	r1, #128
+ 317              	.LVL16:
+ 156:USBDevice/Device/usbd_ctrl.c **** 
+ 318              		.loc 1 156 9 view .LVU85
+ 319 0018 B342     		cmp	r3, r6
+ 155:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpSend(dev, 0x80, (const uint8_t*)data, len);
+ 320              		.loc 1 155 29 view .LVU86
+ 321 001a 80F85750 		strb	r5, [r0, #87]
+ 156:USBDevice/Device/usbd_ctrl.c **** 
+ 322              		.loc 1 156 9 is_stmt 1 view .LVU87
+ 323 001e 28BF     		it	cs
+ 324 0020 3346     		movcs	r3, r6
+ 325              	.LVL17:
+ 156:USBDevice/Device/usbd_ctrl.c **** 
+ 326              		.loc 1 156 9 is_stmt 0 view .LVU88
+ 327 0022 FFF7FEFF 		bl	USB_vEpSend
+ 328              	.LVL18:
+ 158:USBDevice/Device/usbd_ctrl.c ****     }
+ 329              		.loc 1 158 9 is_stmt 1 view .LVU89
+ 158:USBDevice/Device/usbd_ctrl.c ****     }
+ 330              		.loc 1 158 16 is_stmt 0 view .LVU90
+ 331 0026 0020     		movs	r0, #0
+ 332              	.LVL19:
+ 160:USBDevice/Device/usbd_ctrl.c **** }
+ 333              		.loc 1 160 5 is_stmt 1 view .LVU91
+ 334              		.loc 1 161 1 is_stmt 0 view .LVU92
+ 335 0028 70BD     		pop	{r4, r5, r6, pc}
+ 336              		.loc 1 161 1 view .LVU93
+ 337              		.cfi_endproc
+ 338              	.LFE162:
+ARM GAS  /tmp/ccRr9JWz.s 			page 13
+
+
+ 340 002a 00BF     		.section	.text.USBD_CtrlReceiveData,"ax",%progbits
+ 341              		.align	1
+ 342              		.p2align 2,,3
+ 343              		.global	USBD_CtrlReceiveData
+ 344              		.syntax unified
+ 345              		.thumb
+ 346              		.thumb_func
+ 347              		.fpu fpv4-sp-d16
+ 349              	USBD_CtrlReceiveData:
+ 350              	.LVL20:
+ 351              	.LFB163:
+ 162:USBDevice/Device/usbd_ctrl.c **** 
+ 163:USBDevice/Device/usbd_ctrl.c **** /**
+ 164:USBDevice/Device/usbd_ctrl.c ****  * @brief This function receives control data according to the setup request.
+ 165:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+ 166:USBDevice/Device/usbd_ctrl.c ****  * @param data: pointer to the target buffer to receive to
+ 167:USBDevice/Device/usbd_ctrl.c ****  * @return OK if called from the right context, ERROR otherwise
+ 168:USBDevice/Device/usbd_ctrl.c ****  */
+ 169:USBDevice/Device/usbd_ctrl.c **** USBD_ReturnType USBD_CtrlReceiveData(USBD_HandleType *dev, void *data)
+ 170:USBDevice/Device/usbd_ctrl.c **** {
+ 352              		.loc 1 170 1 is_stmt 1 view -0
+ 353              		.cfi_startproc
+ 354              		@ args = 0, pretend = 0, frame = 0
+ 355              		@ frame_needed = 0, uses_anonymous_args = 0
+ 171:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 356              		.loc 1 171 5 view .LVU95
+ 172:USBDevice/Device/usbd_ctrl.c **** 
+ 173:USBDevice/Device/usbd_ctrl.c ****     /* Sanity check */
+ 174:USBDevice/Device/usbd_ctrl.c ****     if (dev->EP.OUT[0].State == USB_EP_STATE_SETUP)
+ 357              		.loc 1 174 5 view .LVU96
+ 170:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 358              		.loc 1 170 1 is_stmt 0 view .LVU97
+ 359 0000 38B5     		push	{r3, r4, r5, lr}
+ 360              	.LCFI8:
+ 361              		.cfi_def_cfa_offset 16
+ 362              		.cfi_offset 3, -16
+ 363              		.cfi_offset 4, -12
+ 364              		.cfi_offset 5, -8
+ 365              		.cfi_offset 14, -4
+ 366              		.loc 1 174 8 view .LVU98
+ 367 0002 90F8B730 		ldrb	r3, [r0, #183]	@ zero_extendqisi2
+ 368 0006 032B     		cmp	r3, #3
+ 369 0008 01D0     		beq	.L44
+ 171:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_ERROR;
+ 370              		.loc 1 171 21 view .LVU99
+ 371 000a 0120     		movs	r0, #1
+ 372              	.LVL21:
+ 175:USBDevice/Device/usbd_ctrl.c ****     {
+ 176:USBDevice/Device/usbd_ctrl.c ****         uint16_t len = dev->Setup.Length;
+ 177:USBDevice/Device/usbd_ctrl.c **** 
+ 178:USBDevice/Device/usbd_ctrl.c ****         dev->EP.OUT[0].State = USB_EP_STATE_DATA;
+ 179:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpReceive(dev, 0x00, (uint8_t*)data, len);
+ 180:USBDevice/Device/usbd_ctrl.c **** 
+ 181:USBDevice/Device/usbd_ctrl.c ****         retval = USBD_E_OK;
+ 182:USBDevice/Device/usbd_ctrl.c ****     }
+ 183:USBDevice/Device/usbd_ctrl.c ****     return retval;
+ 373              		.loc 1 183 5 is_stmt 1 view .LVU100
+ARM GAS  /tmp/ccRr9JWz.s 			page 14
+
+
+ 184:USBDevice/Device/usbd_ctrl.c **** }
+ 374              		.loc 1 184 1 is_stmt 0 view .LVU101
+ 375 000c 38BD     		pop	{r3, r4, r5, pc}
+ 376              	.LVL22:
+ 377              	.L44:
+ 378              	.LBB24:
+ 176:USBDevice/Device/usbd_ctrl.c **** 
+ 379              		.loc 1 176 9 is_stmt 1 view .LVU102
+ 178:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpReceive(dev, 0x00, (uint8_t*)data, len);
+ 380              		.loc 1 178 9 view .LVU103
+ 178:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpReceive(dev, 0x00, (uint8_t*)data, len);
+ 381              		.loc 1 178 30 is_stmt 0 view .LVU104
+ 382 000e 0425     		movs	r5, #4
+ 179:USBDevice/Device/usbd_ctrl.c **** 
+ 383              		.loc 1 179 9 view .LVU105
+ 384 0010 0A46     		mov	r2, r1
+ 385 0012 4389     		ldrh	r3, [r0, #10]
+ 386 0014 0021     		movs	r1, #0
+ 387              	.LVL23:
+ 178:USBDevice/Device/usbd_ctrl.c ****         USBD_PD_EpReceive(dev, 0x00, (uint8_t*)data, len);
+ 388              		.loc 1 178 30 view .LVU106
+ 389 0016 80F8B750 		strb	r5, [r0, #183]
+ 179:USBDevice/Device/usbd_ctrl.c **** 
+ 390              		.loc 1 179 9 is_stmt 1 view .LVU107
+ 391 001a FFF7FEFF 		bl	USB_vEpReceive
+ 392              	.LVL24:
+ 181:USBDevice/Device/usbd_ctrl.c ****     }
+ 393              		.loc 1 181 9 view .LVU108
+ 181:USBDevice/Device/usbd_ctrl.c ****     }
+ 394              		.loc 1 181 16 is_stmt 0 view .LVU109
+ 395 001e 0020     		movs	r0, #0
+ 396              	.LVL25:
+ 181:USBDevice/Device/usbd_ctrl.c ****     }
+ 397              		.loc 1 181 16 view .LVU110
+ 398              	.LBE24:
+ 183:USBDevice/Device/usbd_ctrl.c **** }
+ 399              		.loc 1 183 5 is_stmt 1 view .LVU111
+ 400              		.loc 1 184 1 is_stmt 0 view .LVU112
+ 401 0020 38BD     		pop	{r3, r4, r5, pc}
+ 402              		.cfi_endproc
+ 403              	.LFE163:
+ 405 0022 00BF     		.section	.text.USBD_SetupCallback,"ax",%progbits
+ 406              		.align	1
+ 407              		.p2align 2,,3
+ 408              		.global	USBD_SetupCallback
+ 409              		.syntax unified
+ 410              		.thumb
+ 411              		.thumb_func
+ 412              		.fpu fpv4-sp-d16
+ 414              	USBD_SetupCallback:
+ 415              	.LVL26:
+ 416              	.LFB164:
+ 185:USBDevice/Device/usbd_ctrl.c **** 
+ 186:USBDevice/Device/usbd_ctrl.c **** /** @} */
+ 187:USBDevice/Device/usbd_ctrl.c **** 
+ 188:USBDevice/Device/usbd_ctrl.c **** /** @addtogroup USBD_Exported_Functions
+ 189:USBDevice/Device/usbd_ctrl.c ****  * @{ */
+ARM GAS  /tmp/ccRr9JWz.s 			page 15
+
+
+ 190:USBDevice/Device/usbd_ctrl.c **** 
+ 191:USBDevice/Device/usbd_ctrl.c **** /**
+ 192:USBDevice/Device/usbd_ctrl.c ****  * @brief This function routes the setup request depending on the recipient
+ 193:USBDevice/Device/usbd_ctrl.c ****  *        and performs the endpoint's status stage if no data stage is requested
+ 194:USBDevice/Device/usbd_ctrl.c ****  *        or the request wasn't accepted.
+ 195:USBDevice/Device/usbd_ctrl.c ****  * @param dev: USB Device handle reference
+ 196:USBDevice/Device/usbd_ctrl.c ****  */
+ 197:USBDevice/Device/usbd_ctrl.c **** void USBD_SetupCallback(USBD_HandleType *dev)
+ 198:USBDevice/Device/usbd_ctrl.c **** {
+ 417              		.loc 1 198 1 is_stmt 1 view -0
+ 418              		.cfi_startproc
+ 419              		@ args = 0, pretend = 0, frame = 0
+ 420              		@ frame_needed = 0, uses_anonymous_args = 0
+ 199:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_INVALID;
+ 421              		.loc 1 199 5 view .LVU114
+ 200:USBDevice/Device/usbd_ctrl.c **** 
+ 201:USBDevice/Device/usbd_ctrl.c ****     dev->EP.OUT[0].State = USB_EP_STATE_SETUP;
+ 422              		.loc 1 201 5 view .LVU115
+ 202:USBDevice/Device/usbd_ctrl.c **** 
+ 203:USBDevice/Device/usbd_ctrl.c ****     /* Route the request to the recipient */
+ 204:USBDevice/Device/usbd_ctrl.c ****     switch (dev->Setup.RequestType.Recipient)
+ 423              		.loc 1 204 35 is_stmt 0 view .LVU116
+ 424 0000 0379     		ldrb	r3, [r0, #4]	@ zero_extendqisi2
+ 201:USBDevice/Device/usbd_ctrl.c **** 
+ 425              		.loc 1 201 26 view .LVU117
+ 426 0002 0322     		movs	r2, #3
+ 427              		.loc 1 204 35 view .LVU118
+ 428 0004 03F01F03 		and	r3, r3, #31
+ 429              		.loc 1 204 5 view .LVU119
+ 430 0008 012B     		cmp	r3, #1
+ 198:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_INVALID;
+ 431              		.loc 1 198 1 view .LVU120
+ 432 000a 70B5     		push	{r4, r5, r6, lr}
+ 433              	.LCFI9:
+ 434              		.cfi_def_cfa_offset 16
+ 435              		.cfi_offset 4, -16
+ 436              		.cfi_offset 5, -12
+ 437              		.cfi_offset 6, -8
+ 438              		.cfi_offset 14, -4
+ 198:USBDevice/Device/usbd_ctrl.c ****     USBD_ReturnType retval = USBD_E_INVALID;
+ 439              		.loc 1 198 1 view .LVU121
+ 440 000c 0446     		mov	r4, r0
+ 201:USBDevice/Device/usbd_ctrl.c **** 
+ 441              		.loc 1 201 26 view .LVU122
+ 442 000e 80F8B720 		strb	r2, [r0, #183]
+ 443              		.loc 1 204 5 is_stmt 1 view .LVU123
+ 444 0012 10D0     		beq	.L46
+ 445 0014 022B     		cmp	r3, #2
+ 446 0016 24D0     		beq	.L47
+ 447 0018 FBB1     		cbz	r3, .L53
+ 448              	.LVL27:
+ 449              	.L48:
+ 205:USBDevice/Device/usbd_ctrl.c ****     {
+ 206:USBDevice/Device/usbd_ctrl.c ****         case USB_REQ_RECIPIENT_DEVICE:
+ 207:USBDevice/Device/usbd_ctrl.c ****             retval = USBD_DevRequest(dev);
+ 208:USBDevice/Device/usbd_ctrl.c ****             break;
+ 209:USBDevice/Device/usbd_ctrl.c **** 
+ARM GAS  /tmp/ccRr9JWz.s 			page 16
+
+
+ 210:USBDevice/Device/usbd_ctrl.c ****         case USB_REQ_RECIPIENT_INTERFACE:
+ 211:USBDevice/Device/usbd_ctrl.c ****             retval = USBD_IfRequest(dev);
+ 212:USBDevice/Device/usbd_ctrl.c ****             break;
+ 213:USBDevice/Device/usbd_ctrl.c **** 
+ 214:USBDevice/Device/usbd_ctrl.c ****         case USB_REQ_RECIPIENT_ENDPOINT:
+ 215:USBDevice/Device/usbd_ctrl.c ****             retval = USBD_EpRequest(dev);
+ 216:USBDevice/Device/usbd_ctrl.c ****             break;
+ 217:USBDevice/Device/usbd_ctrl.c **** 
+ 218:USBDevice/Device/usbd_ctrl.c ****         default:
+ 219:USBDevice/Device/usbd_ctrl.c ****             break;
+ 220:USBDevice/Device/usbd_ctrl.c ****     }
+ 221:USBDevice/Device/usbd_ctrl.c **** 
+ 222:USBDevice/Device/usbd_ctrl.c ****     /* If the request was rejected, send Request Error (EP0 STALL) */
+ 223:USBDevice/Device/usbd_ctrl.c ****     if (retval != USBD_E_OK)
+ 224:USBDevice/Device/usbd_ctrl.c ****     {
+ 225:USBDevice/Device/usbd_ctrl.c ****         USBD_CtrlSendError(dev);
+ 450              		.loc 1 225 9 view .LVU124
+ 451              	.LBB29:
+ 452              	.LBI29:
+  34:USBDevice/Device/usbd_ctrl.c **** {
+ 453              		.loc 1 34 13 view .LVU125
+ 454              	.LBB30:
+  36:USBDevice/Device/usbd_ctrl.c ****     dev->EP.IN [0].State = USB_EP_STATE_STALL;
+ 455              		.loc 1 36 5 view .LVU126
+  37:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSetStall(dev, 0x00);
+ 456              		.loc 1 37 26 is_stmt 0 view .LVU127
+ 457 001a 0225     		movs	r5, #2
+  36:USBDevice/Device/usbd_ctrl.c ****     dev->EP.IN [0].State = USB_EP_STATE_STALL;
+ 458              		.loc 1 36 5 view .LVU128
+ 459 001c 8021     		movs	r1, #128
+ 460 001e 2046     		mov	r0, r4
+ 461 0020 FFF7FEFF 		bl	USB_vEpSetStall
+ 462              	.LVL28:
+  37:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSetStall(dev, 0x00);
+ 463              		.loc 1 37 5 is_stmt 1 view .LVU129
+  38:USBDevice/Device/usbd_ctrl.c ****     dev->EP.OUT[0].State = USB_EP_STATE_STALL;
+ 464              		.loc 1 38 5 is_stmt 0 view .LVU130
+ 465 0024 0021     		movs	r1, #0
+ 466 0026 2046     		mov	r0, r4
+  37:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSetStall(dev, 0x00);
+ 467              		.loc 1 37 26 view .LVU131
+ 468 0028 84F85750 		strb	r5, [r4, #87]
+  38:USBDevice/Device/usbd_ctrl.c ****     dev->EP.OUT[0].State = USB_EP_STATE_STALL;
+ 469              		.loc 1 38 5 is_stmt 1 view .LVU132
+ 470 002c FFF7FEFF 		bl	USB_vEpSetStall
+ 471              	.LVL29:
+  39:USBDevice/Device/usbd_ctrl.c **** }
+ 472              		.loc 1 39 5 view .LVU133
+  39:USBDevice/Device/usbd_ctrl.c **** }
+ 473              		.loc 1 39 26 is_stmt 0 view .LVU134
+ 474 0030 84F8B750 		strb	r5, [r4, #183]
+ 475              	.LVL30:
+ 476              	.L45:
+  39:USBDevice/Device/usbd_ctrl.c **** }
+ 477              		.loc 1 39 26 view .LVU135
+ 478              	.LBE30:
+ 479              	.LBE29:
+ARM GAS  /tmp/ccRr9JWz.s 			page 17
+
+
+ 226:USBDevice/Device/usbd_ctrl.c ****     }
+ 227:USBDevice/Device/usbd_ctrl.c ****     /* If the wLength is 0, there is no Data stage,
+ 228:USBDevice/Device/usbd_ctrl.c ****      * send positive status (EP0 ZLP) */
+ 229:USBDevice/Device/usbd_ctrl.c ****     else if (dev->Setup.Length == 0)
+ 230:USBDevice/Device/usbd_ctrl.c ****     {
+ 231:USBDevice/Device/usbd_ctrl.c ****         USBD_CtrlSendStatus(dev);
+ 232:USBDevice/Device/usbd_ctrl.c ****     }
+ 233:USBDevice/Device/usbd_ctrl.c ****     else
+ 234:USBDevice/Device/usbd_ctrl.c ****     {
+ 235:USBDevice/Device/usbd_ctrl.c ****         /* Data stage starts in the requested direction */
+ 236:USBDevice/Device/usbd_ctrl.c ****     }
+ 237:USBDevice/Device/usbd_ctrl.c **** }
+ 480              		.loc 1 237 1 view .LVU136
+ 481 0034 70BD     		pop	{r4, r5, r6, pc}
+ 482              	.LVL31:
+ 483              	.L46:
+ 211:USBDevice/Device/usbd_ctrl.c ****             break;
+ 484              		.loc 1 211 13 is_stmt 1 view .LVU137
+ 211:USBDevice/Device/usbd_ctrl.c ****             break;
+ 485              		.loc 1 211 22 is_stmt 0 view .LVU138
+ 486 0036 FFF7FEFF 		bl	USBD_IfRequest
+ 487              	.LVL32:
+ 211:USBDevice/Device/usbd_ctrl.c ****             break;
+ 488              		.loc 1 211 22 view .LVU139
+ 489 003a 0346     		mov	r3, r0
+ 490              	.LVL33:
+ 212:USBDevice/Device/usbd_ctrl.c **** 
+ 491              		.loc 1 212 13 is_stmt 1 view .LVU140
+ 492              	.L49:
+ 223:USBDevice/Device/usbd_ctrl.c ****     {
+ 493              		.loc 1 223 5 view .LVU141
+ 223:USBDevice/Device/usbd_ctrl.c ****     {
+ 494              		.loc 1 223 8 is_stmt 0 view .LVU142
+ 495 003c 002B     		cmp	r3, #0
+ 496 003e ECD1     		bne	.L48
+ 229:USBDevice/Device/usbd_ctrl.c ****     {
+ 497              		.loc 1 229 10 is_stmt 1 view .LVU143
+ 229:USBDevice/Device/usbd_ctrl.c ****     {
+ 498              		.loc 1 229 13 is_stmt 0 view .LVU144
+ 499 0040 6289     		ldrh	r2, [r4, #10]
+ 500 0042 002A     		cmp	r2, #0
+ 501 0044 F6D1     		bne	.L45
+ 231:USBDevice/Device/usbd_ctrl.c ****     }
+ 502              		.loc 1 231 9 is_stmt 1 view .LVU145
+ 503              	.LVL34:
+ 504              	.LBB31:
+ 505              	.LBI31:
+  46:USBDevice/Device/usbd_ctrl.c **** {
+ 506              		.loc 1 46 13 view .LVU146
+ 507              	.LBB32:
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 508              		.loc 1 48 5 view .LVU147
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 509              		.loc 1 48 25 is_stmt 0 view .LVU148
+ 510 0046 0521     		movs	r1, #5
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 511              		.loc 1 49 5 view .LVU149
+ARM GAS  /tmp/ccRr9JWz.s 			page 18
+
+
+ 512 0048 2046     		mov	r0, r4
+ 513 004a 1A46     		mov	r2, r3
+  48:USBDevice/Device/usbd_ctrl.c ****     USBD_PD_EpSend(dev, 0x80, NULL, 0);
+ 514              		.loc 1 48 25 view .LVU150
+ 515 004c 84F85710 		strb	r1, [r4, #87]
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 516              		.loc 1 49 5 is_stmt 1 view .LVU151
+ 517 0050 8021     		movs	r1, #128
+ 518              	.LBE32:
+ 519              	.LBE31:
+ 520              		.loc 1 237 1 is_stmt 0 view .LVU152
+ 521 0052 BDE87040 		pop	{r4, r5, r6, lr}
+ 522              	.LCFI10:
+ 523              		.cfi_remember_state
+ 524              		.cfi_restore 14
+ 525              		.cfi_restore 6
+ 526              		.cfi_restore 5
+ 527              		.cfi_restore 4
+ 528              		.cfi_def_cfa_offset 0
+ 529              	.LVL35:
+ 530              	.LBB34:
+ 531              	.LBB33:
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 532              		.loc 1 49 5 view .LVU153
+ 533 0056 FFF7FEBF 		b	USB_vEpSend
+ 534              	.LVL36:
+ 535              	.L53:
+ 536              	.LCFI11:
+ 537              		.cfi_restore_state
+  49:USBDevice/Device/usbd_ctrl.c **** }
+ 538              		.loc 1 49 5 view .LVU154
+ 539              	.LBE33:
+ 540              	.LBE34:
+ 207:USBDevice/Device/usbd_ctrl.c ****             break;
+ 541              		.loc 1 207 13 is_stmt 1 view .LVU155
+ 207:USBDevice/Device/usbd_ctrl.c ****             break;
+ 542              		.loc 1 207 22 is_stmt 0 view .LVU156
+ 543 005a FFF7FEFF 		bl	USBD_DevRequest
+ 544              	.LVL37:
+ 207:USBDevice/Device/usbd_ctrl.c ****             break;
+ 545              		.loc 1 207 22 view .LVU157
+ 546 005e 0346     		mov	r3, r0
+ 547              	.LVL38:
+ 208:USBDevice/Device/usbd_ctrl.c **** 
+ 548              		.loc 1 208 13 is_stmt 1 view .LVU158
+ 549 0060 ECE7     		b	.L49
+ 550              	.LVL39:
+ 551              	.L47:
+ 215:USBDevice/Device/usbd_ctrl.c ****             break;
+ 552              		.loc 1 215 13 view .LVU159
+ 215:USBDevice/Device/usbd_ctrl.c ****             break;
+ 553              		.loc 1 215 22 is_stmt 0 view .LVU160
+ 554 0062 FFF7FEFF 		bl	USBD_EpRequest
+ 555              	.LVL40:
+ 215:USBDevice/Device/usbd_ctrl.c ****             break;
+ 556              		.loc 1 215 22 view .LVU161
+ 557 0066 0346     		mov	r3, r0
+ARM GAS  /tmp/ccRr9JWz.s 			page 19
+
+
+ 558              	.LVL41:
+ 216:USBDevice/Device/usbd_ctrl.c **** 
+ 559              		.loc 1 216 13 is_stmt 1 view .LVU162
+ 560 0068 E8E7     		b	.L49
+ 561              		.cfi_endproc
+ 562              	.LFE164:
+ 564 006a 00BF     		.text
+ 565              	.Letext0:
+ 566              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 567              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 568              		.file 5 "USBDevice/Include/usb_types.h"
+ 569              		.file 6 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 570              		.file 7 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 571              		.file 8 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 572              		.file 9 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 573              		.file 10 "USBDevice/PDs/STM32_XPD/usbd_pd_def.h"
+ 574              		.file 11 "USBDevice/Include/usbd_types.h"
+ 575              		.file 12 "/usr/arm-none-eabi/include/sys/lock.h"
+ 576              		.file 13 "/usr/arm-none-eabi/include/sys/_types.h"
+ 577              		.file 14 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+ 578              		.file 15 "/usr/arm-none-eabi/include/sys/reent.h"
+ 579              		.file 16 "STM32_XPD/STM32H7_XPD/inc/xpd_usb_otg.h"
+ARM GAS  /tmp/ccRr9JWz.s 			page 20
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbd_ctrl.c
+     /tmp/ccRr9JWz.s:18     .text.USBD_CtrlInCallback:0000000000000000 $t
+     /tmp/ccRr9JWz.s:27     .text.USBD_CtrlInCallback:0000000000000000 USBD_CtrlInCallback
+     /tmp/ccRr9JWz.s:164    .text.USBD_CtrlOutCallback:0000000000000000 $t
+     /tmp/ccRr9JWz.s:172    .text.USBD_CtrlOutCallback:0000000000000000 USBD_CtrlOutCallback
+     /tmp/ccRr9JWz.s:267    .text.USBD_CtrlSendData:0000000000000000 $t
+     /tmp/ccRr9JWz.s:275    .text.USBD_CtrlSendData:0000000000000000 USBD_CtrlSendData
+     /tmp/ccRr9JWz.s:341    .text.USBD_CtrlReceiveData:0000000000000000 $t
+     /tmp/ccRr9JWz.s:349    .text.USBD_CtrlReceiveData:0000000000000000 USBD_CtrlReceiveData
+     /tmp/ccRr9JWz.s:406    .text.USBD_SetupCallback:0000000000000000 $t
+     /tmp/ccRr9JWz.s:414    .text.USBD_SetupCallback:0000000000000000 USBD_SetupCallback
+
+UNDEFINED SYMBOLS
+USB_vEpSend
+USB_vEpReceive
+USB_vEpSetStall
+USBD_IfRequest
+USBD_DevRequest
+USBD_EpRequest

@@ -1,0 +1,471 @@
+ARM GAS  /tmp/cc5FBehX.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"xpd_rcc.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.RCC_vClockEnable,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	RCC_vClockEnable
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	RCC_vClockEnable:
+  28              	.LVL0:
+  29              	.LFB158:
+  30              		.file 1 "STM32_XPD/STM32H7_XPD/src/xpd_rcc.c"
+   1:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+   2:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   ******************************************************************************
+   3:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * @file    xpd_rcc.c
+   4:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * @author  Benedek Kupper
+   5:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * @version 0.3
+   6:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * @date    2018-01-28
+   7:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * @brief   STM32 eXtensible Peripheral Drivers RCC Peripherals Module
+   8:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   *
+   9:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   *
+  11:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * you may not use this file except in compliance with the License.
+  13:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * You may obtain a copy of the License at
+  14:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   *
+  15:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   *
+  17:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * See the License for the specific language governing permissions and
+  21:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   * limitations under the License.
+  22:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****   */
+  23:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #include <xpd_rcc.h>
+  24:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  25:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /** @addtogroup RCC
+  26:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @{ */
+  27:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  28:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /** @addtogroup RCC_Peripheral_Control
+ARM GAS  /tmp/cc5FBehX.s 			page 2
+
+
+  29:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @{ */
+  30:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  31:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** typedef union {
+  32:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     struct {
+  33:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****         uint16_t bitIndex :  5;
+  34:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****         uint16_t regIndex : 11;
+  35:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     };
+  36:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     uint16_t w;
+  37:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** } rccPosType;
+  38:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  39:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #define PPOS    ((rccPosType)ePeriphPos)
+  40:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  41:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /** @defgroup RCC_Peripheral_Control_Exported_Functions RCC Peripheral Control Exported Functions
+  42:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @{ */
+  43:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  44:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+  45:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @brief Enables the clock of the peripheral.
+  46:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @param ePeriphPos: Relative position of the peripheral control bit
+  47:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  *        in the RCC register space
+  48:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  */
+  49:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** void RCC_vClockEnable(RCC_PositionType ePeriphPos)
+  50:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** {
+  31              		.loc 1 50 1 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		@ link register save eliminated.
+  51:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+  52:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulEN = PERIPH_BB(&RCC->AHB1ENR.w);
+  53:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulEN[ePeriphPos] = 1;
+  54:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  55:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     /* Read back to ensure effect */
+  56:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     (void) pulEN[ePeriphPos];
+  57:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #else
+  58:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulENR = &RCC->AHB1ENR + PPOS.regIndex;
+  36              		.loc 1 58 5 view .LVU1
+  37              		.loc 1 58 43 is_stmt 0 view .LVU2
+  38 0000 4109     		lsrs	r1, r0, #5
+  39              		.loc 1 58 20 view .LVU3
+  40 0002 084A     		ldr	r2, .L4
+  41              	.LVL1:
+  59:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     SET_BIT(*pulENR, 1 << PPOS.bitIndex);
+  42              		.loc 1 59 5 is_stmt 1 view .LVU4
+  43 0004 0123     		movs	r3, #1
+  44 0006 00F01F00 		and	r0, r0, #31
+  45              	.LVL2:
+  50:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+  46              		.loc 1 50 1 is_stmt 0 view .LVU5
+  47 000a 10B4     		push	{r4}
+  48              	.LCFI0:
+  49              		.cfi_def_cfa_offset 4
+  50              		.cfi_offset 4, -4
+  51              		.loc 1 59 5 view .LVU6
+  52 000c 03FA00F0 		lsl	r0, r3, r0
+  53 0010 52F82140 		ldr	r4, [r2, r1, lsl #2]
+  54 0014 2043     		orrs	r0, r0, r4
+  60:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+ARM GAS  /tmp/cc5FBehX.s 			page 3
+
+
+  61:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     /* Read back to ensure effect */
+  62:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     (void) *pulENR;
+  63:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+  64:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** }
+  55              		.loc 1 64 1 view .LVU7
+  56 0016 5DF8044B 		ldr	r4, [sp], #4
+  57              	.LCFI1:
+  58              		.cfi_restore 4
+  59              		.cfi_def_cfa_offset 0
+  59:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  60              		.loc 1 59 5 view .LVU8
+  61 001a 42F82100 		str	r0, [r2, r1, lsl #2]
+  62:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+  62              		.loc 1 62 5 is_stmt 1 view .LVU9
+  63 001e 52F82130 		ldr	r3, [r2, r1, lsl #2]
+  64              		.loc 1 64 1 is_stmt 0 view .LVU10
+  65 0022 7047     		bx	lr
+  66              	.L5:
+  67              		.align	2
+  68              	.L4:
+  69 0024 D8440258 		.word	1476543704
+  70              		.cfi_endproc
+  71              	.LFE158:
+  73              		.section	.text.RCC_vClockDisable,"ax",%progbits
+  74              		.align	1
+  75              		.p2align 2,,3
+  76              		.global	RCC_vClockDisable
+  77              		.syntax unified
+  78              		.thumb
+  79              		.thumb_func
+  80              		.fpu fpv4-sp-d16
+  82              	RCC_vClockDisable:
+  83              	.LVL3:
+  84              	.LFB159:
+  65:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  66:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+  67:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @brief Disables the clock of the peripheral.
+  68:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @param ePeriphPos: Relative position of the peripheral control bit
+  69:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  *        in the RCC register space
+  70:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  */
+  71:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** void RCC_vClockDisable(RCC_PositionType ePeriphPos)
+  72:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** {
+  85              		.loc 1 72 1 is_stmt 1 view -0
+  86              		.cfi_startproc
+  87              		@ args = 0, pretend = 0, frame = 0
+  88              		@ frame_needed = 0, uses_anonymous_args = 0
+  89              		@ link register save eliminated.
+  73:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+  74:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulEN = PERIPH_BB(&RCC->AHB1ENR.w);
+  75:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulEN[ePeriphPos] = 0;
+  76:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #else
+  77:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulENR = &RCC->AHB1ENR + PPOS.regIndex;
+  90              		.loc 1 77 5 view .LVU12
+  72:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+  91              		.loc 1 72 1 is_stmt 0 view .LVU13
+  92 0000 10B4     		push	{r4}
+  93              	.LCFI2:
+ARM GAS  /tmp/cc5FBehX.s 			page 4
+
+
+  94              		.cfi_def_cfa_offset 4
+  95              		.cfi_offset 4, -4
+  96              		.loc 1 77 20 view .LVU14
+  97 0002 0849     		ldr	r1, .L8
+  98              		.loc 1 77 43 view .LVU15
+  99 0004 4409     		lsrs	r4, r0, #5
+ 100              	.LVL4:
+  78:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     CLEAR_BIT(*pulENR, 1 << PPOS.bitIndex);
+ 101              		.loc 1 78 5 is_stmt 1 view .LVU16
+ 102 0006 0122     		movs	r2, #1
+ 103 0008 00F01F00 		and	r0, r0, #31
+ 104              	.LVL5:
+ 105              		.loc 1 78 5 is_stmt 0 view .LVU17
+ 106 000c 51F82430 		ldr	r3, [r1, r4, lsl #2]
+ 107 0010 02FA00F0 		lsl	r0, r2, r0
+ 108 0014 23EA0000 		bic	r0, r3, r0
+ 109 0018 41F82400 		str	r0, [r1, r4, lsl #2]
+  79:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+  80:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** }
+ 110              		.loc 1 80 1 view .LVU18
+ 111 001c 5DF8044B 		ldr	r4, [sp], #4
+ 112              	.LCFI3:
+ 113              		.cfi_restore 4
+ 114              		.cfi_def_cfa_offset 0
+ 115              	.LVL6:
+ 116              		.loc 1 80 1 view .LVU19
+ 117 0020 7047     		bx	lr
+ 118              	.L9:
+ 119 0022 00BF     		.align	2
+ 120              	.L8:
+ 121 0024 D8440258 		.word	1476543704
+ 122              		.cfi_endproc
+ 123              	.LFE159:
+ 125              		.section	.text.RCC_vSleepClockEnable,"ax",%progbits
+ 126              		.align	1
+ 127              		.p2align 2,,3
+ 128              		.global	RCC_vSleepClockEnable
+ 129              		.syntax unified
+ 130              		.thumb
+ 131              		.thumb_func
+ 132              		.fpu fpv4-sp-d16
+ 134              	RCC_vSleepClockEnable:
+ 135              	.LVL7:
+ 136              	.LFB160:
+  81:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  82:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+  83:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @brief Enables the clock of the peripheral during sleep mode.
+  84:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @param ePeriphPos: Relative position of the peripheral control bit
+  85:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  *        in the RCC register space
+  86:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  */
+  87:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** void RCC_vSleepClockEnable(RCC_PositionType ePeriphPos)
+  88:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** {
+ 137              		.loc 1 88 1 is_stmt 1 view -0
+ 138              		.cfi_startproc
+ 139              		@ args = 0, pretend = 0, frame = 0
+ 140              		@ frame_needed = 0, uses_anonymous_args = 0
+ 141              		@ link register save eliminated.
+ARM GAS  /tmp/cc5FBehX.s 			page 5
+
+
+  89:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+  90:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulLPEN = PERIPH_BB(&RCC->AHB1LPENR.w);
+  91:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulLPEN[ePeriphPos] = 1;
+  92:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #else
+  93:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulLPENR = &RCC->AHB1LPENR + PPOS.regIndex;
+ 142              		.loc 1 93 5 view .LVU21
+ 143              		.loc 1 93 47 is_stmt 0 view .LVU22
+ 144 0000 4109     		lsrs	r1, r0, #5
+ 145              		.loc 1 93 20 view .LVU23
+ 146 0002 074A     		ldr	r2, .L12
+ 147              	.LVL8:
+  94:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     SET_BIT(*pulLPENR, 1 << PPOS.bitIndex);
+ 148              		.loc 1 94 5 is_stmt 1 view .LVU24
+ 149 0004 0123     		movs	r3, #1
+ 150 0006 00F01F00 		and	r0, r0, #31
+ 151              	.LVL9:
+  88:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+ 152              		.loc 1 88 1 is_stmt 0 view .LVU25
+ 153 000a 10B4     		push	{r4}
+ 154              	.LCFI4:
+ 155              		.cfi_def_cfa_offset 4
+ 156              		.cfi_offset 4, -4
+ 157              		.loc 1 94 5 view .LVU26
+ 158 000c 03FA00F0 		lsl	r0, r3, r0
+ 159 0010 52F82140 		ldr	r4, [r2, r1, lsl #2]
+ 160 0014 2043     		orrs	r0, r0, r4
+  95:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+  96:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** }
+ 161              		.loc 1 96 1 view .LVU27
+ 162 0016 5DF8044B 		ldr	r4, [sp], #4
+ 163              	.LCFI5:
+ 164              		.cfi_restore 4
+ 165              		.cfi_def_cfa_offset 0
+  94:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+ 166              		.loc 1 94 5 view .LVU28
+ 167 001a 42F82100 		str	r0, [r2, r1, lsl #2]
+ 168              		.loc 1 96 1 view .LVU29
+ 169 001e 7047     		bx	lr
+ 170              	.L13:
+ 171              		.align	2
+ 172              	.L12:
+ 173 0020 00450258 		.word	1476543744
+ 174              		.cfi_endproc
+ 175              	.LFE160:
+ 177              		.section	.text.RCC_vSleepClockDisable,"ax",%progbits
+ 178              		.align	1
+ 179              		.p2align 2,,3
+ 180              		.global	RCC_vSleepClockDisable
+ 181              		.syntax unified
+ 182              		.thumb
+ 183              		.thumb_func
+ 184              		.fpu fpv4-sp-d16
+ 186              	RCC_vSleepClockDisable:
+ 187              	.LVL10:
+ 188              	.LFB161:
+  97:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+  98:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+ARM GAS  /tmp/cc5FBehX.s 			page 6
+
+
+  99:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @brief Disables the clock of the peripheral during sleep mode.
+ 100:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @param ePeriphPos: Relative position of the peripheral control bit
+ 101:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  *        in the RCC register space
+ 102:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  */
+ 103:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** void RCC_vSleepClockDisable(RCC_PositionType ePeriphPos)
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** {
+ 189              		.loc 1 104 1 is_stmt 1 view -0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              		@ link register save eliminated.
+ 105:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+ 106:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulLPEN = PERIPH_BB(&RCC->AHB1LPENR.w);
+ 107:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulLPEN[ePeriphPos] = 0;
+ 108:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #else
+ 109:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulLPENR = &RCC->AHB1LPENR + PPOS.regIndex;
+ 194              		.loc 1 109 5 view .LVU31
+ 104:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+ 195              		.loc 1 104 1 is_stmt 0 view .LVU32
+ 196 0000 10B4     		push	{r4}
+ 197              	.LCFI6:
+ 198              		.cfi_def_cfa_offset 4
+ 199              		.cfi_offset 4, -4
+ 200              		.loc 1 109 20 view .LVU33
+ 201 0002 0849     		ldr	r1, .L16
+ 202              		.loc 1 109 47 view .LVU34
+ 203 0004 4409     		lsrs	r4, r0, #5
+ 204              	.LVL11:
+ 110:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     CLEAR_BIT(*pulLPENR, 1 << PPOS.bitIndex);
+ 205              		.loc 1 110 5 is_stmt 1 view .LVU35
+ 206 0006 0122     		movs	r2, #1
+ 207 0008 00F01F00 		and	r0, r0, #31
+ 208              	.LVL12:
+ 209              		.loc 1 110 5 is_stmt 0 view .LVU36
+ 210 000c 51F82430 		ldr	r3, [r1, r4, lsl #2]
+ 211 0010 02FA00F0 		lsl	r0, r2, r0
+ 212 0014 23EA0000 		bic	r0, r3, r0
+ 213 0018 41F82400 		str	r0, [r1, r4, lsl #2]
+ 111:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+ 112:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** }
+ 214              		.loc 1 112 1 view .LVU37
+ 215 001c 5DF8044B 		ldr	r4, [sp], #4
+ 216              	.LCFI7:
+ 217              		.cfi_restore 4
+ 218              		.cfi_def_cfa_offset 0
+ 219              	.LVL13:
+ 220              		.loc 1 112 1 view .LVU38
+ 221 0020 7047     		bx	lr
+ 222              	.L17:
+ 223 0022 00BF     		.align	2
+ 224              	.L16:
+ 225 0024 00450258 		.word	1476543744
+ 226              		.cfi_endproc
+ 227              	.LFE161:
+ 229              		.section	.text.RCC_vReset,"ax",%progbits
+ 230              		.align	1
+ 231              		.p2align 2,,3
+ARM GAS  /tmp/cc5FBehX.s 			page 7
+
+
+ 232              		.global	RCC_vReset
+ 233              		.syntax unified
+ 234              		.thumb
+ 235              		.thumb_func
+ 236              		.fpu fpv4-sp-d16
+ 238              	RCC_vReset:
+ 239              	.LVL14:
+ 240              	.LFB162:
+ 113:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** 
+ 114:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** /**
+ 115:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @brief Forces and releases a reset on the peripheral.
+ 116:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  * @param ePeriphPos: Relative position of the peripheral control bit
+ 117:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  *        in the RCC register space
+ 118:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****  */
+ 119:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** void RCC_vReset(RCC_PositionType ePeriphPos)
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** {
+ 241              		.loc 1 120 1 is_stmt 1 view -0
+ 242              		.cfi_startproc
+ 243              		@ args = 0, pretend = 0, frame = 0
+ 244              		@ frame_needed = 0, uses_anonymous_args = 0
+ 245              		@ link register save eliminated.
+ 121:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+ 122:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulRST = PERIPH_BB(&RCC->AHB1RSTR.w);
+ 123:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulRST[ePeriphPos] = 1;
+ 124:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     pulRST[ePeriphPos] = 0;
+ 125:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #else
+ 126:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     __IO uint32_t *pulRSTR = &RCC->AHB1RSTR;
+ 246              		.loc 1 126 5 view .LVU40
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     SET_BIT  (*pulRSTR, 1 << PPOS.bitIndex);
+ 247              		.loc 1 127 5 view .LVU41
+ 248 0000 084A     		ldr	r2, .L20
+ 249 0002 0121     		movs	r1, #1
+ 250 0004 00F01F03 		and	r3, r0, #31
+ 120:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #ifdef RCC_BB
+ 251              		.loc 1 120 1 is_stmt 0 view .LVU42
+ 252 0008 10B4     		push	{r4}
+ 253              	.LCFI8:
+ 254              		.cfi_def_cfa_offset 4
+ 255              		.cfi_offset 4, -4
+ 256              		.loc 1 127 5 view .LVU43
+ 257 000a 01FA03F3 		lsl	r3, r1, r3
+ 258 000e 1468     		ldr	r4, [r2]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     CLEAR_BIT(*pulRSTR, 1 << PPOS.bitIndex);
+ 259              		.loc 1 128 5 view .LVU44
+ 260 0010 1846     		mov	r0, r3
+ 261              	.LVL15:
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     SET_BIT  (*pulRSTR, 1 << PPOS.bitIndex);
+ 262              		.loc 1 127 5 view .LVU45
+ 263 0012 2343     		orrs	r3, r3, r4
+ 129:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** #endif
+ 130:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c **** }
+ 264              		.loc 1 130 1 view .LVU46
+ 265 0014 5DF8044B 		ldr	r4, [sp], #4
+ 266              	.LCFI9:
+ 267              		.cfi_restore 4
+ 268              		.cfi_def_cfa_offset 0
+ 127:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     CLEAR_BIT(*pulRSTR, 1 << PPOS.bitIndex);
+ARM GAS  /tmp/cc5FBehX.s 			page 8
+
+
+ 269              		.loc 1 127 5 view .LVU47
+ 270 0018 1360     		str	r3, [r2]
+ 128:STM32_XPD/STM32H7_XPD/src/xpd_rcc.c ****     CLEAR_BIT(*pulRSTR, 1 << PPOS.bitIndex);
+ 271              		.loc 1 128 5 is_stmt 1 view .LVU48
+ 272 001a 1168     		ldr	r1, [r2]
+ 273 001c 21EA0000 		bic	r0, r1, r0
+ 274 0020 1060     		str	r0, [r2]
+ 275              		.loc 1 130 1 is_stmt 0 view .LVU49
+ 276 0022 7047     		bx	lr
+ 277              	.L21:
+ 278              		.align	2
+ 279              	.L20:
+ 280 0024 80440258 		.word	1476543616
+ 281              		.cfi_endproc
+ 282              	.LFE162:
+ 284              		.text
+ 285              	.Letext0:
+ 286              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 287              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 288              		.file 4 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+ 289              		.file 5 "STM32_XPD/CMSIS/Include/core_cm7.h"
+ 290              		.file 6 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+ 291              		.file 7 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/stm32h743xx.h"
+ 292              		.file 8 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc.h"
+ 293              		.file 9 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+ 294              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+ARM GAS  /tmp/cc5FBehX.s 			page 9
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 xpd_rcc.c
+     /tmp/cc5FBehX.s:18     .text.RCC_vClockEnable:0000000000000000 $t
+     /tmp/cc5FBehX.s:27     .text.RCC_vClockEnable:0000000000000000 RCC_vClockEnable
+     /tmp/cc5FBehX.s:69     .text.RCC_vClockEnable:0000000000000024 $d
+     /tmp/cc5FBehX.s:74     .text.RCC_vClockDisable:0000000000000000 $t
+     /tmp/cc5FBehX.s:82     .text.RCC_vClockDisable:0000000000000000 RCC_vClockDisable
+     /tmp/cc5FBehX.s:121    .text.RCC_vClockDisable:0000000000000024 $d
+     /tmp/cc5FBehX.s:126    .text.RCC_vSleepClockEnable:0000000000000000 $t
+     /tmp/cc5FBehX.s:134    .text.RCC_vSleepClockEnable:0000000000000000 RCC_vSleepClockEnable
+     /tmp/cc5FBehX.s:173    .text.RCC_vSleepClockEnable:0000000000000020 $d
+     /tmp/cc5FBehX.s:178    .text.RCC_vSleepClockDisable:0000000000000000 $t
+     /tmp/cc5FBehX.s:186    .text.RCC_vSleepClockDisable:0000000000000000 RCC_vSleepClockDisable
+     /tmp/cc5FBehX.s:225    .text.RCC_vSleepClockDisable:0000000000000024 $d
+     /tmp/cc5FBehX.s:230    .text.RCC_vReset:0000000000000000 $t
+     /tmp/cc5FBehX.s:238    .text.RCC_vReset:0000000000000000 RCC_vReset
+     /tmp/cc5FBehX.s:280    .text.RCC_vReset:0000000000000024 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,535 @@
+ARM GAS  /tmp/ccHvhHbW.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"init.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.lwip_init,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	lwip_init
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	lwip_init:
+  28              	.LFB105:
+  29              		.file 1 "lwIP/src/core/init.c"
+   1:lwIP/src/core/init.c **** /**
+   2:lwIP/src/core/init.c ****  * @file
+   3:lwIP/src/core/init.c ****  * Modules initialization
+   4:lwIP/src/core/init.c ****  *
+   5:lwIP/src/core/init.c ****  */
+   6:lwIP/src/core/init.c **** 
+   7:lwIP/src/core/init.c **** /*
+   8:lwIP/src/core/init.c ****  * Copyright (c) 2001-2004 Swedish Institute of Computer Science.
+   9:lwIP/src/core/init.c ****  * All rights reserved.
+  10:lwIP/src/core/init.c ****  *
+  11:lwIP/src/core/init.c ****  * Redistribution and use in source and binary forms, with or without modification,
+  12:lwIP/src/core/init.c ****  * are permitted provided that the following conditions are met:
+  13:lwIP/src/core/init.c ****  *
+  14:lwIP/src/core/init.c ****  * 1. Redistributions of source code must retain the above copyright notice,
+  15:lwIP/src/core/init.c ****  *    this list of conditions and the following disclaimer.
+  16:lwIP/src/core/init.c ****  * 2. Redistributions in binary form must reproduce the above copyright notice,
+  17:lwIP/src/core/init.c ****  *    this list of conditions and the following disclaimer in the documentation
+  18:lwIP/src/core/init.c ****  *    and/or other materials provided with the distribution.
+  19:lwIP/src/core/init.c ****  * 3. The name of the author may not be used to endorse or promote products
+  20:lwIP/src/core/init.c ****  *    derived from this software without specific prior written permission.
+  21:lwIP/src/core/init.c ****  *
+  22:lwIP/src/core/init.c ****  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+  23:lwIP/src/core/init.c ****  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+  24:lwIP/src/core/init.c ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  25:lwIP/src/core/init.c ****  * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  26:lwIP/src/core/init.c ****  * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+  27:lwIP/src/core/init.c ****  * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  28:lwIP/src/core/init.c ****  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  29:lwIP/src/core/init.c ****  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+ARM GAS  /tmp/ccHvhHbW.s 			page 2
+
+
+  30:lwIP/src/core/init.c ****  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+  31:lwIP/src/core/init.c ****  * OF SUCH DAMAGE.
+  32:lwIP/src/core/init.c ****  *
+  33:lwIP/src/core/init.c ****  * This file is part of the lwIP TCP/IP stack.
+  34:lwIP/src/core/init.c ****  *
+  35:lwIP/src/core/init.c ****  * Author: Adam Dunkels <adam@sics.se>
+  36:lwIP/src/core/init.c ****  */
+  37:lwIP/src/core/init.c **** 
+  38:lwIP/src/core/init.c **** #include "lwip/opt.h"
+  39:lwIP/src/core/init.c **** 
+  40:lwIP/src/core/init.c **** #include "lwip/init.h"
+  41:lwIP/src/core/init.c **** #include "lwip/stats.h"
+  42:lwIP/src/core/init.c **** #include "lwip/sys.h"
+  43:lwIP/src/core/init.c **** #include "lwip/mem.h"
+  44:lwIP/src/core/init.c **** #include "lwip/memp.h"
+  45:lwIP/src/core/init.c **** #include "lwip/pbuf.h"
+  46:lwIP/src/core/init.c **** #include "lwip/netif.h"
+  47:lwIP/src/core/init.c **** #include "lwip/sockets.h"
+  48:lwIP/src/core/init.c **** #include "lwip/ip.h"
+  49:lwIP/src/core/init.c **** #include "lwip/raw.h"
+  50:lwIP/src/core/init.c **** #include "lwip/udp.h"
+  51:lwIP/src/core/init.c **** #include "lwip/priv/tcp_priv.h"
+  52:lwIP/src/core/init.c **** #include "lwip/igmp.h"
+  53:lwIP/src/core/init.c **** #include "lwip/dns.h"
+  54:lwIP/src/core/init.c **** #include "lwip/timeouts.h"
+  55:lwIP/src/core/init.c **** #include "lwip/etharp.h"
+  56:lwIP/src/core/init.c **** #include "lwip/ip6.h"
+  57:lwIP/src/core/init.c **** #include "lwip/nd6.h"
+  58:lwIP/src/core/init.c **** #include "lwip/mld6.h"
+  59:lwIP/src/core/init.c **** #include "lwip/api.h"
+  60:lwIP/src/core/init.c **** 
+  61:lwIP/src/core/init.c **** #include "netif/ppp/ppp_opts.h"
+  62:lwIP/src/core/init.c **** #include "netif/ppp/ppp_impl.h"
+  63:lwIP/src/core/init.c **** 
+  64:lwIP/src/core/init.c **** #ifndef LWIP_SKIP_PACKING_CHECK
+  65:lwIP/src/core/init.c **** 
+  66:lwIP/src/core/init.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  67:lwIP/src/core/init.c **** #  include "arch/bpstruct.h"
+  68:lwIP/src/core/init.c **** #endif
+  69:lwIP/src/core/init.c **** PACK_STRUCT_BEGIN
+  70:lwIP/src/core/init.c **** struct packed_struct_test {
+  71:lwIP/src/core/init.c ****   PACK_STRUCT_FLD_8(u8_t  dummy1);
+  72:lwIP/src/core/init.c ****   PACK_STRUCT_FIELD(u32_t dummy2);
+  73:lwIP/src/core/init.c **** } PACK_STRUCT_STRUCT;
+  74:lwIP/src/core/init.c **** PACK_STRUCT_END
+  75:lwIP/src/core/init.c **** #ifdef PACK_STRUCT_USE_INCLUDES
+  76:lwIP/src/core/init.c **** #  include "arch/epstruct.h"
+  77:lwIP/src/core/init.c **** #endif
+  78:lwIP/src/core/init.c **** #define PACKED_STRUCT_TEST_EXPECTED_SIZE 5
+  79:lwIP/src/core/init.c **** 
+  80:lwIP/src/core/init.c **** #endif
+  81:lwIP/src/core/init.c **** 
+  82:lwIP/src/core/init.c **** /* Compile-time sanity checks for configuration errors.
+  83:lwIP/src/core/init.c ****  * These can be done independently of LWIP_DEBUG, without penalty.
+  84:lwIP/src/core/init.c ****  */
+  85:lwIP/src/core/init.c **** #ifndef BYTE_ORDER
+  86:lwIP/src/core/init.c **** #error "BYTE_ORDER is not defined, you have to define it in your cc.h"
+ARM GAS  /tmp/ccHvhHbW.s 			page 3
+
+
+  87:lwIP/src/core/init.c **** #endif
+  88:lwIP/src/core/init.c **** #if (!IP_SOF_BROADCAST && IP_SOF_BROADCAST_RECV)
+  89:lwIP/src/core/init.c **** #error "If you want to use broadcast filter per pcb on recv operations, you have to define IP_SOF_B
+  90:lwIP/src/core/init.c **** #endif
+  91:lwIP/src/core/init.c **** #if (!LWIP_UDP && LWIP_UDPLITE)
+  92:lwIP/src/core/init.c **** #error "If you want to use UDP Lite, you have to define LWIP_UDP=1 in your lwipopts.h"
+  93:lwIP/src/core/init.c **** #endif
+  94:lwIP/src/core/init.c **** #if (!LWIP_UDP && LWIP_DHCP)
+  95:lwIP/src/core/init.c **** #error "If you want to use DHCP, you have to define LWIP_UDP=1 in your lwipopts.h"
+  96:lwIP/src/core/init.c **** #endif
+  97:lwIP/src/core/init.c **** #if (!LWIP_UDP && !LWIP_RAW && LWIP_MULTICAST_TX_OPTIONS)
+  98:lwIP/src/core/init.c **** #error "If you want to use LWIP_MULTICAST_TX_OPTIONS, you have to define LWIP_UDP=1 and/or LWIP_RAW
+  99:lwIP/src/core/init.c **** #endif
+ 100:lwIP/src/core/init.c **** #if (!LWIP_UDP && LWIP_DNS)
+ 101:lwIP/src/core/init.c **** #error "If you want to use DNS, you have to define LWIP_UDP=1 in your lwipopts.h"
+ 102:lwIP/src/core/init.c **** #endif
+ 103:lwIP/src/core/init.c **** #if !MEMP_MEM_MALLOC /* MEMP_NUM_* checks are disabled when not using the pool allocator */
+ 104:lwIP/src/core/init.c **** #if (LWIP_ARP && ARP_QUEUEING && (MEMP_NUM_ARP_QUEUE<=0))
+ 105:lwIP/src/core/init.c **** #error "If you want to use ARP Queueing, you have to define MEMP_NUM_ARP_QUEUE>=1 in your lwipopts.
+ 106:lwIP/src/core/init.c **** #endif
+ 107:lwIP/src/core/init.c **** #if (LWIP_RAW && (MEMP_NUM_RAW_PCB<=0))
+ 108:lwIP/src/core/init.c **** #error "If you want to use RAW, you have to define MEMP_NUM_RAW_PCB>=1 in your lwipopts.h"
+ 109:lwIP/src/core/init.c **** #endif
+ 110:lwIP/src/core/init.c **** #if (LWIP_UDP && (MEMP_NUM_UDP_PCB<=0))
+ 111:lwIP/src/core/init.c **** #error "If you want to use UDP, you have to define MEMP_NUM_UDP_PCB>=1 in your lwipopts.h"
+ 112:lwIP/src/core/init.c **** #endif
+ 113:lwIP/src/core/init.c **** #if (LWIP_TCP && (MEMP_NUM_TCP_PCB<=0))
+ 114:lwIP/src/core/init.c **** #error "If you want to use TCP, you have to define MEMP_NUM_TCP_PCB>=1 in your lwipopts.h"
+ 115:lwIP/src/core/init.c **** #endif
+ 116:lwIP/src/core/init.c **** #if (LWIP_IGMP && (MEMP_NUM_IGMP_GROUP<=1))
+ 117:lwIP/src/core/init.c **** #error "If you want to use IGMP, you have to define MEMP_NUM_IGMP_GROUP>1 in your lwipopts.h"
+ 118:lwIP/src/core/init.c **** #endif
+ 119:lwIP/src/core/init.c **** #if (LWIP_IGMP && !LWIP_MULTICAST_TX_OPTIONS)
+ 120:lwIP/src/core/init.c **** #error "If you want to use IGMP, you have to define LWIP_MULTICAST_TX_OPTIONS==1 in your lwipopts.h
+ 121:lwIP/src/core/init.c **** #endif
+ 122:lwIP/src/core/init.c **** #if (LWIP_IGMP && !LWIP_IPV4)
+ 123:lwIP/src/core/init.c **** #error "IGMP needs LWIP_IPV4 enabled in your lwipopts.h"
+ 124:lwIP/src/core/init.c **** #endif
+ 125:lwIP/src/core/init.c **** #if ((LWIP_NETCONN || LWIP_SOCKET) && (MEMP_NUM_TCPIP_MSG_API<=0))
+ 126:lwIP/src/core/init.c **** #error "If you want to use Sequential API, you have to define MEMP_NUM_TCPIP_MSG_API>=1 in your lwi
+ 127:lwIP/src/core/init.c **** #endif
+ 128:lwIP/src/core/init.c **** /* There must be sufficient timeouts, taking into account requirements of the subsystems. */
+ 129:lwIP/src/core/init.c **** #if LWIP_TIMERS && (MEMP_NUM_SYS_TIMEOUT < LWIP_NUM_SYS_TIMEOUT_INTERNAL)
+ 130:lwIP/src/core/init.c **** #error "MEMP_NUM_SYS_TIMEOUT is too low to accomodate all required timeouts"
+ 131:lwIP/src/core/init.c **** #endif
+ 132:lwIP/src/core/init.c **** #if (IP_REASSEMBLY && (MEMP_NUM_REASSDATA > IP_REASS_MAX_PBUFS))
+ 133:lwIP/src/core/init.c **** #error "MEMP_NUM_REASSDATA > IP_REASS_MAX_PBUFS doesn't make sense since each struct ip_reassdata m
+ 134:lwIP/src/core/init.c **** #endif
+ 135:lwIP/src/core/init.c **** #endif /* !MEMP_MEM_MALLOC */
+ 136:lwIP/src/core/init.c **** #if LWIP_WND_SCALE
+ 137:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_WND > 0xffffffff))
+ 138:lwIP/src/core/init.c **** #error "If you want to use TCP, TCP_WND must fit in an u32_t, so, you have to reduce it in your lwi
+ 139:lwIP/src/core/init.c **** #endif
+ 140:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_RCV_SCALE > 14))
+ 141:lwIP/src/core/init.c **** #error "The maximum valid window scale value is 14!"
+ 142:lwIP/src/core/init.c **** #endif
+ 143:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_WND > (0xFFFFU << TCP_RCV_SCALE)))
+ARM GAS  /tmp/ccHvhHbW.s 			page 4
+
+
+ 144:lwIP/src/core/init.c **** #error "TCP_WND is bigger than the configured LWIP_WND_SCALE allows!"
+ 145:lwIP/src/core/init.c **** #endif
+ 146:lwIP/src/core/init.c **** #if (LWIP_TCP && ((TCP_WND >> TCP_RCV_SCALE) == 0))
+ 147:lwIP/src/core/init.c **** #error "TCP_WND is too small for the configured LWIP_WND_SCALE (results in zero window)!"
+ 148:lwIP/src/core/init.c **** #endif
+ 149:lwIP/src/core/init.c **** #else /* LWIP_WND_SCALE */
+ 150:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_WND > 0xffff))
+ 151:lwIP/src/core/init.c **** #error "If you want to use TCP, TCP_WND must fit in an u16_t, so, you have to reduce it in your lwi
+ 152:lwIP/src/core/init.c **** #endif
+ 153:lwIP/src/core/init.c **** #endif /* LWIP_WND_SCALE */
+ 154:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_SND_QUEUELEN > 0xffff))
+ 155:lwIP/src/core/init.c **** #error "If you want to use TCP, TCP_SND_QUEUELEN must fit in an u16_t, so, you have to reduce it in
+ 156:lwIP/src/core/init.c **** #endif
+ 157:lwIP/src/core/init.c **** #if (LWIP_TCP && (TCP_SND_QUEUELEN < 2))
+ 158:lwIP/src/core/init.c **** #error "TCP_SND_QUEUELEN must be at least 2 for no-copy TCP writes to work"
+ 159:lwIP/src/core/init.c **** #endif
+ 160:lwIP/src/core/init.c **** #if (LWIP_TCP && ((TCP_MAXRTX > 12) || (TCP_SYNMAXRTX > 12)))
+ 161:lwIP/src/core/init.c **** #error "If you want to use TCP, TCP_MAXRTX and TCP_SYNMAXRTX must less or equal to 12 (due to tcp_b
+ 162:lwIP/src/core/init.c **** #endif
+ 163:lwIP/src/core/init.c **** #if (LWIP_TCP && TCP_LISTEN_BACKLOG && ((TCP_DEFAULT_LISTEN_BACKLOG < 0) || (TCP_DEFAULT_LISTEN_BAC
+ 164:lwIP/src/core/init.c **** #error "If you want to use TCP backlog, TCP_DEFAULT_LISTEN_BACKLOG must fit into an u8_t"
+ 165:lwIP/src/core/init.c **** #endif
+ 166:lwIP/src/core/init.c **** #if (LWIP_TCP && LWIP_TCP_SACK_OUT && !TCP_QUEUE_OOSEQ)
+ 167:lwIP/src/core/init.c **** #error "To use LWIP_TCP_SACK_OUT, TCP_QUEUE_OOSEQ needs to be enabled"
+ 168:lwIP/src/core/init.c **** #endif
+ 169:lwIP/src/core/init.c **** #if (LWIP_TCP && LWIP_TCP_SACK_OUT && (LWIP_TCP_MAX_SACK_NUM < 1))
+ 170:lwIP/src/core/init.c **** #error "LWIP_TCP_MAX_SACK_NUM must be greater than 0"
+ 171:lwIP/src/core/init.c **** #endif
+ 172:lwIP/src/core/init.c **** #if (LWIP_NETIF_API && (NO_SYS==1))
+ 173:lwIP/src/core/init.c **** #error "If you want to use NETIF API, you have to define NO_SYS=0 in your lwipopts.h"
+ 174:lwIP/src/core/init.c **** #endif
+ 175:lwIP/src/core/init.c **** #if ((LWIP_SOCKET || LWIP_NETCONN) && (NO_SYS==1))
+ 176:lwIP/src/core/init.c **** #error "If you want to use Sequential API, you have to define NO_SYS=0 in your lwipopts.h"
+ 177:lwIP/src/core/init.c **** #endif
+ 178:lwIP/src/core/init.c **** #if (LWIP_PPP_API && (NO_SYS==1))
+ 179:lwIP/src/core/init.c **** #error "If you want to use PPP API, you have to define NO_SYS=0 in your lwipopts.h"
+ 180:lwIP/src/core/init.c **** #endif
+ 181:lwIP/src/core/init.c **** #if (LWIP_PPP_API && (PPP_SUPPORT==0))
+ 182:lwIP/src/core/init.c **** #error "If you want to use PPP API, you have to enable PPP_SUPPORT in your lwipopts.h"
+ 183:lwIP/src/core/init.c **** #endif
+ 184:lwIP/src/core/init.c **** #if (((!LWIP_DHCP) || (!LWIP_AUTOIP)) && LWIP_DHCP_AUTOIP_COOP)
+ 185:lwIP/src/core/init.c **** #error "If you want to use DHCP/AUTOIP cooperation mode, you have to define LWIP_DHCP=1 and LWIP_AU
+ 186:lwIP/src/core/init.c **** #endif
+ 187:lwIP/src/core/init.c **** #if (((!LWIP_DHCP) || (!LWIP_ARP)) && DHCP_DOES_ARP_CHECK)
+ 188:lwIP/src/core/init.c **** #error "If you want to use DHCP ARP checking, you have to define LWIP_DHCP=1 and LWIP_ARP=1 in your
+ 189:lwIP/src/core/init.c **** #endif
+ 190:lwIP/src/core/init.c **** #if (!LWIP_ARP && LWIP_AUTOIP)
+ 191:lwIP/src/core/init.c **** #error "If you want to use AUTOIP, you have to define LWIP_ARP=1 in your lwipopts.h"
+ 192:lwIP/src/core/init.c **** #endif
+ 193:lwIP/src/core/init.c **** #if (LWIP_TCP && ((LWIP_EVENT_API && LWIP_CALLBACK_API) || (!LWIP_EVENT_API && !LWIP_CALLBACK_API))
+ 194:lwIP/src/core/init.c **** #error "One and exactly one of LWIP_EVENT_API and LWIP_CALLBACK_API has to be enabled in your lwipo
+ 195:lwIP/src/core/init.c **** #endif
+ 196:lwIP/src/core/init.c **** #if (LWIP_ALTCP && LWIP_EVENT_API)
+ 197:lwIP/src/core/init.c **** #error "The application layered tcp API does not work with LWIP_EVENT_API"
+ 198:lwIP/src/core/init.c **** #endif
+ 199:lwIP/src/core/init.c **** #if (MEM_LIBC_MALLOC && MEM_USE_POOLS)
+ 200:lwIP/src/core/init.c **** #error "MEM_LIBC_MALLOC and MEM_USE_POOLS may not both be simultaneously enabled in your lwipopts.h
+ARM GAS  /tmp/ccHvhHbW.s 			page 5
+
+
+ 201:lwIP/src/core/init.c **** #endif
+ 202:lwIP/src/core/init.c **** #if (MEM_USE_POOLS && !MEMP_USE_CUSTOM_POOLS)
+ 203:lwIP/src/core/init.c **** #error "MEM_USE_POOLS requires custom pools (MEMP_USE_CUSTOM_POOLS) to be enabled in your lwipopts.
+ 204:lwIP/src/core/init.c **** #endif
+ 205:lwIP/src/core/init.c **** #if (PBUF_POOL_BUFSIZE <= MEM_ALIGNMENT)
+ 206:lwIP/src/core/init.c **** #error "PBUF_POOL_BUFSIZE must be greater than MEM_ALIGNMENT or the offset may take the full first 
+ 207:lwIP/src/core/init.c **** #endif
+ 208:lwIP/src/core/init.c **** #if (DNS_LOCAL_HOSTLIST && !DNS_LOCAL_HOSTLIST_IS_DYNAMIC && !(defined(DNS_LOCAL_HOSTLIST_INIT)))
+ 209:lwIP/src/core/init.c **** #error "you have to define define DNS_LOCAL_HOSTLIST_INIT {{'host1', 0x123}, {'host2', 0x234}} to i
+ 210:lwIP/src/core/init.c **** #endif
+ 211:lwIP/src/core/init.c **** #if PPP_SUPPORT && !PPPOS_SUPPORT && !PPPOE_SUPPORT && !PPPOL2TP_SUPPORT
+ 212:lwIP/src/core/init.c **** #error "PPP_SUPPORT needs at least one of PPPOS_SUPPORT, PPPOE_SUPPORT or PPPOL2TP_SUPPORT turned o
+ 213:lwIP/src/core/init.c **** #endif
+ 214:lwIP/src/core/init.c **** #if PPP_SUPPORT && !PPP_IPV4_SUPPORT && !PPP_IPV6_SUPPORT
+ 215:lwIP/src/core/init.c **** #error "PPP_SUPPORT needs PPP_IPV4_SUPPORT and/or PPP_IPV6_SUPPORT turned on"
+ 216:lwIP/src/core/init.c **** #endif
+ 217:lwIP/src/core/init.c **** #if PPP_SUPPORT && PPP_IPV4_SUPPORT && !LWIP_IPV4
+ 218:lwIP/src/core/init.c **** #error "PPP_IPV4_SUPPORT needs LWIP_IPV4 turned on"
+ 219:lwIP/src/core/init.c **** #endif
+ 220:lwIP/src/core/init.c **** #if PPP_SUPPORT && PPP_IPV6_SUPPORT && !LWIP_IPV6
+ 221:lwIP/src/core/init.c **** #error "PPP_IPV6_SUPPORT needs LWIP_IPV6 turned on"
+ 222:lwIP/src/core/init.c **** #endif
+ 223:lwIP/src/core/init.c **** #if !LWIP_ETHERNET && (LWIP_ARP || PPPOE_SUPPORT)
+ 224:lwIP/src/core/init.c **** #error "LWIP_ETHERNET needs to be turned on for LWIP_ARP or PPPOE_SUPPORT"
+ 225:lwIP/src/core/init.c **** #endif
+ 226:lwIP/src/core/init.c **** #if LWIP_TCPIP_CORE_LOCKING_INPUT && !LWIP_TCPIP_CORE_LOCKING
+ 227:lwIP/src/core/init.c **** #error "When using LWIP_TCPIP_CORE_LOCKING_INPUT, LWIP_TCPIP_CORE_LOCKING must be enabled, too"
+ 228:lwIP/src/core/init.c **** #endif
+ 229:lwIP/src/core/init.c **** #if LWIP_TCP && LWIP_NETIF_TX_SINGLE_PBUF && !TCP_OVERSIZE
+ 230:lwIP/src/core/init.c **** #error "LWIP_NETIF_TX_SINGLE_PBUF needs TCP_OVERSIZE enabled to create single-pbuf TCP packets"
+ 231:lwIP/src/core/init.c **** #endif
+ 232:lwIP/src/core/init.c **** #if LWIP_NETCONN && LWIP_TCP
+ 233:lwIP/src/core/init.c **** #if NETCONN_COPY != TCP_WRITE_FLAG_COPY
+ 234:lwIP/src/core/init.c **** #error "NETCONN_COPY != TCP_WRITE_FLAG_COPY"
+ 235:lwIP/src/core/init.c **** #endif
+ 236:lwIP/src/core/init.c **** #if NETCONN_MORE != TCP_WRITE_FLAG_MORE
+ 237:lwIP/src/core/init.c **** #error "NETCONN_MORE != TCP_WRITE_FLAG_MORE"
+ 238:lwIP/src/core/init.c **** #endif
+ 239:lwIP/src/core/init.c **** #endif /* LWIP_NETCONN && LWIP_TCP */
+ 240:lwIP/src/core/init.c **** #if LWIP_SOCKET
+ 241:lwIP/src/core/init.c **** #endif /* LWIP_SOCKET */
+ 242:lwIP/src/core/init.c **** 
+ 243:lwIP/src/core/init.c **** 
+ 244:lwIP/src/core/init.c **** /* Compile-time checks for deprecated options.
+ 245:lwIP/src/core/init.c ****  */
+ 246:lwIP/src/core/init.c **** #ifdef MEMP_NUM_TCPIP_MSG
+ 247:lwIP/src/core/init.c **** #error "MEMP_NUM_TCPIP_MSG option is deprecated. Remove it from your lwipopts.h."
+ 248:lwIP/src/core/init.c **** #endif
+ 249:lwIP/src/core/init.c **** #ifdef TCP_REXMIT_DEBUG
+ 250:lwIP/src/core/init.c **** #error "TCP_REXMIT_DEBUG option is deprecated. Remove it from your lwipopts.h."
+ 251:lwIP/src/core/init.c **** #endif
+ 252:lwIP/src/core/init.c **** #ifdef RAW_STATS
+ 253:lwIP/src/core/init.c **** #error "RAW_STATS option is deprecated. Remove it from your lwipopts.h."
+ 254:lwIP/src/core/init.c **** #endif
+ 255:lwIP/src/core/init.c **** #ifdef ETHARP_QUEUE_FIRST
+ 256:lwIP/src/core/init.c **** #error "ETHARP_QUEUE_FIRST option is deprecated. Remove it from your lwipopts.h."
+ 257:lwIP/src/core/init.c **** #endif
+ARM GAS  /tmp/ccHvhHbW.s 			page 6
+
+
+ 258:lwIP/src/core/init.c **** #ifdef ETHARP_ALWAYS_INSERT
+ 259:lwIP/src/core/init.c **** #error "ETHARP_ALWAYS_INSERT option is deprecated. Remove it from your lwipopts.h."
+ 260:lwIP/src/core/init.c **** #endif
+ 261:lwIP/src/core/init.c **** #if !NO_SYS && LWIP_TCPIP_CORE_LOCKING && LWIP_COMPAT_MUTEX && !defined(LWIP_COMPAT_MUTEX_ALLOWED)
+ 262:lwIP/src/core/init.c **** #error "LWIP_COMPAT_MUTEX cannot prevent priority inversion. It is recommended to implement priorit
+ 263:lwIP/src/core/init.c **** #endif
+ 264:lwIP/src/core/init.c **** 
+ 265:lwIP/src/core/init.c **** #ifndef LWIP_DISABLE_TCP_SANITY_CHECKS
+ 266:lwIP/src/core/init.c **** #define LWIP_DISABLE_TCP_SANITY_CHECKS  0
+ 267:lwIP/src/core/init.c **** #endif
+ 268:lwIP/src/core/init.c **** #ifndef LWIP_DISABLE_MEMP_SANITY_CHECKS
+ 269:lwIP/src/core/init.c **** #define LWIP_DISABLE_MEMP_SANITY_CHECKS 0
+ 270:lwIP/src/core/init.c **** #endif
+ 271:lwIP/src/core/init.c **** 
+ 272:lwIP/src/core/init.c **** /* MEMP sanity checks */
+ 273:lwIP/src/core/init.c **** #if MEMP_MEM_MALLOC
+ 274:lwIP/src/core/init.c **** #if !LWIP_DISABLE_MEMP_SANITY_CHECKS
+ 275:lwIP/src/core/init.c **** #if LWIP_NETCONN || LWIP_SOCKET
+ 276:lwIP/src/core/init.c **** #if !MEMP_NUM_NETCONN && LWIP_SOCKET
+ 277:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: MEMP_NUM_NETCONN cannot be 0 when using sockets!"
+ 278:lwIP/src/core/init.c **** #endif
+ 279:lwIP/src/core/init.c **** #else /* MEMP_MEM_MALLOC */
+ 280:lwIP/src/core/init.c **** #if MEMP_NUM_NETCONN > (MEMP_NUM_TCP_PCB+MEMP_NUM_TCP_PCB_LISTEN+MEMP_NUM_UDP_PCB+MEMP_NUM_RAW_PCB)
+ 281:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: MEMP_NUM_NETCONN should be less than the sum of MEMP_NUM_{TCP,R
+ 282:lwIP/src/core/init.c **** #endif
+ 283:lwIP/src/core/init.c **** #endif /* LWIP_NETCONN || LWIP_SOCKET */
+ 284:lwIP/src/core/init.c **** #endif /* !LWIP_DISABLE_MEMP_SANITY_CHECKS */
+ 285:lwIP/src/core/init.c **** #if MEM_USE_POOLS
+ 286:lwIP/src/core/init.c **** #error "MEMP_MEM_MALLOC and MEM_USE_POOLS cannot be enabled at the same time"
+ 287:lwIP/src/core/init.c **** #endif
+ 288:lwIP/src/core/init.c **** #ifdef LWIP_HOOK_MEMP_AVAILABLE
+ 289:lwIP/src/core/init.c **** #error "LWIP_HOOK_MEMP_AVAILABLE doesn't make sense with MEMP_MEM_MALLOC"
+ 290:lwIP/src/core/init.c **** #endif
+ 291:lwIP/src/core/init.c **** #endif /* MEMP_MEM_MALLOC */
+ 292:lwIP/src/core/init.c **** 
+ 293:lwIP/src/core/init.c **** /* TCP sanity checks */
+ 294:lwIP/src/core/init.c **** #if !LWIP_DISABLE_TCP_SANITY_CHECKS
+ 295:lwIP/src/core/init.c **** #if LWIP_TCP
+ 296:lwIP/src/core/init.c **** #if !MEMP_MEM_MALLOC && (MEMP_NUM_TCP_SEG < TCP_SND_QUEUELEN)
+ 297:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: MEMP_NUM_TCP_SEG should be at least as big as TCP_SND_QUEUELEN.
+ 298:lwIP/src/core/init.c **** #endif
+ 299:lwIP/src/core/init.c **** #if TCP_SND_BUF < (2 * TCP_MSS)
+ 300:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_SND_BUF must be at least as much as (2 * TCP_MSS) for thing
+ 301:lwIP/src/core/init.c **** #endif
+ 302:lwIP/src/core/init.c **** #if TCP_SND_QUEUELEN < (2 * (TCP_SND_BUF / TCP_MSS))
+ 303:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_SND_QUEUELEN must be at least as much as (2 * TCP_SND_BUF/T
+ 304:lwIP/src/core/init.c **** #endif
+ 305:lwIP/src/core/init.c **** #if TCP_SNDLOWAT >= TCP_SND_BUF
+ 306:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_SNDLOWAT must be less than TCP_SND_BUF. If you know what yo
+ 307:lwIP/src/core/init.c **** #endif
+ 308:lwIP/src/core/init.c **** #if TCP_SNDLOWAT >= (0xFFFF - (4 * TCP_MSS))
+ 309:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_SNDLOWAT must at least be 4*MSS below u16_t overflow!"
+ 310:lwIP/src/core/init.c **** #endif
+ 311:lwIP/src/core/init.c **** #if TCP_SNDQUEUELOWAT >= TCP_SND_QUEUELEN
+ 312:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_SNDQUEUELOWAT must be less than TCP_SND_QUEUELEN. If you kn
+ 313:lwIP/src/core/init.c **** #endif
+ 314:lwIP/src/core/init.c **** #if !MEMP_MEM_MALLOC && PBUF_POOL_SIZE && (PBUF_POOL_BUFSIZE <= (PBUF_LINK_ENCAPSULATION_HLEN + PBU
+ARM GAS  /tmp/ccHvhHbW.s 			page 7
+
+
+ 315:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: PBUF_POOL_BUFSIZE does not provide enough space for protocol he
+ 316:lwIP/src/core/init.c **** #endif
+ 317:lwIP/src/core/init.c **** #if !MEMP_MEM_MALLOC && PBUF_POOL_SIZE && (TCP_WND > (PBUF_POOL_SIZE * (PBUF_POOL_BUFSIZE - (PBUF_L
+ 318:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_WND is larger than space provided by PBUF_POOL_SIZE * (PBUF
+ 319:lwIP/src/core/init.c **** #endif
+ 320:lwIP/src/core/init.c **** #if TCP_WND < TCP_MSS
+ 321:lwIP/src/core/init.c **** #error "lwip_sanity_check: WARNING: TCP_WND is smaller than MSS. If you know what you are doing, de
+ 322:lwIP/src/core/init.c **** #endif
+ 323:lwIP/src/core/init.c **** #endif /* LWIP_TCP */
+ 324:lwIP/src/core/init.c **** #endif /* !LWIP_DISABLE_TCP_SANITY_CHECKS */
+ 325:lwIP/src/core/init.c **** 
+ 326:lwIP/src/core/init.c **** /**
+ 327:lwIP/src/core/init.c ****  * @ingroup lwip_nosys
+ 328:lwIP/src/core/init.c ****  * Initialize all modules.
+ 329:lwIP/src/core/init.c ****  * Use this in NO_SYS mode. Use tcpip_init() otherwise.
+ 330:lwIP/src/core/init.c ****  */
+ 331:lwIP/src/core/init.c **** void
+ 332:lwIP/src/core/init.c **** lwip_init(void)
+ 333:lwIP/src/core/init.c **** {
+  30              		.loc 1 333 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+ 334:lwIP/src/core/init.c **** #ifndef LWIP_SKIP_CONST_CHECK
+ 335:lwIP/src/core/init.c ****   int a = 0;
+  34              		.loc 1 335 3 view .LVU1
+  35              	.LVL0:
+ 336:lwIP/src/core/init.c ****   LWIP_UNUSED_ARG(a);
+  36              		.loc 1 336 3 view .LVU2
+ 337:lwIP/src/core/init.c ****   LWIP_ASSERT("LWIP_CONST_CAST not implemented correctly. Check your lwIP port.", LWIP_CONST_CAST(v
+  37              		.loc 1 337 3 view .LVU3
+  38              		.loc 1 337 3 view .LVU4
+  39              		.loc 1 337 3 view .LVU5
+ 338:lwIP/src/core/init.c **** #endif
+ 339:lwIP/src/core/init.c **** #ifndef LWIP_SKIP_PACKING_CHECK
+ 340:lwIP/src/core/init.c ****   LWIP_ASSERT("Struct packing not implemented correctly. Check your lwIP port.", sizeof(struct pack
+  40              		.loc 1 340 3 view .LVU6
+  41              		.loc 1 340 3 view .LVU7
+  42              		.loc 1 340 3 view .LVU8
+ 341:lwIP/src/core/init.c **** #endif
+ 342:lwIP/src/core/init.c **** 
+ 343:lwIP/src/core/init.c ****   /* Modules initialization */
+ 344:lwIP/src/core/init.c ****   stats_init();
+  43              		.loc 1 344 15 view .LVU9
+ 345:lwIP/src/core/init.c **** #if !NO_SYS
+ 346:lwIP/src/core/init.c ****   sys_init();
+ 347:lwIP/src/core/init.c **** #endif /* !NO_SYS */
+ 348:lwIP/src/core/init.c ****   mem_init();
+  44              		.loc 1 348 3 view .LVU10
+ 333:lwIP/src/core/init.c **** #ifndef LWIP_SKIP_CONST_CHECK
+  45              		.loc 1 333 1 is_stmt 0 view .LVU11
+  46 0000 08B5     		push	{r3, lr}
+  47              	.LCFI0:
+  48              		.cfi_def_cfa_offset 8
+  49              		.cfi_offset 3, -8
+  50              		.cfi_offset 14, -4
+  51              		.loc 1 348 3 view .LVU12
+ARM GAS  /tmp/ccHvhHbW.s 			page 8
+
+
+  52 0002 FFF7FEFF 		bl	mem_init
+  53              	.LVL1:
+ 349:lwIP/src/core/init.c ****   memp_init();
+  54              		.loc 1 349 3 is_stmt 1 view .LVU13
+  55 0006 FFF7FEFF 		bl	memp_init
+  56              	.LVL2:
+ 350:lwIP/src/core/init.c ****   pbuf_init();
+  57              		.loc 1 350 14 view .LVU14
+ 351:lwIP/src/core/init.c ****   netif_init();
+  58              		.loc 1 351 3 view .LVU15
+  59 000a FFF7FEFF 		bl	netif_init
+  60              	.LVL3:
+ 352:lwIP/src/core/init.c **** #if LWIP_IPV4
+ 353:lwIP/src/core/init.c ****   ip_init();
+  61              		.loc 1 353 12 view .LVU16
+ 354:lwIP/src/core/init.c **** #if LWIP_ARP
+ 355:lwIP/src/core/init.c ****   etharp_init();
+  62              		.loc 1 355 16 view .LVU17
+ 356:lwIP/src/core/init.c **** #endif /* LWIP_ARP */
+ 357:lwIP/src/core/init.c **** #endif /* LWIP_IPV4 */
+ 358:lwIP/src/core/init.c **** #if LWIP_RAW
+ 359:lwIP/src/core/init.c ****   raw_init();
+ 360:lwIP/src/core/init.c **** #endif /* LWIP_RAW */
+ 361:lwIP/src/core/init.c **** #if LWIP_UDP
+ 362:lwIP/src/core/init.c ****   udp_init();
+  63              		.loc 1 362 3 view .LVU18
+  64 000e FFF7FEFF 		bl	udp_init
+  65              	.LVL4:
+ 363:lwIP/src/core/init.c **** #endif /* LWIP_UDP */
+ 364:lwIP/src/core/init.c **** #if LWIP_TCP
+ 365:lwIP/src/core/init.c ****   tcp_init();
+  66              		.loc 1 365 3 view .LVU19
+  67 0012 FFF7FEFF 		bl	tcp_init
+  68              	.LVL5:
+ 366:lwIP/src/core/init.c **** #endif /* LWIP_TCP */
+ 367:lwIP/src/core/init.c **** #if LWIP_IGMP
+ 368:lwIP/src/core/init.c ****   igmp_init();
+ 369:lwIP/src/core/init.c **** #endif /* LWIP_IGMP */
+ 370:lwIP/src/core/init.c **** #if LWIP_DNS
+ 371:lwIP/src/core/init.c ****   dns_init();
+  69              		.loc 1 371 3 view .LVU20
+  70 0016 FFF7FEFF 		bl	dns_init
+  71              	.LVL6:
+ 372:lwIP/src/core/init.c **** #endif /* LWIP_DNS */
+ 373:lwIP/src/core/init.c **** #if PPP_SUPPORT
+ 374:lwIP/src/core/init.c ****   ppp_init();
+ 375:lwIP/src/core/init.c **** #endif
+ 376:lwIP/src/core/init.c **** 
+ 377:lwIP/src/core/init.c **** #if LWIP_TIMERS
+ 378:lwIP/src/core/init.c ****   sys_timeouts_init();
+  72              		.loc 1 378 3 view .LVU21
+ 379:lwIP/src/core/init.c **** #endif /* LWIP_TIMERS */
+ 380:lwIP/src/core/init.c **** }
+  73              		.loc 1 380 1 is_stmt 0 view .LVU22
+  74 001a BDE80840 		pop	{r3, lr}
+  75              	.LCFI1:
+  76              		.cfi_restore 14
+ARM GAS  /tmp/ccHvhHbW.s 			page 9
+
+
+  77              		.cfi_restore 3
+  78              		.cfi_def_cfa_offset 0
+ 378:lwIP/src/core/init.c **** #endif /* LWIP_TIMERS */
+  79              		.loc 1 378 3 view .LVU23
+  80 001e FFF7FEBF 		b	sys_timeouts_init
+  81              	.LVL7:
+  82              		.cfi_endproc
+  83              	.LFE105:
+  85 0022 00BF     		.text
+  86              	.Letext0:
+  87              		.file 2 "/usr/lib/gcc/arm-none-eabi/9.2.0/include/stddef.h"
+  88              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+  89              		.file 4 "/usr/arm-none-eabi/include/sys/lock.h"
+  90              		.file 5 "/usr/arm-none-eabi/include/sys/_types.h"
+  91              		.file 6 "/usr/arm-none-eabi/include/sys/reent.h"
+  92              		.file 7 "/usr/arm-none-eabi/include/stdlib.h"
+  93              		.file 8 "/usr/arm-none-eabi/include/sys/_stdint.h"
+  94              		.file 9 "lwIP/src/include/lwip/arch.h"
+  95              		.file 10 "/usr/arm-none-eabi/include/ctype.h"
+  96              		.file 11 "lwIP/src/include/lwip/priv/memp_priv.h"
+  97              		.file 12 "lwIP/src/include/lwip/memp.h"
+  98              		.file 13 "lwIP/src/include/lwip/err.h"
+  99              		.file 14 "lwIP/src/include/lwip/pbuf.h"
+ 100              		.file 15 "lwIP/src/include/lwip/ip4_addr.h"
+ 101              		.file 16 "lwIP/src/include/lwip/ip_addr.h"
+ 102              		.file 17 "lwIP/src/include/lwip/netif.h"
+ 103              		.file 18 "lwIP/src/include/lwip/prot/ip4.h"
+ 104              		.file 19 "lwIP/src/include/lwip/ip.h"
+ 105              		.file 20 "lwIP/src/include/lwip/udp.h"
+ 106              		.file 21 "lwIP/src/include/lwip/tcpbase.h"
+ 107              		.file 22 "lwIP/src/include/lwip/tcp.h"
+ 108              		.file 23 "lwIP/src/include/lwip/priv/tcp_priv.h"
+ 109              		.file 24 "lwIP/src/include/lwip/prot/tcp.h"
+ 110              		.file 25 "lwIP/src/include/lwip/dns.h"
+ 111              		.file 26 "lwIP/src/include/lwip/timeouts.h"
+ 112              		.file 27 "lwIP/src/include/lwip/mem.h"
+ARM GAS  /tmp/ccHvhHbW.s 			page 10
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 init.c
+     /tmp/ccHvhHbW.s:18     .text.lwip_init:0000000000000000 $t
+     /tmp/ccHvhHbW.s:27     .text.lwip_init:0000000000000000 lwip_init
+
+UNDEFINED SYMBOLS
+mem_init
+memp_init
+netif_init
+udp_init
+tcp_init
+dns_init
+sys_timeouts_init

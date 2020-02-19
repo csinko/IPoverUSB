@@ -23,8 +23,8 @@ include $(LWIPDIR)/Filelists.mk
 
 ##++----  Target configuration  ----++##
 
-CORE = m4
-SERIES = STM32F4
+CORE = m7
+SERIES = STM32H7
 BSP = BSP_$(SERIES)xx
 
 C_DEFS = 

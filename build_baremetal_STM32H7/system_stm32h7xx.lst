@@ -1,0 +1,174 @@
+ARM GAS  /tmp/cckbUy5M.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 27, 1
+   3              		.eabi_attribute 28, 1
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 2
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"system_stm32h7xx.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.SystemInit,"ax",%progbits
+  18              		.align	1
+  19              		.p2align 2,,3
+  20              		.global	SystemInit
+  21              		.arch armv7e-m
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  25              		.fpu fpv4-sp-d16
+  27              	SystemInit:
+  28              	.LFB164:
+  29              		.file 1 "BSP_STM32H7xx/system_stm32h7xx.c"
+   1:BSP_STM32H7xx/system_stm32h7xx.c **** /**
+   2:BSP_STM32H7xx/system_stm32h7xx.c ****   ******************************************************************************
+   3:BSP_STM32H7xx/system_stm32h7xx.c ****   * @file    system_stm32f4xx.c
+   4:BSP_STM32H7xx/system_stm32h7xx.c ****   * @author  Benedek Kupper
+   5:BSP_STM32H7xx/system_stm32h7xx.c ****   * @version 0.3
+   6:BSP_STM32H7xx/system_stm32h7xx.c ****   * @date    2018-09-28
+   7:BSP_STM32H7xx/system_stm32h7xx.c ****   * @brief   STM32 eXtensible Peripheral Drivers template
+   8:BSP_STM32H7xx/system_stm32h7xx.c ****   *
+   9:BSP_STM32H7xx/system_stm32h7xx.c ****   * Copyright (c) 2018 Benedek Kupper
+  10:BSP_STM32H7xx/system_stm32h7xx.c ****   *
+  11:BSP_STM32H7xx/system_stm32h7xx.c ****   * Licensed under the Apache License, Version 2.0 (the "License");
+  12:BSP_STM32H7xx/system_stm32h7xx.c ****   * you may not use this file except in compliance with the License.
+  13:BSP_STM32H7xx/system_stm32h7xx.c ****   * You may obtain a copy of the License at
+  14:BSP_STM32H7xx/system_stm32h7xx.c ****   *
+  15:BSP_STM32H7xx/system_stm32h7xx.c ****   *     http://www.apache.org/licenses/LICENSE-2.0
+  16:BSP_STM32H7xx/system_stm32h7xx.c ****   *
+  17:BSP_STM32H7xx/system_stm32h7xx.c ****   * Unless required by applicable law or agreed to in writing, software
+  18:BSP_STM32H7xx/system_stm32h7xx.c ****   * distributed under the License is distributed on an "AS IS" BASIS,
+  19:BSP_STM32H7xx/system_stm32h7xx.c ****   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  20:BSP_STM32H7xx/system_stm32h7xx.c ****   * See the License for the specific language governing permissions and
+  21:BSP_STM32H7xx/system_stm32h7xx.c ****   * limitations under the License.
+  22:BSP_STM32H7xx/system_stm32h7xx.c ****   */
+  23:BSP_STM32H7xx/system_stm32h7xx.c **** #include <xpd_flash.h>
+  24:BSP_STM32H7xx/system_stm32h7xx.c **** #include <xpd_rcc.h>
+  25:BSP_STM32H7xx/system_stm32h7xx.c **** #include <xpd_syscfg.h>
+  26:BSP_STM32H7xx/system_stm32h7xx.c **** #include <xpd_utils.h>
+  27:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  28:BSP_STM32H7xx/system_stm32h7xx.c **** /** @brief Global variable used to store the actual system clock frequency [Hz] */
+  29:BSP_STM32H7xx/system_stm32h7xx.c **** uint32_t SystemCoreClock;
+ARM GAS  /tmp/cckbUy5M.s 			page 2
+
+
+  30:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  31:BSP_STM32H7xx/system_stm32h7xx.c **** /** @brief Interrupt vector table in startup_<device>.s */
+  32:BSP_STM32H7xx/system_stm32h7xx.c **** extern const uint32_t g_pfnVectors[];
+  33:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  34:BSP_STM32H7xx/system_stm32h7xx.c **** /**
+  35:BSP_STM32H7xx/system_stm32h7xx.c ****  * @brief  Setup the microcontroller system.
+  36:BSP_STM32H7xx/system_stm32h7xx.c ****  *         Initialize the default HSI clock source,
+  37:BSP_STM32H7xx/system_stm32h7xx.c ****  *         vector table location
+  38:BSP_STM32H7xx/system_stm32h7xx.c ****  *         and the PLL configuration is reset.
+  39:BSP_STM32H7xx/system_stm32h7xx.c ****  */
+  40:BSP_STM32H7xx/system_stm32h7xx.c **** void SystemInit(void)
+  41:BSP_STM32H7xx/system_stm32h7xx.c **** {
+  30              		.loc 1 41 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  42:BSP_STM32H7xx/system_stm32h7xx.c ****     /* Reset all peripherals */
+  43:BSP_STM32H7xx/system_stm32h7xx.c ****     XPD_vDeinit();
+  34              		.loc 1 43 5 view .LVU1
+  41:BSP_STM32H7xx/system_stm32h7xx.c ****     /* Reset all peripherals */
+  35              		.loc 1 41 1 is_stmt 0 view .LVU2
+  36 0000 10B5     		push	{r4, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 4, -8
+  40              		.cfi_offset 14, -4
+  44:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  45:BSP_STM32H7xx/system_stm32h7xx.c ****     /* Reset the RCC clock configuration to the default reset state
+  46:BSP_STM32H7xx/system_stm32h7xx.c ****      * Sets SystemCoreClock value */
+  47:BSP_STM32H7xx/system_stm32h7xx.c ****     RCC_vDeinit();
+  48:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  49:BSP_STM32H7xx/system_stm32h7xx.c **** #if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
+  50:BSP_STM32H7xx/system_stm32h7xx.c ****     /* FPU settings: if used, set CP10 and CP11 Full Access */
+  51:BSP_STM32H7xx/system_stm32h7xx.c ****     SCB->CPACR |= ((3UL << (10*2))|(3UL << (11*2)));  /* set CP10 and CP11 Full Access */
+  41              		.loc 1 51 16 view .LVU3
+  42 0002 084C     		ldr	r4, .L4
+  43:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  43              		.loc 1 43 5 view .LVU4
+  44 0004 FFF7FEFF 		bl	XPD_vDeinit
+  45              	.LVL0:
+  47:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  46              		.loc 1 47 5 is_stmt 1 view .LVU5
+  47 0008 FFF7FEFF 		bl	RCC_vDeinit
+  48              	.LVL1:
+  49              		.loc 1 51 5 view .LVU6
+  50              		.loc 1 51 16 is_stmt 0 view .LVU7
+  51 000c D4F88830 		ldr	r3, [r4, #136]
+  52 0010 43F47003 		orr	r3, r3, #15728640
+  53 0014 C4F88830 		str	r3, [r4, #136]
+  52:BSP_STM32H7xx/system_stm32h7xx.c **** #endif
+  53:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  54:BSP_STM32H7xx/system_stm32h7xx.c ****     /* initialize XPD services */
+  55:BSP_STM32H7xx/system_stm32h7xx.c ****     XPD_vInit();
+  54              		.loc 1 55 5 is_stmt 1 view .LVU8
+  55 0018 FFF7FEFF 		bl	XPD_vInit
+  56              	.LVL2:
+  56:BSP_STM32H7xx/system_stm32h7xx.c **** 
+ARM GAS  /tmp/cckbUy5M.s 			page 3
+
+
+  57:BSP_STM32H7xx/system_stm32h7xx.c ****     /* TODO Redirect to interrupt vector table position */
+  58:BSP_STM32H7xx/system_stm32h7xx.c ****     SCB->VTOR = (uint32_t)g_pfnVectors;
+  57              		.loc 1 58 5 view .LVU9
+  58              		.loc 1 58 17 is_stmt 0 view .LVU10
+  59 001c 024B     		ldr	r3, .L4+4
+  60              		.loc 1 58 15 view .LVU11
+  61 001e A360     		str	r3, [r4, #8]
+  59:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  60:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  61:BSP_STM32H7xx/system_stm32h7xx.c ****     /* TODO Configure system memory options */
+  62:BSP_STM32H7xx/system_stm32h7xx.c ****     //FLASH_vPrefetchBuffer(ENABLE);
+  63:BSP_STM32H7xx/system_stm32h7xx.c **** 
+  64:BSP_STM32H7xx/system_stm32h7xx.c ****     //FLASH_vInstCache(ENABLE);
+  65:BSP_STM32H7xx/system_stm32h7xx.c ****     //FLASH_vDataCache(ENABLE);
+  66:BSP_STM32H7xx/system_stm32h7xx.c **** }
+  62              		.loc 1 66 1 view .LVU12
+  63 0020 10BD     		pop	{r4, pc}
+  64              	.L5:
+  65 0022 00BF     		.align	2
+  66              	.L4:
+  67 0024 00ED00E0 		.word	-536810240
+  68 0028 00000000 		.word	g_pfnVectors
+  69              		.cfi_endproc
+  70              	.LFE164:
+  72              		.comm	SystemCoreClock,4,4
+  73              		.text
+  74              	.Letext0:
+  75              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+  76              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+  77              		.file 4 "STM32_XPD/STM32H7_XPD/inc/xpd_common.h"
+  78              		.file 5 "STM32_XPD/CMSIS/Include/core_cm7.h"
+  79              		.file 6 "STM32_XPD/CMSIS/Device/ST/STM32H7xx/Include/system_stm32h7xx.h"
+  80              		.file 7 "STM32_XPD/STM32H7_XPD/inc/xpd_flash.h"
+  81              		.file 8 "STM32_XPD/STM32H7_XPD/inc/xpd_exti.h"
+  82              		.file 9 "STM32_XPD/STM32H7_XPD/inc/xpd_rcc_cc.h"
+  83              		.file 10 "STM32_XPD/STM32H7_XPD/inc/xpd_utils.h"
+ARM GAS  /tmp/cckbUy5M.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 system_stm32h7xx.c
+     /tmp/cckbUy5M.s:18     .text.SystemInit:0000000000000000 $t
+     /tmp/cckbUy5M.s:27     .text.SystemInit:0000000000000000 SystemInit
+     /tmp/cckbUy5M.s:67     .text.SystemInit:0000000000000024 $d
+                            *COM*:0000000000000004 SystemCoreClock
+
+UNDEFINED SYMBOLS
+XPD_vDeinit
+RCC_vDeinit
+XPD_vInit
+g_pfnVectors
